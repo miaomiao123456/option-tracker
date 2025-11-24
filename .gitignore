@@ -1,0 +1,53 @@
+# 部署相关文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+
+# 环境变量（不要提交到Git）
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 爬取的数据（太大，不提交）
+交易可查/images/*.jpg
+交易可查/images/*.png
+方期看盘/data/*.json
+openvlab/data/*.json
+融达数据/data/*.json
+
+# Playwright浏览器缓存
+.playwright/
+ms-playwright/
