@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚实比分析 - OptionAlpha</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8e8e8;
+            margin-bottom: 20px;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .risk-high {
+            background: #fef0f0;
+            color: #f56c6c;
+            border: 1px solid #fde2e2;
+        }
+
+        .risk-medium {
+            background: #fef6ec;
+            color: #e6a23c;
+            border: 1px solid #faecd8;
+        }
+
+        .risk-low {
+            background: #f0f9ff;
+            color: #409eff;
+            border: 1px solid #d9ecff;
+        }
+
+        .risk-none {
+            background: #f0f9ff;
+            color: #67c23a;
+            border: 1px solid #e1f3d8;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .variety-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #e8e8e8;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .variety-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .variety-card.high-risk {
+            border-left-color: #f56c6c;
+        }
+
+        .variety-card.medium-risk {
+            border-left-color: #e6a23c;
+        }
+
+        .variety-card.low-risk {
+            border-left-color: #409eff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <el-button @click="goBack" size="small" icon="ArrowLeft">返回</el-button>
+                    <h1 class="text-2xl font-bold text-gray-800">📊 虚实比分析 - 期限结构</h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <el-date-picker v-model="selectedDate" type="date" placeholder="选择日期" size="small"
+                        @change="loadData" format="YYYY-MM-DD" value-format="YYYY-MM-DD">
+                    </el-date-picker>
+                    <el-button @click="loadData" :loading="loading" size="small" type="primary">
+                        🔄 刷新数据
+                    </el-button>
+                    <el-button @click="refreshAllData" :loading="refreshing" size="small" type="success">
+                        ⚡ 更新所有数据
+                    </el-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container mx-auto p-6 max-w-7xl">
+            <!-- Loading State -->
+            <div v-if="loading" class="text-center py-20">
+                <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+                <p class="text-gray-500 mt-4">加载中...</p>
+            </div>
+
+            <!-- Content -->
+            <div v-else>
+                <!-- 统计概览 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card">
+                        <div class="text-3xl font-bold">{{ summary.total_varieties }}</div>
+                        <div class="text-sm opacity-90 mt-2">总品种数</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="text-3xl font-bold">{{ summary.high_risk_count }}</div>
+                        <div class="text-sm opacity-90 mt-2">高风险品种</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <div class="text-3xl font-bold">{{ summary.medium_risk_count }}</div>
+                        <div class="text-sm opacity-90 mt-2">中风险品种</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="text-3xl font-bold">{{ summary.low_risk_count }}</div>
+                        <div class="text-sm opacity-90 mt-2">低风险品种</div>
+                    </div>
+                </div>
+
+                <!-- 高风险品种预警 -->
+                <div class="glass-card" v-if="summary.high_risk_varieties && summary.high_risk_varieties.length">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="text-2xl mr-2">🚨</span>
+                        高风险品种预警
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="variety in summary.high_risk_varieties" :key="variety.comm_code"
+                            class="variety-card high-risk" @click="viewDetail(variety.comm_code)">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800">
+                                        {{ variety.variety_name }} ({{ variety.comm_code }})
+                                    </h3>
+                                    <span class="risk-badge risk-high">高风险</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-red-500">
+                                        {{ variety.virtual_real_ratio }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">虚实比</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">{{ variety.impact }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 虚实比排行榜 -->
+                <div class="glass-card">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">📈 虚实比排行榜</h2>
+
+                    <!-- 筛选器 -->
+                    <div class="mb-4 flex space-x-4">
+                        <el-select v-model="filterRisk" placeholder="风险等级筛选" size="small" clearable
+                            @change="loadData">
+                            <el-option label="全部" value=""></el-option>
+                            <el-option label="高风险" value="高"></el-option>
+                            <el-option label="中风险" value="中"></el-option>
+                            <el-option label="低风险" value="低"></el-option>
+                            <el-option label="无风险" value="无"></el-option>
+                        </el-select>
+                    </div>
+
+                    <!-- 数据表格 -->
+                    <el-table :data="varietyList" stripe style="width: 100%">
+                        <el-table-column prop="variety_name" label="品种" width="120">
+                            <template #default="scope">
+                                <strong>{{ scope.row.variety_name }}</strong>
+                                <span class="text-gray-500 text-sm">({{ scope.row.comm_code }})</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="virtual_real_ratio" label="虚实比" width="120" sortable>
+                            <template #default="scope">
+                                <span class="text-lg font-bold"
+                                    :class="scope.row.virtual_real_ratio > 10 ? 'text-red-500' : 'text-gray-800'">
+                                    {{ scope.row.virtual_real_ratio.toFixed(2) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="squeeze_risk" label="逼仓风险" width="100">
+                            <template #default="scope">
+                                <span class="risk-badge"
+                                    :class="getRiskClass(scope.row.squeeze_risk)">
+                                    {{ scope.row.squeeze_risk }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="receipt_quantity" label="仓单量" width="120">
+                            <template #default="scope">
+                                {{ formatNumber(scope.row.receipt_quantity) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="open_interest" label="持仓量(手)" width="120">
+                            <template #default="scope">
+                                {{ formatNumber(scope.row.open_interest) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="price_pressure" label="价格压力" width="100">
+                            <template #default="scope">
+                                <el-tag :type="getPressureType(scope.row.price_pressure)" size="small">
+                                    {{ scope.row.price_pressure }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="impact_analysis" label="影响分析" min-width="300">
+                        </el-table-column>
+                        <el-table-column label="操作" width="150" fixed="right">
+                            <template #default="scope">
+                                <el-button size="small" type="primary" @click="viewDetail(scope.row.comm_code)">
+                                    查看详情
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <!-- 虚实比趋势图表 (如果选中了品种) -->
+                <div class="glass-card" v-if="selectedVariety">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">
+                        📊 {{ selectedVariety }} 虚实比趋势
+                        <el-button size="small" type="text" @click="selectedVariety = null">关闭</el-button>
+                    </h2>
+                    <div id="trendChart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 详情对话框 -->
+        <el-dialog v-model="detailDialogVisible" title="虚实比详情" width="800px">
+            <div v-if="detailData">
+                <el-descriptions :column="2" border>
+                    <el-descriptions-item label="品种">
+                        {{ detailData.variety_name }} ({{ detailData.comm_code }})
+                    </el-descriptions-item>
+                    <el-descriptions-item label="记录日期">
+                        {{ detailData.record_date }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="虚实比">
+                        <span class="text-xl font-bold text-red-500">
+                            {{ detailData.virtual_real_ratio.toFixed(2) }}
+                        </span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="逼仓风险">
+                        <span class="risk-badge" :class="getRiskClass(detailData.squeeze_risk)">
+                            {{ detailData.squeeze_risk }}
+                        </span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="仓单量">
+                        {{ formatNumber(detailData.receipt_quantity) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="仓单变化">
+                        <span :class="detailData.receipt_change > 0 ? 'text-green-500' : 'text-red-500'">
+                            {{ detailData.receipt_change > 0 ? '+' : '' }}{{ formatNumber(detailData.receipt_change) }}
+                        </span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="持仓量(手)">
+                        {{ formatNumber(detailData.open_interest) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="持仓变化">
+                        <span :class="detailData.open_interest_change > 0 ? 'text-green-500' : 'text-red-500'">
+                            {{ detailData.open_interest_change > 0 ? '+' : '' }}{{ formatNumber(detailData.open_interest_change) }}
+                        </span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="虚盘量">
+                        {{ formatNumber(detailData.virtual_quantity) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="合约单位">
+                        {{ detailData.contract_unit }} 千克/手
+                    </el-descriptions-item>
+                    <el-descriptions-item label="价格压力" span="2">
+                        <el-tag :type="getPressureType(detailData.price_pressure)">
+                            {{ detailData.price_pressure }}
+                        </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="影响分析" span="2">
+                        {{ detailData.impact_analysis }}
+                    </el-descriptions-item>
+                </el-descriptions>
+
+                <div class="mt-4">
+                    <el-button type="primary" @click="viewHistory(detailData.comm_code)">查看历史趋势</el-button>
+                </div>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, computed } = Vue;
+
+        const app = createApp({
+            setup() {
+                const loading = ref(false);
+                const refreshing = ref(false);
+                const selectedDate = ref(new Date().toISOString().split('T')[0]);
+                const filterRisk = ref('');
+                const summary = ref({
+                    total_varieties: 0,
+                    high_risk_count: 0,
+                    medium_risk_count: 0,
+                    low_risk_count: 0,
+                    high_risk_varieties: []
+                });
+                const varietyList = ref([]);
+                const selectedVariety = ref(null);
+                const detailDialogVisible = ref(false);
+                const detailData = ref(null);
+
+                // API Base URL
+                const API_BASE = window.location.hostname === 'localhost'
+                    ? 'http://localhost:8000/api/v1'
+                    : `${window.location.origin}/api/v1`;
+
+                // 加载数据
+                const loadData = async () => {
+                    loading.value = true;
+                    try {
+                        // 加载汇总数据
+                        const summaryRes = await fetch(
+                            `${API_BASE}/virtual-real-ratio/summary?query_date=${selectedDate.value}`
+                        );
+                        if (summaryRes.ok) {
+                            summary.value = await summaryRes.json();
+                        }
+
+                        // 加载列表数据
+                        let listUrl = `${API_BASE}/virtual-real-ratio/list?query_date=${selectedDate.value}`;
+                        if (filterRisk.value) {
+                            listUrl += `&risk_level=${filterRisk.value}`;
+                        }
+                        const listRes = await fetch(listUrl);
+                        if (listRes.ok) {
+                            varietyList.value = await listRes.json();
+                        }
+                    } catch (error) {
+                        console.error('加载数据失败:', error);
+                        ElementPlus.ElMessage.error('加载数据失败');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // 刷新所有数据
+                const refreshAllData = async () => {
+                    refreshing.value = true;
+                    try {
+                        const res = await fetch(`${API_BASE}/virtual-real-ratio/refresh`, {
+                            method: 'POST'
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                            ElementPlus.ElMessage.success(result.message);
+                            await loadData();
+                        } else {
+                            ElementPlus.ElMessage.error(result.message);
+                        }
+                    } catch (error) {
+                        ElementPlus.ElMessage.error('刷新数据失败');
+                    } finally {
+                        refreshing.value = false;
+                    }
+                };
+
+                // 查看详情
+                const viewDetail = async (commCode) => {
+                    try {
+                        const res = await fetch(
+                            `${API_BASE}/virtual-real-ratio/detail/${commCode}?query_date=${selectedDate.value}`
+                        );
+                        if (res.ok) {
+                            detailData.value = await res.json();
+                            detailDialogVisible.value = true;
+                        }
+                    } catch (error) {
+                        ElementPlus.ElMessage.error('加载详情失败');
+                    }
+                };
+
+                // 查看历史趋势
+                const viewHistory = async (commCode) => {
+                    selectedVariety.value = commCode;
+                    detailDialogVisible.value = false;
+
+                    try {
+                        const res = await fetch(`${API_BASE}/virtual-real-ratio/history/${commCode}?days=30`);
+                        const data = await res.json();
+
+                        if (data.success) {
+                            // 绘制图表
+                            setTimeout(() => {
+                                const chart = echarts.init(document.getElementById('trendChart'));
+                                const option = {
+                                    title: {
+                                        text: `${data.variety_name} 虚实比趋势 (近30天)`,
+                                        left: 'center'
+                                    },
+                                    tooltip: {
+                                        trigger: 'axis'
+                                    },
+                                    legend: {
+                                        data: ['虚实比', '仓单量', '持仓量'],
+                                        top: 30
+                                    },
+                                    grid: {
+                                        left: '3%',
+                                        right: '4%',
+                                        bottom: '3%',
+                                        containLabel: true
+                                    },
+                                    xAxis: {
+                                        type: 'category',
+                                        data: data.data.dates
+                                    },
+                                    yAxis: [
+                                        {
+                                            type: 'value',
+                                            name: '虚实比',
+                                            position: 'left'
+                                        },
+                                        {
+                                            type: 'value',
+                                            name: '数量',
+                                            position: 'right'
+                                        }
+                                    ],
+                                    series: [
+                                        {
+                                            name: '虚实比',
+                                            type: 'line',
+                                            data: data.data.virtual_real_ratios,
+                                            yAxisIndex: 0,
+                                            smooth: true,
+                                            itemStyle: { color: '#f56c6c' }
+                                        },
+                                        {
+                                            name: '仓单量',
+                                            type: 'line',
+                                            data: data.data.receipt_quantities,
+                                            yAxisIndex: 1,
+                                            smooth: true,
+                                            itemStyle: { color: '#409eff' }
+                                        },
+                                        {
+                                            name: '持仓量',
+                                            type: 'line',
+                                            data: data.data.open_interests,
+                                            yAxisIndex: 1,
+                                            smooth: true,
+                                            itemStyle: { color: '#67c23a' }
+                                        }
+                                    ]
+                                };
+                                chart.setOption(option);
+                            }, 100);
+                        }
+                    } catch (error) {
+                        ElementPlus.ElMessage.error('加载历史数据失败');
+                    }
+                };
+
+                // 工具函数
+                const getRiskClass = (risk) => {
+                    const map = {
+                        '高': 'risk-high',
+                        '中': 'risk-medium',
+                        '低': 'risk-low',
+                        '无': 'risk-none'
+                    };
+                    return map[risk] || 'risk-none';
+                };
+
+                const getPressureType = (pressure) => {
+                    const map = {
+                        '上涨': 'danger',
+                        '下跌': 'success',
+                        '中性': 'info'
+                    };
+                    return map[pressure] || 'info';
+                };
+
+                const formatNumber = (num) => {
+                    return num ? num.toLocaleString() : '0';
+                };
+
+                const goBack = () => {
+                    window.history.back();
+                };
+
+                onMounted(() => {
+                    loadData();
+                });
+
+                return {
+                    loading,
+                    refreshing,
+                    selectedDate,
+                    filterRisk,
+                    summary,
+                    varietyList,
+                    selectedVariety,
+                    detailDialogVisible,
+                    detailData,
+                    loadData,
+                    refreshAllData,
+                    viewDetail,
+                    viewHistory,
+                    getRiskClass,
+                    getPressureType,
+                    formatNumber,
+                    goBack
+                };
+            }
+        });
+
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+
+</html>
