@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>研报详情 - OptionAlpha</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8e8e8;
+            margin-bottom: 20px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, .1);
+            border-radius: 50%;
+            border-top-color: #409eff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .summary-section {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #409eff;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: #606266;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .summary-content {
+            color: #606266;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .report-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid #e8e8e8;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .report-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .report-item.bull {
+            border-left-color: #f56c6c;
+        }
+
+        .report-item.bear {
+            border-left-color: #67c23a;
+        }
+
+        .report-item.neutral {
+            border-left-color: #909399;
+        }
+
+        .institution-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .bull-tag {
+            background-color: #fef0f0;
+            color: #f56c6c;
+        }
+
+        .bear-tag {
+            background-color: #f0f9ff;
+            color: #67c23a;
+        }
+
+        .neutral-tag {
+            background-color: #f4f4f5;
+            color: #909399;
+        }
+
+        .sentiment-bar {
+            height: 24px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            border: 1px solid #e8e8e8;
+            background: #f5f7fa;
+        }
+
+        .sentiment-bar-bull {
+            background: linear-gradient(90deg, #f56c6c, #f78989);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .sentiment-bar-neutral {
+            background: linear-gradient(90deg, #909399, #a6a9ad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .sentiment-bar-bear {
+            background: linear-gradient(90deg, #67c23a, #85ce61);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .sentiment-bar > div:hover {
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <el-button @click="goBack" size="small" icon="ArrowLeft">返回</el-button>
+                    <h1 class="text-2xl font-bold text-gray-800" v-if="varietyInfo">
+                        📊 {{ varietyInfo.variety_name }} ({{ varietyInfo.comm_code }}) 研报详情
+                    </h1>
+                    <h1 class="text-2xl font-bold text-gray-800" v-else>📊 研报详情</h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <el-date-picker v-model="selectedDate" type="date" placeholder="选择日期" size="small"
+                        @change="loadData" format="YYYY-MM-DD" value-format="YYYY-MM-DD">
+                    </el-date-picker>
+                    <el-button @click="loadData" :loading="loading" size="small">
+                        🔄 刷新
+                    </el-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container mx-auto p-6 max-w-7xl">
+            <!-- Loading State -->
+            <div v-if="loading" class="text-center py-20">
+                <div class="loading-spinner mx-auto"></div>
+                <p class="text-gray-500 mt-4">加载中...</p>
+            </div>
+
+            <!-- Content -->
+            <div v-else-if="varietyInfo">
+                <!-- 品种信息概览 -->
+                <div class="glass-card">
+                    <div class="mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-3">
+                            {{ varietyInfo.variety_name }} ({{ varietyInfo.comm_code }})
+                        </h2>
+                        <p class="text-gray-600 mb-4">
+                            研报日期: {{ selectedDate }} | 共 {{ varietyInfo.reports_count }} 份研报
+                        </p>
+
+                        <!-- 情绪分布条 -->
+                        <div v-if="varietyInfo.reports && varietyInfo.reports.length">
+                            <div class="text-sm text-gray-600 mb-2">机构情绪分布</div>
+                            <div class="sentiment-bar">
+                                <div class="sentiment-bar-bull"
+                                     :style="{width: sentimentStats.bull.ratio + '%'}"
+                                     v-if="sentimentStats.bull.count > 0">
+                                    看多 {{ sentimentStats.bull.count }}家 ({{ sentimentStats.bull.ratio.toFixed(0) }}%)
+                                </div>
+                                <div class="sentiment-bar-neutral"
+                                     :style="{width: sentimentStats.neutral.ratio + '%'}"
+                                     v-if="sentimentStats.neutral.count > 0">
+                                    中性 {{ sentimentStats.neutral.count }}家 ({{ sentimentStats.neutral.ratio.toFixed(0) }}%)
+                                </div>
+                                <div class="sentiment-bar-bear"
+                                     :style="{width: sentimentStats.bear.ratio + '%'}"
+                                     v-if="sentimentStats.bear.count > 0">
+                                    看空 {{ sentimentStats.bear.count }}家 ({{ sentimentStats.bear.ratio.toFixed(0) }}%)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI汇总 -->
+                <div class="glass-card" v-if="varietyInfo.summary">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">🤖 AI智能汇总</h2>
+
+                    <!-- 交易逻辑 -->
+                    <div class="summary-section">
+                        <div class="summary-label flex items-center">
+                            <span class="text-lg mr-2">💡</span>
+                            <span>交易逻辑汇总</span>
+                        </div>
+                        <div class="summary-content">{{ varietyInfo.summary.trade_logic || '暂无数据' }}</div>
+                    </div>
+
+                    <!-- 相关数据 -->
+                    <div class="summary-section">
+                        <div class="summary-label flex items-center">
+                            <span class="text-lg mr-2">📊</span>
+                            <span>相关数据汇总</span>
+                        </div>
+                        <div class="summary-content">{{ varietyInfo.summary.related_data || '暂无数据' }}</div>
+                    </div>
+
+                    <!-- 风险因素 -->
+                    <div class="summary-section">
+                        <div class="summary-label flex items-center">
+                            <span class="text-lg mr-2">⚠️</span>
+                            <span>风险因素汇总</span>
+                        </div>
+                        <div class="summary-content">{{ varietyInfo.summary.risk_factor || '暂无数据' }}</div>
+                    </div>
+                </div>
+
+                <!-- 各机构研报详情 -->
+                <div class="glass-card">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">📝 各机构研报详情</h2>
+
+                    <div v-if="reportDetails && reportDetails.length">
+                        <!-- Tab分类 -->
+                        <el-tabs v-model="activeTab" type="border-card">
+                            <el-tab-pane :label="`🔥 看多 (${sentimentStats.bull.count})`" name="bull">
+                                <div v-if="bullReports.length" class="space-y-4">
+                                    <div v-for="(report, index) in bullReports" :key="index"
+                                        class="report-item bull">
+                                        <!-- 研报头部 -->
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 class="text-lg font-bold text-gray-800 mb-2">
+                                                    <span class="institution-tag bull-tag">
+                                                        {{ report.institution_name }}
+                                                    </span>
+                                                </h3>
+                                                <p class="text-sm text-gray-500">
+                                                    发布日期: {{ report.publish_date }} | 观点: {{ report.view_port }}
+                                                </p>
+                                            </div>
+                                            <a v-if="report.report_link" :href="report.report_link" target="_blank"
+                                                class="text-blue-500 hover:text-blue-700">
+                                                <el-button size="small" type="primary">查看原文</el-button>
+                                            </a>
+                                        </div>
+
+                                        <!-- 交易逻辑 -->
+                                        <div class="mb-3" v-if="report.trade_logic">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">💡 交易逻辑:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.trade_logic }}</div>
+                                        </div>
+
+                                        <!-- 相关数据 -->
+                                        <div class="mb-3" v-if="report.related_data">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">📊 相关数据:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.related_data }}</div>
+                                        </div>
+
+                                        <!-- 风险因素 -->
+                                        <div v-if="report.risk_factor">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">⚠️ 风险因素:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.risk_factor }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <el-empty v-else description="暂无看多研报" :image-size="80"></el-empty>
+                            </el-tab-pane>
+
+                            <el-tab-pane :label="`❄️ 看空 (${sentimentStats.bear.count})`" name="bear">
+                                <div v-if="bearReports.length" class="space-y-4">
+                                    <div v-for="(report, index) in bearReports" :key="index"
+                                        class="report-item bear">
+                                        <!-- 研报头部 -->
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 class="text-lg font-bold text-gray-800 mb-2">
+                                                    <span class="institution-tag bear-tag">
+                                                        {{ report.institution_name }}
+                                                    </span>
+                                                </h3>
+                                                <p class="text-sm text-gray-500">
+                                                    发布日期: {{ report.publish_date }} | 观点: {{ report.view_port }}
+                                                </p>
+                                            </div>
+                                            <a v-if="report.report_link" :href="report.report_link" target="_blank"
+                                                class="text-blue-500 hover:text-blue-700">
+                                                <el-button size="small" type="primary">查看原文</el-button>
+                                            </a>
+                                        </div>
+
+                                        <!-- 交易逻辑 -->
+                                        <div class="mb-3" v-if="report.trade_logic">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">💡 交易逻辑:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.trade_logic }}</div>
+                                        </div>
+
+                                        <!-- 相关数据 -->
+                                        <div class="mb-3" v-if="report.related_data">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">📊 相关数据:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.related_data }}</div>
+                                        </div>
+
+                                        <!-- 风险因素 -->
+                                        <div v-if="report.risk_factor">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">⚠️ 风险因素:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.risk_factor }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <el-empty v-else description="暂无看空研报" :image-size="80"></el-empty>
+                            </el-tab-pane>
+
+                            <el-tab-pane :label="`⚖️ 中性 (${sentimentStats.neutral.count})`" name="neutral">
+                                <div v-if="neutralReports.length" class="space-y-4">
+                                    <div v-for="(report, index) in neutralReports" :key="index"
+                                        class="report-item neutral">
+                                        <!-- 研报头部 -->
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 class="text-lg font-bold text-gray-800 mb-2">
+                                                    <span class="institution-tag neutral-tag">
+                                                        {{ report.institution_name }}
+                                                    </span>
+                                                </h3>
+                                                <p class="text-sm text-gray-500">
+                                                    发布日期: {{ report.publish_date }} | 观点: {{ report.view_port }}
+                                                </p>
+                                            </div>
+                                            <a v-if="report.report_link" :href="report.report_link" target="_blank"
+                                                class="text-blue-500 hover:text-blue-700">
+                                                <el-button size="small" type="primary">查看原文</el-button>
+                                            </a>
+                                        </div>
+
+                                        <!-- 交易逻辑 -->
+                                        <div class="mb-3" v-if="report.trade_logic">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">💡 交易逻辑:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.trade_logic }}</div>
+                                        </div>
+
+                                        <!-- 相关数据 -->
+                                        <div class="mb-3" v-if="report.related_data">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">📊 相关数据:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.related_data }}</div>
+                                        </div>
+
+                                        <!-- 风险因素 -->
+                                        <div v-if="report.risk_factor">
+                                            <div class="text-sm font-semibold text-gray-700 mb-1">⚠️ 风险因素:</div>
+                                            <div class="text-sm text-gray-600 leading-relaxed">{{ report.risk_factor }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <el-empty v-else description="暂无中性研报" :image-size="80"></el-empty>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </div>
+
+                    <el-empty v-else description="暂无研报数据" :image-size="100"></el-empty>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div v-else class="text-center py-20">
+                <el-empty description="无法加载研报数据" :image-size="100"></el-empty>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, computed } = Vue;
+
+        const app = createApp({
+            setup() {
+                const loading = ref(false);
+                const selectedDate = ref(new Date().toISOString().split('T')[0]);
+                const varietyCode = ref('');
+                const varietyInfo = ref(null);
+                const reportDetails = ref([]);
+                const activeTab = ref('bull'); // 默认显示看多Tab
+
+                // 计算属性
+                const sentimentStats = computed(() => {
+                    if (!reportDetails.value.length) {
+                        return {
+                            bull: { count: 0, ratio: 0 },
+                            neutral: { count: 0, ratio: 0 },
+                            bear: { count: 0, ratio: 0 }
+                        };
+                    }
+
+                    const total = reportDetails.value.length;
+                    const bullCount = reportDetails.value.filter(r => r.sentiment === 'bull').length;
+                    const neutralCount = reportDetails.value.filter(r => r.sentiment === 'neutral').length;
+                    const bearCount = reportDetails.value.filter(r => r.sentiment === 'bear').length;
+
+                    return {
+                        bull: {
+                            count: bullCount,
+                            ratio: total > 0 ? (bullCount / total * 100) : 0
+                        },
+                        neutral: {
+                            count: neutralCount,
+                            ratio: total > 0 ? (neutralCount / total * 100) : 0
+                        },
+                        bear: {
+                            count: bearCount,
+                            ratio: total > 0 ? (bearCount / total * 100) : 0
+                        }
+                    };
+                });
+
+                // 分类后的研报
+                const bullReports = computed(() => {
+                    return reportDetails.value.filter(r => r.sentiment === 'bull');
+                });
+
+                const bearReports = computed(() => {
+                    return reportDetails.value.filter(r => r.sentiment === 'bear');
+                });
+
+                const neutralReports = computed(() => {
+                    return reportDetails.value.filter(r => r.sentiment === 'neutral');
+                });
+
+                // API Base URL
+                const API_BASE = window.location.hostname === 'localhost'
+                    ? 'http://localhost:8000/api/v1'
+                    : `${window.location.origin}/api/v1`;
+
+                // Get URL parameters
+                const getUrlParams = () => {
+                    const params = new URLSearchParams(window.location.search);
+                    const code = params.get('code');
+                    const date = params.get('date');
+
+                    if (code) varietyCode.value = code;
+                    if (date) selectedDate.value = date;
+                };
+
+                // Load research summary data
+                const loadData = async () => {
+                    if (!varietyCode.value) {
+                        console.error('缺少品种代码参数');
+                        return;
+                    }
+
+                    loading.value = true;
+                    try {
+                        // Load research summary
+                        const summaryRes = await fetch(
+                            `${API_BASE}/zhihui/research-summary?comm_code=${varietyCode.value}&query_date=${selectedDate.value}`
+                        );
+                        if (summaryRes.ok) {
+                            varietyInfo.value = await summaryRes.json();
+                        }
+
+                        // Load all research reports
+                        const reportsRes = await fetch(
+                            `${API_BASE}/zhihui/research-reports?query_date=${selectedDate.value}`
+                        );
+                        if (reportsRes.ok) {
+                            const reportsData = await reportsRes.json();
+                            if (reportsData.success) {
+                                // Filter reports for this variety
+                                reportDetails.value = reportsData.data.filter(
+                                    r => r.comm_code === varietyCode.value
+                                );
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载研报数据失败:', error);
+                        ElementPlus.ElMessage.error('加载研报数据失败');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // Get sentiment type for tags
+                const getSentimentType = (sentiment) => {
+                    const map = {
+                        'bull': 'danger',
+                        'bear': 'success',
+                        'neutral': 'info'
+                    };
+                    return map[sentiment] || 'info';
+                };
+
+                // Get sentiment class
+                const getSentimentClass = (sentiment) => {
+                    const map = {
+                        'bull': 'bull-tag',
+                        'bear': 'bear-tag',
+                        'neutral': 'neutral-tag'
+                    };
+                    return map[sentiment] || 'neutral-tag';
+                };
+
+                // Go back
+                const goBack = () => {
+                    window.history.back();
+                };
+
+                onMounted(() => {
+                    getUrlParams();
+                    loadData();
+                });
+
+                return {
+                    loading,
+                    selectedDate,
+                    varietyCode,
+                    varietyInfo,
+                    reportDetails,
+                    activeTab,
+                    sentimentStats,
+                    bullReports,
+                    bearReports,
+                    neutralReports,
+                    loadData,
+                    getSentimentType,
+                    getSentimentClass,
+                    goBack
+                };
+            }
+        });
+
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+
+</html>

@@ -92,16 +92,16 @@ async def get_top_movers(
             MarketAnalysisSummary.message_score
     ).label('total_score')
 
-    # 做多品种（总分最高）
+    # 做多品种（总分最高，且大于0）
     long_list = db.query(MarketAnalysisSummary).filter(
         MarketAnalysisSummary.date == target_date,
-        MarketAnalysisSummary.total_direction == DirectionEnum.LONG
+        total_score_expr > 0
     ).order_by(desc(total_score_expr)).limit(limit).all()
 
-    # 做空品种（总分最低/负分最多）
+    # 做空品种（总分最低，且小于0）
     short_list = db.query(MarketAnalysisSummary).filter(
         MarketAnalysisSummary.date == target_date,
-        MarketAnalysisSummary.total_direction == DirectionEnum.SHORT
+        total_score_expr < 0
     ).order_by(total_score_expr).limit(limit).all()
 
     return TopMovers(

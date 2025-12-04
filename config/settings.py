@@ -15,10 +15,16 @@ class Settings(BaseSettings):
     # 账号配置
     JYK_USER: str
     JYK_PASS: str
+    ZHIHUI_USER: str = ""
+    ZHIHUI_PASS: str = ""
+    ZHIHUI_AUTH_TOKEN: str = ""  # 智汇期讯 Authorization Token
 
     # API Keys
     GEMINI_API_KEY: str
     GEMINI_BASE_URL: str = "https://www.apillm.online/v1"
+
+    # 飞书告警配置
+    FEISHU_WEBHOOK: str = ""  # 飞书机器人 Webhook URL
 
     # 项目配置
     DEBUG: bool = True

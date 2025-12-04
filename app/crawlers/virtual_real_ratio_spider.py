@@ -111,47 +111,50 @@ class VirtualRealRatioSpider:
     ) -> Dict:
         """
         计算虚实比和影响分析
+
+        虚实比定义: 衡量期货市场持仓量与可交割实物库存的比例关系
+        标准公式: 虚实比 = 持仓量(手) ÷ 仓单量
+
         Args:
-            receipt_qty: 仓单量(库存)
-            open_interest: 持仓量(手)
-            contract_unit: 合约单位(千克/手)
+            receipt_qty: 仓单量(库存) - 可交割的实物数量
+            open_interest: 持仓量(手) - 期货市场的合约持仓手数
+            contract_unit: 合约单位(千克/手) - 暂不使用,保留用于未来扩展
         Returns:
             {
-                virtual_qty: 虚盘量,
+                virtual_qty: 虚盘量(即持仓量),
                 ratio: 虚实比,
                 squeeze_risk: 逼仓风险,
                 impact: 影响分析,
                 price_pressure: 价格压力
             }
         """
-        # 虚盘量 = 持仓量 * 合约单位 / 2
-        virtual_qty = (open_interest * contract_unit) / 2
+        # 虚实比 = 持仓量 / 仓单量 (业界标准公式)
+        virtual_qty = open_interest  # 虚盘量直接等于持仓量(手)
 
-        # 虚实比 = 虚盘量 / 仓单量
         if receipt_qty == 0:
             ratio = 0
             squeeze_risk = "无"
             impact = "仓单为0,无法计算虚实比"
             price_pressure = "中性"
         else:
-            ratio = virtual_qty / receipt_qty
+            ratio = open_interest / receipt_qty
 
-            # 判断逼仓风险
-            if ratio > 10:
+            # 判断逼仓风险 (根据虚实比阈值)
+            if ratio > 100:
                 squeeze_risk = "高"
-                impact = f"虚实比高达{ratio:.2f},虚盘量远超实物库存,存在较高逼仓风险。买方可能推高价格。"
+                impact = f"虚实比高达{ratio:.2f},持仓量是仓单的{ratio:.0f}倍,存在极高逼仓风险。空头难以交割,买方可能推高价格。"
                 price_pressure = "上涨"
-            elif ratio > 5:
+            elif ratio > 50:
                 squeeze_risk = "中"
-                impact = f"虚实比为{ratio:.2f},虚盘量明显高于实物库存,存在一定逼仓风险。关注多空力量变化。"
+                impact = f"虚实比为{ratio:.2f},持仓量明显高于仓单,存在一定逼仓风险。关注仓单变化和交割压力。"
                 price_pressure = "上涨"
-            elif ratio > 2:
+            elif ratio > 20:
                 squeeze_risk = "低"
-                impact = f"虚实比为{ratio:.2f},市场相对平衡,逼仓风险较低。"
+                impact = f"虚实比为{ratio:.2f},市场相对平衡,短期逼仓风险较低。"
                 price_pressure = "中性"
             else:
                 squeeze_risk = "无"
-                impact = f"虚实比为{ratio:.2f},实物库存充足,无逼仓风险。可能对价格形成压制。"
+                impact = f"虚实比为{ratio:.2f},可交割库存充足,无逼仓风险。实物供应充裕可能对价格形成压制。"
                 price_pressure = "下跌"
 
         return {

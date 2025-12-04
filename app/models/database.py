@@ -1,8 +1,8 @@
 """数据库连接管理"""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from app.models.base import Base
 from config.settings import get_settings
-from app.models.models import Base
 
 settings = get_settings()
 
@@ -19,6 +19,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     """初始化数据库,创建所有表"""
+    # 导入所有模型以确保它们被注册到Base.metadata
+    from app.models import models  # 导入原有业务模型
+    from app.models import data_governance  # 导入数据治理模型
+
     Base.metadata.create_all(bind=engine)
     print("数据库表创建成功!")
 

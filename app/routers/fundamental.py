@@ -6,10 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.models.database import get_db
-from app.models.models import FundamentalReport
-from typing import List, Optional
+from app.models.models import FundamentalReport, Commodity
+from typing import List, Optional, Dict
 from pydantic import BaseModel
 from datetime import date, datetime
+import json
+from pathlib import Path
 
 router = APIRouter()
 
@@ -147,3 +149,124 @@ async def get_sentiment_analysis(
         "bear_ratio": round(bear_ratio * 100, 2),
         "sample_size": total
     }
+
+
+class ZhihuiSentiment(BaseModel):
+    """智汇期讯市场情绪数据"""
+    variety_code: str
+    variety_name: str
+    excessive_ratio: float  # 看多占比%
+    neutral_ratio: float    # 中性占比%
+    empty_ratio: float      # 看空占比%
+    excessive_num: int      # 看多数量
+    neutral_num: int        # 中性数量
+    empty_num: int          # 看空数量
+    sum: int                # 总数
+    more_port: str          # 主流观点
+    more_rate: float        # 主流观点比例
+    main_sentiment: str     # 情绪标签
+    record_time: str
+
+
+@router.get("/zhihui/market-sentiment", response_model=List[ZhihuiSentiment])
+async def get_zhihui_market_sentiment(
+        target_date: Optional[str] = None,
+        sentiment_filter: Optional[str] = None
+):
+    """
+    获取智汇期讯市场情绪数据（多空全景）
+
+    Args:
+        target_date: 目标日期 (格式: YYYYMMDD)，默认为今天
+        sentiment_filter: 情绪过滤 ('bull', 'bear', 'neutral')，默认返回全部
+    """
+    if target_date is None:
+        target_date = date.today().strftime('%Y%m%d')
+
+    # 读取智汇期讯数据文件
+    data_dir = Path(__file__).parent.parent.parent / "智汇期讯" / "data"
+    filename = f"{target_date}_多空全景.json"
+    filepath = data_dir / filename
+
+    if not filepath.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"未找到日期 {target_date} 的智汇期讯数据"
+        )
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # 如果有情绪过滤
+        if sentiment_filter:
+            data = [item for item in data if item['main_sentiment'] == sentiment_filter]
+
+        return data
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"读取数据失败: {str(e)}"
+        )
+
+
+@router.get("/zhihui/sentiment-stats")
+async def get_zhihui_sentiment_stats(target_date: Optional[str] = None):
+    """
+    获取智汇期讯市场情绪统计
+
+    返回看多、看空、中性的品种数量和比例
+    """
+    if target_date is None:
+        target_date = date.today().strftime('%Y%m%d')
+
+    data_dir = Path(__file__).parent.parent.parent / "智汇期讯" / "data"
+    filename = f"{target_date}_多空全景.json"
+    filepath = data_dir / filename
+
+    if not filepath.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"未找到日期 {target_date} 的智汇期讯数据"
+        )
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        total = len(data)
+        bull_count = sum(1 for item in data if item['main_sentiment'] == 'bull')
+        bear_count = sum(1 for item in data if item['main_sentiment'] == 'bear')
+        neutral_count = sum(1 for item in data if item['main_sentiment'] == 'neutral')
+
+        # 找出最看多和最看空的品种
+        sorted_by_bull = sorted(data, key=lambda x: x['excessive_ratio'], reverse=True)
+        sorted_by_bear = sorted(data, key=lambda x: x['empty_ratio'], reverse=True)
+
+        return {
+            "date": target_date,
+            "total_varieties": total,
+            "sentiment_distribution": {
+                "bull": {"count": bull_count, "ratio": round(bull_count / total * 100, 2) if total > 0 else 0},
+                "bear": {"count": bear_count, "ratio": round(bear_count / total * 100, 2) if total > 0 else 0},
+                "neutral": {"count": neutral_count, "ratio": round(neutral_count / total * 100, 2) if total > 0 else 0}
+            },
+            "top_bullish": sorted_by_bull[:5],
+            "top_bearish": sorted_by_bear[:5]
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"读取数据失败: {str(e)}"
+        )
+
+
+@router.get("/commodities/mapping", response_model=Dict[str, str])
+async def get_commodity_mapping(db: Session = Depends(get_db)):
+    """
+    获取品种代码到名称的映射
+
+    返回: {"AG": "沪银", "CU": "沪铜", ...}
+    """
+    commodities = db.query(Commodity).all()
+    return {c.code: c.name for c in commodities}

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据治理监控 - OptionAlpha</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8e8e8;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid #2c3e50;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .source-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #409eff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .source-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .source-card.healthy {
+            border-left-color: #67c23a;
+        }
+
+        .source-card.warning {
+            border-left-color: #e6a23c;
+        }
+
+        .source-card.error {
+            border-left-color: #f56c6c;
+        }
+
+        .timeline-item {
+            padding: 12px;
+            border-left: 2px solid #e8e8e8;
+            margin-left: 10px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 16px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #409eff;
+        }
+
+        .timeline-item.success::before {
+            background: #67c23a;
+        }
+
+        .timeline-item.error::before {
+            background: #f56c6c;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, .1);
+            border-radius: 50%;
+            border-top-color: #409eff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .header-simple {
+            background: white;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 16px 24px;
+        }
+
+        .quality-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .quality-excellent {
+            background: #f0f9ff;
+            color: #0284c7;
+        }
+
+        .quality-good {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .quality-fair {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .quality-poor {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="header-simple">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-gray-800">📊 数据治理监控</h1>
+                    <el-tag type="success" v-if="systemHealth === 'healthy'">系统正常</el-tag>
+                    <el-tag type="warning" v-else-if="systemHealth === 'warning'">有警告</el-tag>
+                    <el-tag type="danger" v-else>系统异常</el-tag>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <el-button @click="refreshData" :loading="loading" size="small">
+                        <span v-if="!loading">🔄 刷新</span>
+                    </el-button>
+                    <el-button @click="navigateToHome" type="primary" size="small">
+                        🏠 返回主页
+                    </el-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container mx-auto p-6">
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="stat-card">
+                    <div class="text-gray-500 text-sm mb-2">数据源总数</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ statistics.total_sources }}</div>
+                    <div class="text-xs text-gray-400 mt-2">
+                        健康: {{ statistics.healthy_sources }} | 警告: {{ statistics.warning_sources }}
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-gray-500 text-sm mb-2">今日采集次数</div>
+                    <div class="text-3xl font-bold text-blue-600">{{ statistics.today_collections }}</div>
+                    <div class="text-xs text-gray-400 mt-2">
+                        成功率: {{ statistics.success_rate }}%
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-gray-500 text-sm mb-2">数据质量分数</div>
+                    <div class="text-3xl font-bold text-green-600">{{ statistics.avg_quality }}</div>
+                    <div class="text-xs text-gray-400 mt-2">
+                        平均质量得分
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-gray-500 text-sm mb-2">告警数量</div>
+                    <div class="text-3xl font-bold text-red-600">{{ statistics.alert_count }}</div>
+                    <div class="text-xs text-gray-400 mt-2">
+                        最近24小时
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <el-tabs v-model="activeTab" type="border-card">
+                <!-- 数据源健康监控 -->
+                <el-tab-pane label="📡 数据源监控" name="sources">
+                    <div class="glass-card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold">数据源健康状态</h3>
+                            <el-select v-model="sourceFilter" placeholder="筛选类型" size="small" style="width: 150px">
+                                <el-option label="全部" value="all"></el-option>
+                                <el-option label="API" value="api"></el-option>
+                                <el-option label="爬虫" value="spider"></el-option>
+                                <el-option label="服务" value="service"></el-option>
+                                <el-option label="文件" value="file"></el-option>
+                            </el-select>
+                        </div>
+                        <div v-if="loading" class="text-center py-10">
+                            <div class="loading-spinner"></div>
+                            <p class="text-gray-500 mt-2">加载中...</p>
+                        </div>
+                        <div v-else>
+                            <div v-for="source in filteredSources" :key="source.id"
+                                :class="['source-card', source.health_status]">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <h4 class="font-bold text-gray-800">{{ source.source_name }}</h4>
+                                            <el-tag size="small" :type="source.source_type">{{ source.source_type }}
+                                            </el-tag>
+                                            <el-tag size="small" :type="getHealthType(source.health_status)">
+                                                {{ getHealthLabel(source.health_status) }}
+                                            </el-tag>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-2">{{ source.description }}</p>
+                                        <div class="grid grid-cols-3 gap-4 text-sm">
+                                            <div>
+                                                <span class="text-gray-500">最近采集:</span>
+                                                <span class="font-medium">{{ formatTime(source.last_collect_time) }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">成功率:</span>
+                                                <span class="font-medium">-</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">记录数:</span>
+                                                <span class="font-medium">{{ source.last_record_count || 0 }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <el-button size="small" @click="viewSourceDetails(source)">详情</el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </el-tab-pane>
+
+                <!-- 采集日志 -->
+                <el-tab-pane label="📝 采集日志" name="logs">
+                    <div class="glass-card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold">最近采集日志</h3>
+                            <div class="flex space-x-2">
+                                <el-select v-model="logStatusFilter" placeholder="状态筛选" size="small"
+                                    style="width: 120px">
+                                    <el-option label="全部" value="all"></el-option>
+                                    <el-option label="成功" value="success"></el-option>
+                                    <el-option label="失败" value="failed"></el-option>
+                                </el-select>
+                                <el-input v-model="logSearchText" placeholder="搜索数据源" size="small"
+                                    style="width: 200px" clearable></el-input>
+                            </div>
+                        </div>
+                        <div class="overflow-auto" style="max-height: 600px;">
+                            <div v-for="log in filteredLogs" :key="log.id"
+                                :class="['timeline-item', log.status]">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-1">
+                                            <span class="font-bold">{{ log.source_name }}</span>
+                                            <el-tag size="small" :type="log.status === 'success' ? 'success' : 'danger'">
+                                                {{ log.status === 'success' ? '成功' : '失败' }}
+                                            </el-tag>
+                                            <span v-if="log.quality_score"
+                                                :class="['quality-badge', getQualityClass(log.quality_score)]">
+                                                质量: {{ log.quality_score }}
+                                            </span>
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            <span>采集时间: {{ formatTime(log.collect_time) }}</span>
+                                            <span class="mx-2">|</span>
+                                            <span>耗时: {{ log.duration_seconds }}s</span>
+                                            <span class="mx-2">|</span>
+                                            <span>记录数: {{ log.records_collected || 0 }}</span>
+                                        </div>
+                                        <div v-if="log.error_message" class="mt-2 text-sm text-red-600">
+                                            错误: {{ log.error_message }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </el-tab-pane>
+
+                <!-- 数据质量趋势 -->
+                <el-tab-pane label="📈 质量趋势" name="quality">
+                    <div class="glass-card">
+                        <h3 class="text-lg font-bold mb-4">数据质量趋势图</h3>
+                        <div id="qualityChart" class="chart-container"></div>
+                    </div>
+                    <div class="glass-card mt-4">
+                        <h3 class="text-lg font-bold mb-4">采集成功率趋势</h3>
+                        <div id="successRateChart" class="chart-container"></div>
+                    </div>
+                </el-tab-pane>
+
+                <!-- 告警记录 -->
+                <el-tab-pane label="🔔 告警记录" name="alerts">
+                    <div class="glass-card">
+                        <h3 class="text-lg font-bold mb-4">最近告警记录</h3>
+                        <el-table :data="recentAlerts" style="width: 100%">
+                            <el-table-column prop="source_name" label="数据源" width="200"></el-table-column>
+                            <el-table-column prop="error_message" label="错误信息"></el-table-column>
+                            <el-table-column prop="collect_time" label="时间" width="180">
+                                <template #default="scope">
+                                    {{ formatTime(scope.row.collect_time) }}
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </el-tab-pane>
+
+                <!-- 备份状态 -->
+                <el-tab-pane label="💾 备份状态" name="backup">
+                    <div class="glass-card">
+                        <h3 class="text-lg font-bold mb-4">数据库备份状态</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="stat-card">
+                                <div class="text-gray-500 text-sm mb-2">小时级备份</div>
+                                <div class="text-2xl font-bold text-blue-600">24 个</div>
+                                <div class="text-xs text-gray-400 mt-2">保留最近 24 小时</div>
+                                <div class="text-xs text-green-600 mt-1">✓ 自动备份已启用</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-gray-500 text-sm mb-2">天级备份</div>
+                                <div class="text-2xl font-bold text-green-600">30 个</div>
+                                <div class="text-xs text-gray-400 mt-2">保留最近 30 天</div>
+                                <div class="text-xs text-green-600 mt-1">✓ 每天 03:00 自动执行</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-gray-500 text-sm mb-2">周级备份</div>
+                                <div class="text-2xl font-bold text-purple-600">12 个</div>
+                                <div class="text-xs text-gray-400 mt-2">保留最近 12 周</div>
+                                <div class="text-xs text-green-600 mt-1">✓ 每周日 03:00 自动执行</div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <h4 class="font-bold mb-3">备份任务调度</h4>
+                            <el-table :data="backupSchedule" style="width: 100%">
+                                <el-table-column prop="name" label="任务名称"></el-table-column>
+                                <el-table-column prop="schedule" label="执行计划"></el-table-column>
+                                <el-table-column prop="next_run" label="下次执行"></el-table-column>
+                                <el-table-column prop="status" label="状态" width="100">
+                                    <template #default="scope">
+                                        <el-tag :type="scope.row.status === '运行中' ? 'success' : 'info'">
+                                            {{ scope.row.status }}
+                                        </el-tag>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
+        </div>
+
+        <!-- Source Details Dialog -->
+        <el-dialog v-model="sourceDialogVisible" title="数据源详情" width="70%">
+            <div v-if="selectedSource">
+                <el-descriptions :column="2" border>
+                    <el-descriptions-item label="数据源名称">{{ selectedSource.source_name }}</el-descriptions-item>
+                    <el-descriptions-item label="类型">{{ selectedSource.source_type }}</el-descriptions-item>
+                    <el-descriptions-item label="健康状态">
+                        <el-tag :type="getHealthType(selectedSource.health_status)">
+                            {{ getHealthLabel(selectedSource.health_status) }}
+                        </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="激活状态">
+                        <el-tag :type="selectedSource.is_active ? 'success' : 'info'">
+                            {{ selectedSource.is_active ? '已激活' : '已禁用' }}
+                        </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="最近采集">{{ formatTime(selectedSource.last_collect_time) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="最近状态">
+                        <el-tag :type="selectedSource.last_collect_status === 'success' ? 'success' : 'danger'">
+                            {{ selectedSource.last_collect_status === 'success' ? '成功' : '失败' }}
+                        </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="描述" :span="2">{{ selectedSource.description }}
+                    </el-descriptions-item>
+                </el-descriptions>
+                <div class="mt-4">
+                    <h4 class="font-bold mb-2">最近10次采集记录</h4>
+                    <el-table :data="sourceDetailLogs" style="width: 100%">
+                        <el-table-column prop="collect_time" label="时间" width="180">
+                            <template #default="scope">
+                                {{ formatTime(scope.row.collect_time) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="status" label="状态" width="100">
+                            <template #default="scope">
+                                <el-tag :type="scope.row.status === 'success' ? 'success' : 'danger'">
+                                    {{ scope.row.status === 'success' ? '成功' : '失败' }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="records_collected" label="记录数" width="100"></el-table-column>
+                        <el-table-column prop="duration_seconds" label="耗时(秒)" width="100"></el-table-column>
+                        <el-table-column prop="quality_score" label="质量分" width="100"></el-table-column>
+                        <el-table-column prop="error_message" label="错误信息"></el-table-column>
+                    </el-table>
+                </div>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const API_BASE = 'http://localhost:8000/api/v1';
+
+        createApp({
+            data() {
+                return {
+                    loading: false,
+                    activeTab: 'sources',
+                    systemHealth: 'healthy',
+                    statistics: {
+                        total_sources: 0,
+                        healthy_sources: 0,
+                        warning_sources: 0,
+                        today_collections: 0,
+                        success_rate: 0,
+                        avg_quality: 0,
+                        alert_count: 0
+                    },
+                    dataSources: [],
+                    collectionLogs: [],
+                    sourceFilter: 'all',
+                    logStatusFilter: 'all',
+                    logSearchText: '',
+                    sourceDialogVisible: false,
+                    selectedSource: null,
+                    sourceDetailLogs: [],
+                    recentAlerts: [],
+                    backupSchedule: [
+                        { name: '小时级备份', schedule: '每小时一次', next_run: '2025-12-01 15:00:00', status: '运行中' },
+                        { name: '天级备份', schedule: '每天 03:00', next_run: '2025-12-02 03:00:00', status: '运行中' },
+                        { name: '周级备份', schedule: '每周日 03:00', next_run: '2025-12-08 03:00:00', status: '运行中' }
+                    ]
+                };
+            },
+            computed: {
+                filteredSources() {
+                    if (this.sourceFilter === 'all') {
+                        return this.dataSources;
+                    }
+                    return this.dataSources.filter(s => s.source_type === this.sourceFilter);
+                },
+                filteredLogs() {
+                    let logs = this.collectionLogs;
+                    if (this.logStatusFilter !== 'all') {
+                        logs = logs.filter(l => l.status === this.logStatusFilter);
+                    }
+                    if (this.logSearchText) {
+                        logs = logs.filter(l => l.source_name.includes(this.logSearchText));
+                    }
+                    return logs;
+                }
+            },
+            mounted() {
+                this.loadData();
+                // Auto refresh every 30 seconds
+                setInterval(() => {
+                    this.loadData();
+                }, 30000);
+            },
+            methods: {
+                async loadData() {
+                    this.loading = true;
+                    try {
+                        await Promise.all([
+                            this.loadDataSources(),
+                            this.loadCollectionLogs(),
+                            this.loadStatistics(),
+                            this.loadRecentAlerts()
+                        ]);
+                        this.updateCharts();
+                    } catch (error) {
+                        console.error('加载数据失败:', error);
+                        ElementPlus.ElMessage.error('加载数据失败');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadDataSources() {
+                    const response = await fetch(`${API_BASE}/data-governance/sources`);
+                    const data = await response.json();
+                    this.dataSources = data.sources || [];
+                },
+                async loadCollectionLogs() {
+                    const response = await fetch(`${API_BASE}/data-governance/collection-logs?limit=50`);
+                    const data = await response.json();
+                    this.collectionLogs = data.logs || [];
+                },
+                async loadStatistics() {
+                    const response = await fetch(`${API_BASE}/data-governance/dashboard/overview`);
+                    const data = await response.json();
+
+                    // 从新的API结构中提取数据
+                    const summary = data.summary || {};
+                    const recentCollection = data.recent_collection_24h || {};
+                    const healthStatus = data.health_status || {};
+
+                    this.statistics = {
+                        total_sources: summary.total_sources || 0,
+                        healthy_sources: healthStatus.healthy || 0,
+                        warning_sources: healthStatus.warning || 0,
+                        today_collections: recentCollection.total || 0,
+                        success_rate: recentCollection.success_rate || 0,
+                        avg_quality: 85, // 暂时写死，后续可以从质量API获取
+                        alert_count: recentCollection.failed || 0
+                    };
+
+                    // Update system health
+                    if (this.statistics.warning_sources > 0 || this.statistics.alert_count > 5) {
+                        this.systemHealth = 'warning';
+                    } else if (this.statistics.success_rate < 80) {
+                        this.systemHealth = 'error';
+                    } else {
+                        this.systemHealth = 'healthy';
+                    }
+                },
+                async loadRecentAlerts() {
+                    const response = await fetch(`${API_BASE}/data-governance/collection-logs?limit=20`);
+                    const data = await response.json();
+                    // 过滤出失败的日志
+                    this.recentAlerts = (data || []).filter(log => log.status === 'failed');
+                },
+                async viewSourceDetails(source) {
+                    this.selectedSource = source;
+                    this.sourceDialogVisible = true;
+                    // Load recent logs for this source
+                    const response = await fetch(`${API_BASE}/data-governance/collection-logs?source_name=${encodeURIComponent(source.source_name)}&limit=10`);
+                    const data = await response.json();
+                    this.sourceDetailLogs = data.logs || [];
+                },
+                updateCharts() {
+                    this.$nextTick(() => {
+                        this.renderQualityChart();
+                        this.renderSuccessRateChart();
+                    });
+                },
+                renderQualityChart() {
+                    const chartDom = document.getElementById('qualityChart');
+                    if (!chartDom) return;
+                    const chart = echarts.init(chartDom);
+
+                    // Group logs by date and calculate average quality
+                    const qualityByDate = {};
+                    this.collectionLogs.forEach(log => {
+                        if (log.data_quality_score) {
+                            const date = log.collect_time.split(' ')[0];
+                            if (!qualityByDate[date]) {
+                                qualityByDate[date] = { total: 0, count: 0 };
+                            }
+                            qualityByDate[date].total += log.data_quality_score;
+                            qualityByDate[date].count++;
+                        }
+                    });
+
+                    const dates = Object.keys(qualityByDate).sort();
+                    const scores = dates.map(date => (qualityByDate[date].total / qualityByDate[date].count).toFixed(1));
+
+                    const option = {
+                        tooltip: { trigger: 'axis' },
+                        xAxis: { type: 'category', data: dates },
+                        yAxis: { type: 'value', min: 0, max: 100 },
+                        series: [{
+                            name: '数据质量分数',
+                            type: 'line',
+                            data: scores,
+                            smooth: true,
+                            areaStyle: { opacity: 0.3 }
+                        }]
+                    };
+                    chart.setOption(option);
+                },
+                renderSuccessRateChart() {
+                    const chartDom = document.getElementById('successRateChart');
+                    if (!chartDom) return;
+                    const chart = echarts.init(chartDom);
+
+                    // Group logs by date and calculate success rate
+                    const statsByDate = {};
+                    this.collectionLogs.forEach(log => {
+                        const date = log.collect_time.split(' ')[0];
+                        if (!statsByDate[date]) {
+                            statsByDate[date] = { total: 0, success: 0 };
+                        }
+                        statsByDate[date].total++;
+                        if (log.status === 'success') {
+                            statsByDate[date].success++;
+                        }
+                    });
+
+                    const dates = Object.keys(statsByDate).sort();
+                    const rates = dates.map(date => ((statsByDate[date].success / statsByDate[date].total) * 100).toFixed(1));
+
+                    const option = {
+                        tooltip: { trigger: 'axis' },
+                        xAxis: { type: 'category', data: dates },
+                        yAxis: { type: 'value', min: 0, max: 100 },
+                        series: [{
+                            name: '成功率 (%)',
+                            type: 'bar',
+                            data: rates,
+                            itemStyle: { color: '#67c23a' }
+                        }]
+                    };
+                    chart.setOption(option);
+                },
+                refreshData() {
+                    this.loadData();
+                    ElementPlus.ElMessage.success('数据已刷新');
+                },
+                navigateToHome() {
+                    window.location.href = '/frontend.html';
+                },
+                formatTime(time) {
+                    if (!time) return '-';
+                    return time.replace('T', ' ').substring(0, 19);
+                },
+                getHealthType(status) {
+                    const map = { healthy: 'success', warning: 'warning', error: 'danger' };
+                    return map[status] || 'info';
+                },
+                getHealthLabel(status) {
+                    const map = { healthy: '健康', warning: '警告', error: '异常' };
+                    return map[status] || '未知';
+                },
+                getQualityClass(score) {
+                    if (score >= 90) return 'quality-excellent';
+                    if (score >= 75) return 'quality-good';
+                    if (score >= 60) return 'quality-fair';
+                    return 'quality-poor';
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+
+</html>

@@ -153,10 +153,27 @@ class OpenvlabSpider:
         return results
 
     def _extract_variety(self, contract_code: str) -> str:
-        """从合约代码提取品种"""
+        """从合约代码提取品种代码"""
         import re
-        match = re.match(r'([A-Za-z]+)', contract_code)
-        return match.group(1) if match else ""
+        # 中文品种名到代码的映射
+        variety_map = {
+            '沪银': 'AG', '沪金': 'AU', '沪铜': 'CU', '沪铝': 'AL',
+            '沪锌': 'ZN', '沪铅': 'PB', '沪镍': 'NI', '沪锡': 'SN',
+            '白糖': 'SR', '棉花': 'CF', 'PTA': 'TA', '甲醇': 'MA',
+            '玻璃': 'FG', '菜粕': 'RM', '豆粕': 'M', '豆油': 'Y',
+            '棕榈油': 'P', '玉米': 'C', '铁矿': 'I', '焦炭': 'J',
+            '焦煤': 'JM', '螺纹': 'RB', '热卷': 'HC', '原油': 'SC',
+            '橡胶': 'RU', '燃油': 'FU', '沥青': 'BU'
+        }
+        # 检查中文品种名
+        for cn_name, code in variety_map.items():
+            if cn_name in contract_code:
+                return code
+        # 尝试匹配英文代码（如ag, au等）
+        match = re.search(r'([a-zA-Z]{1,2})(?=\d{4})', contract_code)
+        if match:
+            return match.group(1).upper()
+        return ""
 
     def _parse_number(self, value: str) -> float:
         """解析数字字符串"""

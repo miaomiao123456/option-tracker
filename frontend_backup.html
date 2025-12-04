@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptionAlpha - 期权交易策略系统</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .direction-tag {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .bull {
+            color: #f56c6c;
+            background: #fde2e2;
+        }
+
+        .bear {
+            color: #67c23a;
+            background: #e1f3d8;
+        }
+
+        .neutral {
+            color: #909399;
+            background: #f4f4f5;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="min-h-screen">
+        <!-- 顶部导航 -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">OptionAlpha 🚀</h1>
+                <div class="flex items-center space-x-4">
+                    <el-date-picker v-model="selectedDate" type="date" placeholder="选择日期" @change="onDateChange"
+                        format="YYYY-MM-DD" value-format="YYYY-MM-DD"></el-date-picker>
+                    <el-input v-model="searchQuery" placeholder="搜索品种 (如 rb)" prefix-icon="Search"
+                        @keyup.enter="handleSearch" class="w-64"></el-input>
+                    <el-button type="primary" @click="handleSearch">搜索</el-button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- 主导航 -->
+            <el-tabs v-model="activeTab" type="card" class="mb-6">
+                <el-tab-pane label="📊 总览" name="overview"></el-tab-pane>
+                <el-tab-pane label="📈 基本面" name="fundamental"></el-tab-pane>
+                <el-tab-pane label="💰 资金面" name="capital"></el-tab-pane>
+                <el-tab-pane label="📉 技术面" name="technical"></el-tab-pane>
+                <el-tab-pane label="📰 消息面" name="news"></el-tab-pane>
+            </el-tabs>
+
+            <!-- 总览页 -->
+            <div v-if="activeTab === 'overview'" class="space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4 text-red-500">🔥 强烈看多 Top 3</h2>
+                        <el-table :data="topMovers.long" style="width: 100%">
+                            <el-table-column prop="comm_code" label="品种" width="100"></el-table-column>
+                            <el-table-column label="综合评分" width="100">
+                                <template #default="scope">
+                                    <span class="text-red-500 font-bold">+{{ calculateTotalScore(scope.row) }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="main_reason" label="核心理由" show-overflow-tooltip></el-table-column>
+                        </el-table>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4 text-green-500">❄️ 强烈看空 Top 3</h2>
+                        <el-table :data="topMovers.short" style="width: 100%">
+                            <el-table-column prop="comm_code" label="品种" width="100"></el-table-column>
+                            <el-table-column label="综合评分" width="100">
+                                <template #default="scope">
+                                    <span class="text-green-500 font-bold">{{ calculateTotalScore(scope.row) }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="main_reason" label="核心理由" show-overflow-tooltip></el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 基本面页 -->
+            <div v-if="activeTab === 'fundamental'" class="space-y-6">
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4">📈 基本面情绪分析</h2>
+                    <el-empty v-if="!fundamentalData.length" description="暂无基本面数据"></el-empty>
+                    <div v-else class="space-y-4">
+                        <div v-for="item in fundamentalData" :key="item.variety_code" class="border-b pb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-bold">{{ item.variety_code }}</h3>
+                                <el-tag
+                                    :type="item.sentiment === 'bull' ? 'danger' : item.sentiment === 'bear' ? 'success' : 'info'">
+                                    {{ item.sentiment === 'bull' ? '看多' : item.sentiment === 'bear' ? '看空' : '中性' }}
+                                </el-tag>
+                            </div>
+                            <p class="text-sm text-gray-600">看多比例: {{ item.bull_ratio }}% | 看空比例: {{ item.bear_ratio }}%
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 资金面页 -->
+            <div v-if="activeTab === 'capital'" class="space-y-6">
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4">💰 期权资金流向</h2>
+                    <el-empty v-if="!capitalData.length" description="暂无资金流向数据"></el-empty>
+                    <el-table v-else :data="capitalData" style="width: 100%">
+                        <el-table-column prop="comm_code" label="品种" width="120"></el-table-column>
+                        <el-table-column label="净流入(万)" width="150">
+                            <template #default="scope">
+                                <span :class="scope.row.total_net_flow > 0 ? 'text-red-500' : 'text-green-500'">
+                                    {{ scope.row.total_net_flow > 0 ? '+' : '' }}{{ scope.row.total_net_flow.toFixed(2)
+                                    }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_volume" label="成交量(万)" width="150"></el-table-column>
+                        <el-table-column prop="count" label="记录数" width="100"></el-table-column>
+                    </el-table>
+                </div>
+            </div>
+
+            <!-- 技术面页 -->
+            <div v-if="activeTab === 'technical'" class="space-y-6">
+                <!-- 交易可查策略 -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4">📊 交易可查 - 蓝图策略</h2>
+                    <el-empty v-if="!jykStrategies.long.length && !jykStrategies.short.length"
+                        description="暂无交易可查策略"></el-empty>
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-bold mb-3 text-red-500">🔥 做多策略</h3>
+                            <div class="space-y-2">
+                                <div v-for="(s, idx) in jykStrategies.long" :key="idx" class="p-3 bg-red-50 rounded">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold">{{ s.variety }}</span>
+                                        <span class="text-sm">{{ s.signal }}</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600">{{ s.reason }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold mb-3 text-green-500">❄️ 做空策略</h3>
+                            <div class="space-y-2">
+                                <div v-for="(s, idx) in jykStrategies.short" :key="idx" class="p-3 bg-green-50 rounded">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold">{{ s.variety }}</span>
+                                        <span class="text-sm">{{ s.signal }}</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600">{{ s.reason }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 融达数据分析 -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4">📈 融达数据分析 - 期限结构</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-bold mb-3 text-red-500">Back结构 (天然多头)</h3>
+                            <el-empty v-if="!technicalData.back_varieties.length" description="暂无Back结构品种"></el-empty>
+                            <div v-else class="space-y-2">
+                                <div v-for="item in technicalData.back_varieties" :key="item.variety_code"
+                                    class="p-3 bg-red-50 rounded">
+                                    <div class="font-bold">{{ item.variety_code }}</div>
+                                    <div class="text-sm text-gray-600">{{ item.structure }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold mb-3 text-green-500">Contango结构 (天然空头)</h3>
+                            <el-empty v-if="!technicalData.contango_varieties.length"
+                                description="暂无Contango结构品种"></el-empty>
+                            <div v-else class="space-y-2">
+                                <div v-for="item in technicalData.contango_varieties" :key="item.variety_code"
+                                    class="p-3 bg-green-50 rounded">
+                                    <div class="font-bold">{{ item.variety_code }}</div>
+                                    <div class="text-sm text-gray-600">{{ item.structure }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 消息面页 -->
+            <div v-if="activeTab === 'news'" class="space-y-6">
+                <div class="card h-[800px]">
+                    <h2 class="text-xl font-bold mb-4">📰 实时快讯 (金十数据)</h2>
+                    <iframe src="https://www.jin10.com/" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, watch } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        const app = createApp({
+            setup() {
+                const activeTab = ref('overview');
+                const searchQuery = ref('');
+                const selectedDate = ref(new Date().toISOString().split('T')[0]);
+                const topMovers = ref({ long: [], short: [] });
+                const fundamentalData = ref([]);
+                const capitalData = ref([]);
+                const technicalData = ref({ contango_varieties: [], back_varieties: [] });
+                const jykStrategies = ref({ long: [], short: [] });
+
+                // API Base URL
+                const API_BASE = 'http://localhost:8000/api/v1';
+
+                const fetchTopMovers = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE}/summary/top-movers`);
+                        const data = await res.json();
+                        topMovers.value = data;
+                    } catch (e) {
+                        console.error('Failed to fetch top movers:', e);
+                        // Mock data for demo if API fails
+                        topMovers.value = { long: [], short: [] };
+                        ElMessage.warning('获取多空排行失败，请检查后端服务');
+                    }
+                };
+
+                const fetchFundamentalData = async () => {
+                    try {
+                        // Fetch all varieties from summary
+                        const summaryRes = await fetch(`${API_BASE}/summary/overview`);
+                        const summaryData = await summaryRes.json();
+
+                        // API returns an array directly
+                        const varieties = Array.isArray(summaryData) ? summaryData : (summaryData.varieties || []);
+
+                        // For demo, we'll just show sentiment for varieties with data
+                        fundamentalData.value = varieties.slice(0, 10).map(v => ({
+                            variety_code: v.comm_code,
+                            sentiment: v.fundamental_score > 0 ? 'bull' : v.fundamental_score < 0 ? 'bear' : 'neutral',
+                            bull_ratio: Math.max(0, v.fundamental_score * 10),
+                            bear_ratio: Math.max(0, -v.fundamental_score * 10)
+                        })) || [];
+                    } catch (e) {
+                        console.error('Failed to fetch fundamental data:', e);
+                    }
+                };
+
+                const fetchCapitalData = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE}/capital/option-flow/all?hours=24`);
+                        const data = await res.json();
+                        capitalData.value = data.varieties || [];
+                    } catch (e) {
+                        console.error('Failed to fetch capital data:', e);
+                    }
+                };
+
+                const fetchTechnicalData = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE}/technical/structures/significant`);
+                        const data = await res.json();
+                        technicalData.value = data;
+                    } catch (e) {
+                        console.error('Failed to fetch technical data:', e);
+                    }
+                };
+
+                const fetchJYKStrategies = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE}/daily/blueprints?date=${selectedDate.value}`);
+                        const data = await res.json();
+                        if (data.parsed_strategies) {
+                            const strategies = JSON.parse(data.parsed_strategies);
+                            jykStrategies.value = {
+                                long: strategies.filter(s => s.direction === '做多'),
+                                short: strategies.filter(s => s.direction === '做空')
+                            };
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch JYK strategies:', e);
+                    }
+                };
+
+                const onDateChange = () => {
+                    // Refetch all data for the new date
+                    fetchTopMovers();
+                    if (activeTab.value === 'fundamental') fetchFundamentalData();
+                    if (activeTab.value === 'capital') fetchCapitalData();
+                    if (activeTab.value === 'technical') {
+                        fetchTechnicalData();
+                        fetchJYKStrategies();
+                    }
+                };
+
+                const handleSearch = async () => {
+                    if (!searchQuery.value) return;
+                    try {
+                        const res = await fetch(`${API_BASE}/summary/search?q=${searchQuery.value}`);
+                        const data = await res.json();
+                        if (data.results && data.results.length > 0) {
+                            ElMessage.success(`找到 ${data.results.length} 个相关品种`);
+                        } else {
+                            ElMessage.warning('未找到相关品种');
+                        }
+                    } catch (e) {
+                        ElMessage.error('搜索失败');
+                    }
+                };
+
+                const calculateTotalScore = (row) => {
+                    return (row.fundamental_score || 0) + (row.capital_score || 0) +
+                        (row.technical_score || 0) + (row.message_score || 0);
+                };
+
+                // Watch activeTab to fetch data when switching tabs
+                watch(activeTab, (newTab) => {
+                    if (newTab === 'fundamental' && !fundamentalData.value.length) {
+                        fetchFundamentalData();
+                    } else if (newTab === 'capital' && !capitalData.value.length) {
+                        fetchCapitalData();
+                    } else if (newTab === 'technical' && !technicalData.value.contango_varieties.length && !technicalData.value.back_varieties.length) {
+                        fetchTechnicalData();
+                        fetchJYKStrategies();
+                    }
+                });
+
+                onMounted(() => {
+                    fetchTopMovers();
+                });
+
+                return {
+                    activeTab,
+                    searchQuery,
+                    selectedDate,
+                    topMovers,
+                    fundamentalData,
+                    capitalData,
+                    technicalData,
+                    jykStrategies,
+                    handleSearch,
+                    calculateTotalScore,
+                    onDateChange
+                };
+            }
+        });
+
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+
+</html>

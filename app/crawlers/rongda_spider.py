@@ -24,6 +24,24 @@ class RongdaSpider:
         self.page: Optional[Page] = None
         self.save_dir = Path(__file__).parent.parent.parent / "融达数据" / "data"
         self.save_dir.mkdir(parents=True, exist_ok=True)
+        # cookies文件路径
+        self.cookies_file = Path(__file__).parent.parent.parent / ".cookies" / "rongda_cookies.json"
+        self.cookies = None
+
+    async def load_cookies(self) -> bool:
+        """加载保存的cookies"""
+        try:
+            if self.cookies_file.exists():
+                with open(self.cookies_file, 'r', encoding='utf-8') as f:
+                    self.cookies = json.load(f)
+                logger.info(f"已加载cookies: {len(self.cookies)}个")
+                return True
+            else:
+                logger.warning(f"cookies文件不存在: {self.cookies_file}")
+                return False
+        except Exception as e:
+            logger.error(f"加载cookies失败: {e}")
+            return False
 
     async def init_browser(self, headless: bool = True):
         """初始化浏览器"""
@@ -36,8 +54,43 @@ class RongdaSpider:
             viewport={'width': 1920, 'height': 1080},
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
         )
+
+        # 加载cookies
+        if await self.load_cookies():
+            await context.add_cookies(self.cookies)
+            logger.info("cookies已注入到浏览器")
+
         self.page = await context.new_page()
         logger.info("浏览器初始化成功")
+
+    async def login(self) -> bool:
+        """登录融达数据 - 优先使用cookies"""
+        try:
+            from config.settings import get_settings
+            settings = get_settings()
+            username = settings.JYK_USER # 使用相同的账号
+            password = settings.JYK_PASS
+
+            logger.info("开始登录融达数据...")
+
+            # 访问页面检查cookies是否有效
+            await self.page.goto("https://dt.rongdaqh.com/finance_and_economics/calendar",
+                                wait_until="domcontentloaded", timeout=60000)
+            await asyncio.sleep(3)
+
+            # 检查是否已经登录（cookies有效）
+            current_url = self.page.url
+            if "login" not in current_url.lower() or await self.page.query_selector("text=退出"):
+                logger.info("✅ cookies有效，已自动登录")
+                return True
+            else:
+                logger.warning("cookies已失效或不存在，需要重新登录")
+                logger.info("请运行 'python3 save_cookies.py' 手动登录并保存cookies")
+                return False
+
+        except Exception as e:
+            logger.error(f"登录失败: {e}")
+            return False
 
     async def fetch_market_structure(self) -> List[Dict]:
         """
@@ -45,6 +98,9 @@ class RongdaSpider:
         URL: https://dt.rongdaqh.com/analysis_futures_markets/market_structure
         """
         try:
+            # 先尝试登录
+            await self.login()
+            
             logger.info("开始获取市场期限结构数据...")
 
             url = f"{self.base_url}/analysis_futures_markets/market_structure"
@@ -259,7 +315,7 @@ async def main():
     spider = RongdaSpider()
 
     try:
-        await spider.init_browser(headless=False)
+        await spider.init_browser(headless=True)
 
         # 获取市场期限结构
         logger.info("=" * 50)

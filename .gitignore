@@ -51,3 +51,11 @@ openvlab/data/*.json
 # Playwright浏览器缓存
 .playwright/
 ms-playwright/
+
+# Cookies (敏感信息 - 不要提交)
+.cookies/
+*_cookies.json
+
+# 调试文件
+debug_*.png
+test_*.py

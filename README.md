@@ -27,6 +27,11 @@
   - Playwright 自动登录
   - 席位持仓数据获取
   - 每日交易蓝图图片下载
+  - **蓝图解析器** (`blueprint_parser.py`) ✅
+    - 基于 Vision API (GPT-4o) 自动解析图片
+    - 智能识别交易方向 (散户反向/机构跟随)
+    - 自动提取策略强度和理由
+    - 自动入库并提供 API 查询
 
 - **智汇期讯爬虫** (`zhihui_spider.py`)
   - 多空全景数据获取
@@ -76,8 +81,13 @@ option_tracker/
 - **HTTP 请求**: httpx 0.26
 - **数据解析**: BeautifulSoup4 + lxml
 
-### 前端 (待优化)
-- 基于现有"小橘交易策略系统-V2"
+### 前端 (已优化)
+- 基于 Vue 3 + Element Plus
+- 集成 ECharts 图表
+- **新增功能**:
+  - 交易蓝图策略展示 (做多/做空分离)
+  - 历史数据日期选择器
+  - 融达数据结构分析展示
 
 ## 快速开始
 
@@ -163,8 +173,9 @@ uvicorn main:app --reload --port 8000
 - `GET /{variety_code}/structure` - 期限结构
 
 **日报模块** (`/api/v1/daily`)
-- `GET /blueprint` - 获取交易蓝图
-- `POST /generate-strategy` - 生成策略建议
+- `GET /blueprint` - 获取交易蓝图 (支持日期查询) ✅
+- `GET /blueprints` - 获取蓝图策略详情 (JSON格式) ✅
+- `POST /generate-strategy` - 生成策略建议 ✅
 
 ### 第三阶段：定时任务配置 (优先级: 中)
 
@@ -196,8 +207,9 @@ uvicorn main:app --reload --port 8000
    - 嵌入金十数据 iframe
 
 4. **日报页面**
-   - 交易蓝图展示
-   - 自动生成的策略建议
+   - 交易蓝图展示 ✅
+   - 自动生成的策略建议 ✅
+   - 历史策略回溯功能 ✅
 
 ## Gemini AI 系统设计建议
 

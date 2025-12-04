@@ -3,12 +3,14 @@
 提供交易蓝图、策略生成等功能
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.models.database import get_db
-from app.models.models import DailyBlueprint
+from app.models.models import DailyBlueprint, MarketAnalysisSummary
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
+from pathlib import Path
 import json
 
 router = APIRouter()
@@ -45,6 +47,94 @@ async def get_daily_blueprint(
         "local_path": blueprint.local_path,
         "strategies": strategies
     }
+
+
+@router.get("/blueprints")
+async def get_blueprints_by_date(
+        date: Optional[str] = None,
+        db: Session = Depends(get_db)
+):
+    """
+    根据日期获取蓝图数据 (支持前端日期选择器)
+    """
+    if date:
+        try:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="日期格式错误,应为 YYYY-MM-DD")
+    else:
+        target_date = datetime.today().date()
+
+    blueprint = db.query(DailyBlueprint).filter(
+        DailyBlueprint.record_date == target_date
+    ).first()
+
+    if not blueprint:
+        return {
+            "date": str(target_date),
+            "parsed_strategies": "[]",
+            "high_strength_opportunities": []
+        }
+
+    # Parse high-strength opportunities (4+ stars)
+    high_strength = []
+    if blueprint.parsed_strategies:
+        try:
+            strategies = json.loads(blueprint.parsed_strategies)
+            for strategy in strategies:
+                # Count stars in signal field (⭐ symbols)
+                signal = strategy.get('signal', '')
+                star_count = signal.count('⭐')
+
+                # Filter for 4+ stars
+                if star_count >= 4:
+                    high_strength.append({
+                        'variety': strategy.get('variety', ''),
+                        'direction': strategy.get('direction', ''),
+                        'strength': star_count,
+                        'signal': signal,
+                        'reason': strategy.get('reason', '')
+                    })
+        except Exception as e:
+            print(f"Error parsing strategies: {e}")
+
+    return {
+        "date": str(blueprint.record_date),
+        "image_url": blueprint.image_url,
+        "local_path": blueprint.local_path,
+        "parsed_strategies": blueprint.parsed_strategies or "[]",
+        "high_strength_opportunities": high_strength
+    }
+
+
+@router.get("/blueprints/image")
+async def get_blueprint_image(date: str):
+    """
+    根据日期返回蓝图图片文件
+    日期格式: YYYYMMDD 或 YYYY-MM-DD
+    """
+    # Convert date format
+    if '-' in date:
+        date_str = date.replace('-', '')
+    else:
+        date_str = date
+
+    # Try to find the image file
+    base_path = Path(__file__).parent.parent.parent / "交易可查" / "images"
+    image_path = base_path / f"{date_str}.jpg"
+
+    if not image_path.exists():
+        # Try PNG format
+        image_path = base_path / f"{date_str}.png"
+
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail=f"未找到日期 {date_str} 的蓝图图片")
+
+    return FileResponse(
+        path=str(image_path),
+        media_type="image/jpeg" if image_path.suffix == ".jpg" else "image/png",
+        filename=f"blueprint_{date_str}.jpg"
+    )
 
 
 @router.post("/generate-strategy")

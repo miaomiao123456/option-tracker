@@ -4,12 +4,12 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from app.models.database import get_db
-from app.models.models import InstitutionalPosition
+from app.models.models import InstitutionalPosition, OptionFlow
 from typing import List, Optional
 from pydantic import BaseModel
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 router = APIRouter()
 
@@ -185,4 +185,102 @@ async def get_institution_vs_retail(
             "direction": "long" if retail_net > 0 else "short"
         },
         "divergence": institution_net * retail_net < 0  # 机构和散户反向
+    }
+
+
+@router.get("/option-flow/all")
+async def get_all_option_flow(
+        hours: int = Query(1, ge=1, le=24),
+        db: Session = Depends(get_db)
+):
+    """
+    获取所有品种的期权资金流向汇总
+    """
+    end_time = datetime.now()
+    start_time = end_time - timedelta(hours=hours)
+
+    flows = db.query(OptionFlow).filter(
+        OptionFlow.record_time.between(start_time, end_time)
+    ).all()
+
+    if not flows:
+        return {"varieties": [], "total_count": 0}
+
+    # 按品种汇总
+    variety_summary = {}
+    for f in flows:
+        code = f.comm_code
+        if code not in variety_summary:
+            variety_summary[code] = {
+                "comm_code": code,
+                "total_net_flow": 0,
+                "total_volume": 0,
+                "count": 0
+            }
+        variety_summary[code]["total_net_flow"] += f.net_flow or 0
+        variety_summary[code]["total_volume"] += f.volume or 0
+        variety_summary[code]["count"] += 1
+
+    # 按净流入排序
+    sorted_varieties = sorted(
+        variety_summary.values(),
+        key=lambda x: x["total_net_flow"],
+        reverse=True
+    )
+
+    return {
+        "varieties": sorted_varieties,
+        "total_count": len(flows),
+        "period_hours": hours
+    }
+
+
+@router.get("/{variety_code}/option-flow")
+async def get_option_flow(
+        variety_code: str,
+        hours: int = Query(24, ge=1, le=72),
+        db: Session = Depends(get_db)
+):
+    """
+    获取品种的期权资金流向数据 (Openvlab数据)
+    """
+    end_time = datetime.now()
+    start_time = end_time - timedelta(hours=hours)
+
+    flows = db.query(OptionFlow).filter(
+        OptionFlow.comm_code == variety_code,
+        OptionFlow.record_time.between(start_time, end_time)
+    ).order_by(desc(OptionFlow.record_time)).all()
+
+    if not flows:
+        return {
+            "variety_code": variety_code,
+            "hours": hours,
+            "option_flows": [],
+            "summary": None
+        }
+
+    # 计算汇总数据
+    total_net_flow = sum(f.net_flow or 0 for f in flows)
+    total_volume = sum(f.volume or 0 for f in flows)
+
+    return {
+        "variety_code": variety_code,
+        "hours": hours,
+        "option_flows": [
+            {
+                "contract_code": f.contract_code,
+                "net_flow": f.net_flow,
+                "volume": f.volume,
+                "change_ratio": f.change_ratio,
+                "record_time": f.record_time.isoformat()
+            }
+            for f in flows
+        ],
+        "summary": {
+            "total_net_flow": total_net_flow,
+            "total_volume": total_volume,
+            "flow_direction": "流入" if total_net_flow > 0 else "流出",
+            "count": len(flows)
+        }
     }
