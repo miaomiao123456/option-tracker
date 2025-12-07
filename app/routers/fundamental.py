@@ -6,12 +6,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.models.database import get_db
-from app.models.models import FundamentalReport, Commodity
+from app.models.models import FundamentalReport, Commodity, MarketFullView
 from typing import List, Optional, Dict
 from pydantic import BaseModel
 from datetime import date, datetime
 import json
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -208,6 +211,38 @@ async def get_zhihui_market_sentiment(
             status_code=500,
             detail=f"读取数据失败: {str(e)}"
         )
+
+
+@router.get("/zhihui/latest-date")
+async def get_zhihui_latest_trading_date(db: Session = Depends(get_db)):
+    """
+    获取数据库中最新的交易日期
+    用于前端日期选择器默认值,非交易日时自动回退到最近交易日
+    """
+    try:
+        # 从MarketFullView表查询最新日期
+        latest_record = db.query(MarketFullView.record_date).order_by(
+            desc(MarketFullView.record_date)
+        ).first()
+
+        if latest_record:
+            return {
+                "success": True,
+                "latest_date": latest_record[0].strftime('%Y-%m-%d')
+            }
+        else:
+            # 如果没有数据,返回当前日期
+            logger.warning("数据库中没有交易数据,返回当前日期")
+            return {
+                "success": True,
+                "latest_date": date.today().strftime('%Y-%m-%d')
+            }
+    except Exception as e:
+        logger.error(f"获取最新交易日期失败: {e}")
+        return {
+            "success": False,
+            "latest_date": date.today().strftime('%Y-%m-%d')
+        }
 
 
 @router.get("/zhihui/sentiment-stats")

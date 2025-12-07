@@ -15,6 +15,37 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/latest-date")
+async def get_latest_trading_date(db: Session = Depends(get_db)):
+    """
+    获取数据库中最新的交易日期
+    用于前端日期选择器默认值
+    """
+    try:
+        # 从MarketFullView表查询最新日期
+        latest_record = db.query(MarketFullView.record_date).order_by(
+            desc(MarketFullView.record_date)
+        ).first()
+
+        if latest_record:
+            return {
+                "success": True,
+                "latest_date": latest_record[0].strftime('%Y-%m-%d')
+            }
+        else:
+            # 如果没有数据,返回当前日期
+            return {
+                "success": True,
+                "latest_date": date.today().strftime('%Y-%m-%d')
+            }
+    except Exception as e:
+        logger.error(f"获取最新交易日期失败: {e}")
+        return {
+            "success": False,
+            "latest_date": date.today().strftime('%Y-%m-%d')
+        }
+
+
 @router.get("/full-view")
 async def get_full_view(
     query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),

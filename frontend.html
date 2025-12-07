@@ -910,6 +910,38 @@
                     ? 'http://localhost:8000/api/v1'
                     : `${window.location.origin}/api/v1`;
 
+                // 获取最近的交易日
+                const getLatestTradingDate = async () => {
+                    try {
+                        // 尝试从智汇数据库获取最新交易日
+                        const res = await fetch(`${API_BASE}/fundamental/zhihui/latest-date`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            return data.latest_date; // YYYY-MM-DD格式
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch latest trading date:', e);
+                    }
+
+                    // 如果API调用失败,回退到本地逻辑
+                    const today = new Date();
+                    const dayOfWeek = today.getDay();
+
+                    // 周六(6)回退1天到周五, 周日(0)回退2天到周五
+                    let daysToSubtract = 0;
+                    if (dayOfWeek === 0) { // 周日
+                        daysToSubtract = 2;
+                    } else if (dayOfWeek === 6) { // 周六
+                        daysToSubtract = 1;
+                    }
+
+                    if (daysToSubtract > 0) {
+                        today.setDate(today.getDate() - daysToSubtract);
+                    }
+
+                    return today.toISOString().split('T')[0];
+                };
+
                 // Convert date format YYYY-MM-DD to YYYYMMDD
                 const formatDateForApi = (dateStr) => {
                     return dateStr.replace(/-/g, '');
@@ -1457,7 +1489,12 @@
                     }
                 });
 
-                onMounted(() => {
+                onMounted(async () => {
+                    // 首先获取最近的交易日期并设置为默认日期
+                    const latestTradingDate = await getLatestTradingDate();
+                    selectedDate.value = latestTradingDate;
+
+                    // 然后加载其他数据
                     fetchCommodityMapping();  // 先获取品种映射
                     fetchZhihuiStats();
                     fetchZhihuiData();
