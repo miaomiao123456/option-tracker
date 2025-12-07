@@ -191,6 +191,7 @@
                 <el-tab-pane label="📄 研报" name="reports"></el-tab-pane>
                 <el-tab-pane label="💰 资金面" name="capital"></el-tab-pane>
                 <el-tab-pane label="📉 技术面" name="technical"></el-tab-pane>
+                <el-tab-pane label="📈 期限分析" name="term-analysis"></el-tab-pane>
                 <el-tab-pane label="📰 消息面" name="news"></el-tab-pane>
             </el-tabs>
 
@@ -631,6 +632,162 @@
                 </div>
             </div>
 
+            <!-- 期限分析页 -->
+            <div v-if="activeTab === 'term-analysis'" class="space-y-6">
+                <el-tabs v-model="termAnalysisSubTab" type="border-card">
+                    <!-- 虚实比子标签 -->
+                    <el-tab-pane label="📊 虚实比" name="virtual-real-ratio">
+                        <!-- 统计概览 -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="stat-card">
+                                <div class="text-sm text-gray-600 mb-1">总品种数</div>
+                                <div class="text-3xl font-bold">{{ vrSummary.total_varieties || 0 }}</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <div class="text-sm opacity-90 mb-1">高风险品种</div>
+                                <div class="text-3xl font-bold">{{ vrSummary.high_risk_count || 0 }}</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                <div class="text-sm opacity-90 mb-1">中风险品种</div>
+                                <div class="text-3xl font-bold">{{ vrSummary.medium_risk_count || 0 }}</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <div class="text-sm opacity-90 mb-1">低风险品种</div>
+                                <div class="text-3xl font-bold">{{ vrSummary.low_risk_count || 0 }}</div>
+                            </div>
+                        </div>
+
+                        <!-- 高风险品种预警 -->
+                        <div class="glass-card" v-if="vrSummary.high_risk_varieties && vrSummary.high_risk_varieties.length">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                <span class="text-2xl mr-2">🚨</span>
+                                高风险品种预警
+                            </h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div v-for="variety in vrSummary.high_risk_varieties" :key="variety.comm_code"
+                                    class="p-4 bg-red-50 border-l-4 border-red-500 rounded hover:shadow-md transition-all cursor-pointer">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="text-lg font-bold text-gray-800">
+                                                {{ variety.variety_name }} ({{ variety.comm_code }})
+                                            </h3>
+                                            <span class="inline-block bg-red-100 text-red-600 px-3 py-1 rounded text-sm font-semibold">高风险</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-red-500">
+                                                {{ variety.virtual_real_ratio }}
+                                            </div>
+                                            <div class="text-sm text-gray-500">虚实比</div>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">{{ variety.impact }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 虚实比排行榜 -->
+                        <div class="glass-card">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">📈 虚实比排行榜</h2>
+
+                            <!-- 筛选器 -->
+                            <div class="mb-4 flex space-x-4">
+                                <el-select v-model="vrFilterRisk" placeholder="风险等级筛选" size="small" clearable @change="loadVRData">
+                                    <el-option label="全部" value=""></el-option>
+                                    <el-option label="高风险" value="高"></el-option>
+                                    <el-option label="中风险" value="中"></el-option>
+                                    <el-option label="低风险" value="低"></el-option>
+                                    <el-option label="无风险" value="无"></el-option>
+                                </el-select>
+                            </div>
+
+                            <!-- 数据表格 -->
+                            <el-table :data="vrList" stripe style="width: 100%">
+                                <el-table-column prop="variety_name" label="品种" width="120" fixed>
+                                    <template #default="scope">
+                                        <strong>{{ scope.row.variety_name }}</strong>
+                                        <span class="text-gray-500 text-sm">({{ scope.row.comm_code }})</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="virtual_real_ratio" label="虚实比" width="120" sortable>
+                                    <template #default="scope">
+                                        <span class="text-lg font-bold"
+                                            :class="scope.row.virtual_real_ratio > 100 ? 'text-red-500' : 'text-gray-800'">
+                                            {{ scope.row.virtual_real_ratio.toFixed(2) }}
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="较上期" width="110" sortable>
+                                    <template #default="scope">
+                                        <div v-if="scope.row.ratio_change_pct !== null && scope.row.ratio_change_pct !== undefined">
+                                            <div :class="scope.row.ratio_change_pct > 0 ? 'text-red-500' : scope.row.ratio_change_pct < 0 ? 'text-green-500' : 'text-gray-500'"
+                                                 class="font-bold">
+                                                {{ scope.row.ratio_change_pct > 0 ? '↑' : scope.row.ratio_change_pct < 0 ? '↓' : '→' }}
+                                                {{ Math.abs(scope.row.ratio_change_pct).toFixed(2) }}%
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                {{ scope.row.ratio_change > 0 ? '+' : '' }}{{ scope.row.ratio_change.toFixed(2) }}
+                                            </div>
+                                        </div>
+                                        <span v-else class="text-gray-400 text-xs">-</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="squeeze_risk" label="逼仓风险" width="100">
+                                    <template #default="scope">
+                                        <el-tag :type="getVRRiskType(scope.row.squeeze_risk)" size="small">
+                                            {{ scope.row.squeeze_risk }}
+                                        </el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="receipt_quantity" label="仓单量" width="130">
+                                    <template #default="scope">
+                                        <div>
+                                            <div>{{ formatNumber(scope.row.receipt_quantity) }}</div>
+                                            <div v-if="scope.row.receipt_change_pct !== null && scope.row.receipt_change_pct !== undefined && scope.row.receipt_change_pct !== 0"
+                                                 class="text-xs mt-1">
+                                                <span :class="scope.row.receipt_change_pct > 0 ? 'text-green-600' : 'text-red-600'">
+                                                    {{ scope.row.receipt_change_pct > 0 ? '↑' : '↓' }}
+                                                    {{ Math.abs(scope.row.receipt_change_pct).toFixed(1) }}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="open_interest" label="持仓量(手)" width="130">
+                                    <template #default="scope">
+                                        <div>
+                                            <div>{{ formatNumber(scope.row.open_interest) }}</div>
+                                            <div v-if="scope.row.oi_change_pct !== null && scope.row.oi_change_pct !== undefined && scope.row.oi_change_pct !== 0"
+                                                 class="text-xs mt-1">
+                                                <span :class="scope.row.oi_change_pct > 0 ? 'text-red-600' : 'text-green-600'">
+                                                    {{ scope.row.oi_change_pct > 0 ? '↑' : '↓' }}
+                                                    {{ Math.abs(scope.row.oi_change_pct).toFixed(1) }}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="price_pressure" label="价格压力" width="100">
+                                    <template #default="scope">
+                                        <el-tag :type="getVRPressureType(scope.row.price_pressure)" size="small">
+                                            {{ scope.row.price_pressure }}
+                                        </el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="impact_analysis" label="影响分析" min-width="280">
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                    </el-tab-pane>
+
+                    <!-- 期限结构子标签 -->
+                    <el-tab-pane label="📈 期限结构" name="term-structure">
+                        <div class="glass-card">
+                            <el-empty description="期限结构功能开发中..." :image-size="100"></el-empty>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+
             <!-- 消息面页 -->
             <div v-if="activeTab === 'news'" class="space-y-6">
                 <div class="glass-card" style="height: 800px;">
@@ -666,6 +823,18 @@
                 const varietyMap = ref({}); // Code -> Name mapping
                 const imageRefreshKey = ref(0); // 用于强制刷新图片
                 const varietyResearchSummary = ref(null); // 品种详情页面的研报汇总
+
+                // Virtual-Real Ratio data refs
+                const termAnalysisSubTab = ref('virtual-real-ratio');
+                const vrSummary = ref({
+                    total_varieties: 0,
+                    high_risk_count: 0,
+                    medium_risk_count: 0,
+                    low_risk_count: 0,
+                    high_risk_varieties: []
+                });
+                const vrList = ref([]);
+                const vrFilterRisk = ref('');
 
                 // API Base URL - 自动检测本地或公网环境
                 const API_BASE = window.location.hostname === 'localhost'
@@ -1010,6 +1179,55 @@
                     console.error('Failed to load blueprint image');
                 };
 
+                // Virtual-Real Ratio functions
+                const loadVRData = async () => {
+                    try {
+                        // Load summary
+                        const summaryRes = await fetch(
+                            `${API_BASE}/virtual-real-ratio/summary?query_date=${selectedDate.value}`
+                        );
+                        if (summaryRes.ok) {
+                            vrSummary.value = await summaryRes.json();
+                        }
+
+                        // Load list data
+                        let listUrl = `${API_BASE}/virtual-real-ratio/list?query_date=${selectedDate.value}`;
+                        if (vrFilterRisk.value) {
+                            listUrl += `&risk_level=${vrFilterRisk.value}`;
+                        }
+                        const listRes = await fetch(listUrl);
+                        if (listRes.ok) {
+                            vrList.value = await listRes.json();
+                        }
+                    } catch (error) {
+                        console.error('Failed to load VR data:', error);
+                        ElMessage.error('加载虚实比数据失败');
+                    }
+                };
+
+                const getVRRiskType = (risk) => {
+                    const map = {
+                        '高': 'danger',
+                        '中': 'warning',
+                        '低': 'info',
+                        '无': 'success'
+                    };
+                    return map[risk] || 'info';
+                };
+
+                const getVRPressureType = (pressure) => {
+                    const map = {
+                        '上涨': 'danger',
+                        '下跌': 'success',
+                        '中性': 'info'
+                    };
+                    return map[pressure] || 'info';
+                };
+
+                const formatNumber = (num) => {
+                    return num ? num.toLocaleString() : '0';
+                };
+
                 const onDateChange = () => {
                     // 更新图片刷新键，强制重新加载蓝图图片
                     imageRefreshKey.value++;
@@ -1019,6 +1237,7 @@
                     fetchZhihuiData();
                     fetchCapitalData();
                     fetchJYKStrategies();
+                    loadVRData();
                 };
 
                 // Watch activeTab to fetch data when switching tabs
@@ -1039,6 +1258,9 @@
                         if (!zhihuiData.value.length) fetchZhihuiData();
                         if (!capitalData.value.length) fetchCapitalData();
                         if (!jykStrategies.value.long.length) fetchJYKStrategies();
+                    } else if (newTab === 'term-analysis') {
+                        // Load virtual-real ratio data
+                        if (!vrList.value.length) loadVRData();
                     }
                 });
 
@@ -1073,7 +1295,16 @@
                     handleImageError,
                     openResearchDetail,
                     loadVarietyResearchSummary,
-                    getSentimentType
+                    getSentimentType,
+                    // Virtual-Real Ratio
+                    termAnalysisSubTab,
+                    vrSummary,
+                    vrList,
+                    vrFilterRisk,
+                    loadVRData,
+                    getVRRiskType,
+                    getVRPressureType,
+                    formatNumber
                 };
             }
         });
