@@ -212,21 +212,27 @@
                                 <span class="text-gray-500 text-sm">({{ scope.row.comm_code }})</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="virtual_real_ratio" label="虚实比" width="140" sortable>
+                        <el-table-column prop="virtual_real_ratio" label="虚实比" width="120" sortable>
                             <template #default="scope">
-                                <div>
-                                    <span class="text-lg font-bold"
-                                        :class="scope.row.virtual_real_ratio > 100 ? 'text-red-500' : 'text-gray-800'">
-                                        {{ scope.row.virtual_real_ratio.toFixed(2) }}
-                                    </span>
-                                    <div v-if="scope.row.ratio_change_pct !== null && scope.row.ratio_change_pct !== undefined"
-                                         class="text-xs mt-1">
-                                        <span :class="scope.row.ratio_change_pct > 0 ? 'text-red-500' : 'text-green-500'">
-                                            {{ scope.row.ratio_change_pct > 0 ? '↑' : '↓' }}
-                                            {{ Math.abs(scope.row.ratio_change_pct).toFixed(2) }}%
-                                        </span>
+                                <span class="text-lg font-bold"
+                                    :class="scope.row.virtual_real_ratio > 100 ? 'text-red-500' : 'text-gray-800'">
+                                    {{ scope.row.virtual_real_ratio.toFixed(2) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="较上期" width="110" sortable>
+                            <template #default="scope">
+                                <div v-if="scope.row.ratio_change_pct !== null && scope.row.ratio_change_pct !== undefined">
+                                    <div :class="scope.row.ratio_change_pct > 0 ? 'text-red-500' : scope.row.ratio_change_pct < 0 ? 'text-green-500' : 'text-gray-500'"
+                                         class="font-bold">
+                                        {{ scope.row.ratio_change_pct > 0 ? '↑' : scope.row.ratio_change_pct < 0 ? '↓' : '→' }}
+                                        {{ Math.abs(scope.row.ratio_change_pct).toFixed(2) }}%
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ scope.row.ratio_change > 0 ? '+' : '' }}{{ scope.row.ratio_change.toFixed(2) }}
                                     </div>
                                 </div>
+                                <span v-else class="text-gray-400 text-xs">-</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="squeeze_risk" label="逼仓风险" width="100">
@@ -237,29 +243,29 @@
                                 </span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="receipt_quantity" label="仓单量" width="140">
+                        <el-table-column prop="receipt_quantity" label="仓单量" width="130">
                             <template #default="scope">
                                 <div>
                                     <div>{{ formatNumber(scope.row.receipt_quantity) }}</div>
-                                    <div v-if="scope.row.receipt_change_pct !== null && scope.row.receipt_change_pct !== undefined"
+                                    <div v-if="scope.row.receipt_change_pct !== null && scope.row.receipt_change_pct !== undefined && scope.row.receipt_change_pct !== 0"
                                          class="text-xs mt-1">
-                                        <span :class="scope.row.receipt_change_pct > 0 ? 'text-green-500' : 'text-red-500'">
+                                        <span :class="scope.row.receipt_change_pct > 0 ? 'text-green-600' : 'text-red-600'">
                                             {{ scope.row.receipt_change_pct > 0 ? '↑' : '↓' }}
-                                            {{ Math.abs(scope.row.receipt_change_pct).toFixed(2) }}%
+                                            {{ Math.abs(scope.row.receipt_change_pct).toFixed(1) }}%
                                         </span>
                                     </div>
                                 </div>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="open_interest" label="持仓量(手)" width="140">
+                        <el-table-column prop="open_interest" label="持仓量(手)" width="130">
                             <template #default="scope">
                                 <div>
                                     <div>{{ formatNumber(scope.row.open_interest) }}</div>
-                                    <div v-if="scope.row.oi_change_pct !== null && scope.row.oi_change_pct !== undefined"
+                                    <div v-if="scope.row.oi_change_pct !== null && scope.row.oi_change_pct !== undefined && scope.row.oi_change_pct !== 0"
                                          class="text-xs mt-1">
-                                        <span :class="scope.row.oi_change_pct > 0 ? 'text-red-500' : 'text-green-500'">
+                                        <span :class="scope.row.oi_change_pct > 0 ? 'text-red-600' : 'text-green-600'">
                                             {{ scope.row.oi_change_pct > 0 ? '↑' : '↓' }}
-                                            {{ Math.abs(scope.row.oi_change_pct).toFixed(2) }}%
+                                            {{ Math.abs(scope.row.oi_change_pct).toFixed(1) }}%
                                         </span>
                                     </div>
                                 </div>
@@ -272,12 +278,12 @@
                                 </el-tag>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="impact_analysis" label="影响分析" min-width="300">
+                        <el-table-column prop="impact_analysis" label="影响分析" min-width="280">
                         </el-table-column>
-                        <el-table-column label="操作" width="150" fixed="right">
+                        <el-table-column label="操作" width="120" fixed="right">
                             <template #default="scope">
                                 <el-button size="small" type="primary" @click="viewDetail(scope.row.comm_code)">
-                                    查看详情
+                                    详情
                                 </el-button>
                             </template>
                         </el-table-column>
@@ -400,6 +406,10 @@
                         const listRes = await fetch(listUrl);
                         if (listRes.ok) {
                             varietyList.value = await listRes.json();
+                            console.log('加载数据成功:', varietyList.value.length, '条');
+                            if (varietyList.value.length > 0) {
+                                console.log('示例数据:', varietyList.value[0]);
+                            }
                         }
                     } catch (error) {
                         console.error('加载数据失败:', error);
