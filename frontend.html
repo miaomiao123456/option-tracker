@@ -186,13 +186,12 @@
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- 主导航 -->
             <el-tabs v-model="activeTab" type="card" class="mb-6">
-                <el-tab-pane label="📊 市场总览" name="overview"></el-tab-pane>
+                <el-tab-pane label="📊 总览" name="overview"></el-tab-pane>
                 <el-tab-pane label="🔍 品种详情" name="variety-detail"></el-tab-pane>
-                <el-tab-pane label="📄 研报" name="reports"></el-tab-pane>
+                <el-tab-pane label="📰 基本面" name="fundamental"></el-tab-pane>
                 <el-tab-pane label="💰 资金面" name="capital"></el-tab-pane>
-                <el-tab-pane label="📉 技术面" name="technical"></el-tab-pane>
                 <el-tab-pane label="📈 期限分析" name="term-analysis"></el-tab-pane>
-                <el-tab-pane label="📰 消息面" name="news"></el-tab-pane>
+                <el-tab-pane label="📉 技术面" name="technical"></el-tab-pane>
             </el-tabs>
 
             <!-- 总览页 -->
@@ -420,124 +419,144 @@
                 </div>
             </div>
 
-            <!-- 研报页 -->
-            <div v-if="activeTab === 'reports'" class="space-y-6">
-                <!-- 统计卡片 (从总览移过来) -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="stat-card">
-                        <div class="text-sm text-gray-600 mb-1">总品种数</div>
-                        <div class="text-3xl font-bold">{{ zhihuiStats.total_varieties || 0 }}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-sm text-gray-600 mb-1">看多品种</div>
-                        <div class="text-3xl font-bold text-red-500">
-                            {{ zhihuiStats.sentiment_distribution?.bull?.count || 0 }}
-                            <span class="text-lg ml-2 text-gray-500">
-                                ({{ zhihuiStats.sentiment_distribution?.bull?.ratio || 0 }}%)
-                            </span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-sm text-gray-600 mb-1">看空品种</div>
-                        <div class="text-3xl font-bold text-green-600">
-                            {{ zhihuiStats.sentiment_distribution?.bear?.count || 0 }}
-                            <span class="text-lg ml-2 text-gray-500">
-                                ({{ zhihuiStats.sentiment_distribution?.bear?.ratio || 0 }}%)
-                            </span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-sm text-gray-600 mb-1">中性品种</div>
-                        <div class="text-3xl font-bold text-gray-600">
-                            {{ zhihuiStats.sentiment_distribution?.neutral?.count || 0 }}
-                            <span class="text-lg ml-2 text-gray-500">
-                                ({{ zhihuiStats.sentiment_distribution?.neutral?.ratio || 0 }}%)
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 市场情绪分布图表 -->
-                <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800">市场情绪统计</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div id="sentimentPieChart" class="chart-container"></div>
-                        <div id="sentimentBarChart" class="chart-container"></div>
-                    </div>
-                </div>
-
-                <!-- 全部品种研报 -->
-                <div class="glass-card">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">📄 全部品种研报</h2>
-                        <el-radio-group v-model="sentimentFilter" @change="fetchZhihuiData" size="small">
-                            <el-radio-button label="">全部</el-radio-button>
-                            <el-radio-button label="bull">看多</el-radio-button>
-                            <el-radio-button label="neutral">中性</el-radio-button>
-                            <el-radio-button label="bear">看空</el-radio-button>
-                        </el-radio-group>
-                    </div>
-
-                    <el-empty v-if="!zhihuiData.length && !loading" description="暂无研报数据" :image-size="100"></el-empty>
-
-                    <div v-else-if="loading" class="text-center py-12">
-                        <div class="loading-spinner mx-auto"></div>
-                        <p class="text-gray-500 mt-4 text-sm">加载中...</p>
-                    </div>
-
-                    <el-table v-else :data="zhihuiData" style="width: 100%" :default-sort="{prop: 'excessive_ratio', order: 'descending'}">
-                        <el-table-column label="品种" width="180" sortable>
-                            <template #default="scope">
-                                <span class="variety-badge">{{ scope.row.variety_code }}</span>
-                                <span class="font-bold text-gray-800">{{ scope.row.variety_name }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="主流观点" width="100">
-                            <template #default="scope">
-                                <span :class="scope.row.main_sentiment === 'bull' ? 'bull-tag' :
-                                              scope.row.main_sentiment === 'bear' ? 'bear-tag' : 'neutral-tag'">
-                                    {{ scope.row.more_port }}
-                                </span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="more_rate" label="主流占比" width="90" sortable>
-                            <template #default="scope">
-                                <span class="font-bold text-gray-800">{{ scope.row.more_rate.toFixed(1) }}%</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="情绪分布" min-width="280">
-                            <template #default="scope">
-                                <div class="sentiment-bar">
-                                    <div class="sentiment-bar-bull"
-                                         :style="{width: scope.row.excessive_ratio + '%'}"
-                                         :title="'看多: ' + scope.row.excessive_ratio.toFixed(1) + '%'">
-                                    </div>
-                                    <div class="sentiment-bar-neutral"
-                                         :style="{width: scope.row.neutral_ratio + '%'}"
-                                         :title="'中性: ' + scope.row.neutral_ratio.toFixed(1) + '%'">
-                                    </div>
-                                    <div class="sentiment-bar-bear"
-                                         :style="{width: scope.row.empty_ratio + '%'}"
-                                         :title="'看空: ' + scope.row.empty_ratio.toFixed(1) + '%'">
-                                    </div>
+            <!-- 基本面页 -->
+            <div v-if="activeTab === 'fundamental'" class="space-y-6">
+                <el-tabs v-model="fundamentalSubTab" type="border-card">
+                    <!-- 研报子标签 -->
+                    <el-tab-pane label="📄 研报" name="reports">
+                        <!-- 统计卡片 -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                            <div class="stat-card">
+                                <div class="text-sm text-gray-600 mb-1">总品种数</div>
+                                <div class="text-3xl font-bold">{{ zhihuiStats.total_varieties || 0 }}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-sm text-gray-600 mb-1">看多品种</div>
+                                <div class="text-3xl font-bold text-red-500">
+                                    {{ zhihuiStats.sentiment_distribution?.bull?.count || 0 }}
+                                    <span class="text-lg ml-2 text-gray-500">
+                                        ({{ zhihuiStats.sentiment_distribution?.bull?.ratio || 0 }}%)
+                                    </span>
                                 </div>
-                                <div class="text-xs text-gray-500 mt-1">
-                                    看多: {{ scope.row.excessive_num }}家 ({{ scope.row.excessive_ratio.toFixed(1) }}%) |
-                                    中性: {{ scope.row.neutral_num }}家 ({{ scope.row.neutral_ratio.toFixed(1) }}%) |
-                                    看空: {{ scope.row.empty_num }}家 ({{ scope.row.empty_ratio.toFixed(1) }}%)
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-sm text-gray-600 mb-1">看空品种</div>
+                                <div class="text-3xl font-bold text-green-600">
+                                    {{ zhihuiStats.sentiment_distribution?.bear?.count || 0 }}
+                                    <span class="text-lg ml-2 text-gray-500">
+                                        ({{ zhihuiStats.sentiment_distribution?.bear?.ratio || 0 }}%)
+                                    </span>
                                 </div>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="sum" label="总机构数" width="90" sortable></el-table-column>
-                        <el-table-column label="操作" width="120" fixed="right">
-                            <template #default="scope">
-                                <el-button size="small" @click="openResearchDetail(scope.row.variety_code)">
-                                    查看研报
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-sm text-gray-600 mb-1">中性品种</div>
+                                <div class="text-3xl font-bold text-gray-600">
+                                    {{ zhihuiStats.sentiment_distribution?.neutral?.count || 0 }}
+                                    <span class="text-lg ml-2 text-gray-500">
+                                        ({{ zhihuiStats.sentiment_distribution?.neutral?.ratio || 0 }}%)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 市场情绪分布图表 -->
+                        <div class="glass-card">
+                            <h2 class="text-xl font-bold mb-4 text-gray-800">市场情绪统计</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div id="sentimentPieChart" class="chart-container"></div>
+                                <div id="sentimentBarChart" class="chart-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- 全部品种研报 -->
+                        <div class="glass-card">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-xl font-bold text-gray-800">📄 全部品种研报</h2>
+                                <el-radio-group v-model="sentimentFilter" @change="fetchZhihuiData" size="small">
+                                    <el-radio-button label="">全部</el-radio-button>
+                                    <el-radio-button label="bull">看多</el-radio-button>
+                                    <el-radio-button label="neutral">中性</el-radio-button>
+                                    <el-radio-button label="bear">看空</el-radio-button>
+                                </el-radio-group>
+                            </div>
+
+                            <el-empty v-if="!zhihuiData.length && !loading" description="暂无研报数据" :image-size="100"></el-empty>
+
+                            <div v-else-if="loading" class="text-center py-12">
+                                <div class="loading-spinner mx-auto"></div>
+                                <p class="text-gray-500 mt-4 text-sm">加载中...</p>
+                            </div>
+
+                            <el-table v-else :data="zhihuiData" style="width: 100%" :default-sort="{prop: 'excessive_ratio', order: 'descending'}">
+                                <el-table-column label="品种" width="180" sortable>
+                                    <template #default="scope">
+                                        <span class="variety-badge">{{ scope.row.variety_code }}</span>
+                                        <span class="font-bold text-gray-800">{{ scope.row.variety_name }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="主流观点" width="100">
+                                    <template #default="scope">
+                                        <span :class="scope.row.main_sentiment === 'bull' ? 'bull-tag' :
+                                                      scope.row.main_sentiment === 'bear' ? 'bear-tag' : 'neutral-tag'">
+                                            {{ scope.row.more_port }}
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="more_rate" label="主流占比" width="90" sortable>
+                                    <template #default="scope">
+                                        <span class="font-bold text-gray-800">{{ scope.row.more_rate.toFixed(1) }}%</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="情绪分布" min-width="280">
+                                    <template #default="scope">
+                                        <div class="sentiment-bar">
+                                            <div class="sentiment-bar-bull"
+                                                 :style="{width: scope.row.excessive_ratio + '%'}"
+                                                 :title="'看多: ' + scope.row.excessive_ratio.toFixed(1) + '%'">
+                                            </div>
+                                            <div class="sentiment-bar-neutral"
+                                                 :style="{width: scope.row.neutral_ratio + '%'}"
+                                                 :title="'中性: ' + scope.row.neutral_ratio.toFixed(1) + '%'">
+                                            </div>
+                                            <div class="sentiment-bar-bear"
+                                                 :style="{width: scope.row.empty_ratio + '%'}"
+                                                 :title="'看空: ' + scope.row.empty_ratio.toFixed(1) + '%'">
+                                            </div>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            看多: {{ scope.row.excessive_num }}家 ({{ scope.row.excessive_ratio.toFixed(1) }}%) |
+                                            中性: {{ scope.row.neutral_num }}家 ({{ scope.row.neutral_ratio.toFixed(1) }}%) |
+                                            看空: {{ scope.row.empty_num }}家 ({{ scope.row.empty_ratio.toFixed(1) }}%)
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="sum" label="总机构数" width="90" sortable></el-table-column>
+                                <el-table-column label="操作" width="120" fixed="right">
+                                    <template #default="scope">
+                                        <el-button size="small" @click="openResearchDetail(scope.row.variety_code)">
+                                            查看研报
+                                        </el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                    </el-tab-pane>
+
+                    <!-- 快讯子标签 -->
+                    <el-tab-pane label="📰 快讯" name="news">
+                        <div class="glass-card" style="height: 800px;">
+                            <h2 class="text-lg font-bold mb-4 text-gray-800">📰 实时快讯 (金十数据)</h2>
+                            <iframe src="https://www.jin10.com/" width="100%" height="95%" frameborder="0"></iframe>
+                        </div>
+                    </el-tab-pane>
+
+                    <!-- 重要会议子标签 -->
+                    <el-tab-pane label="📅 重要会议" name="meetings">
+                        <div class="glass-card">
+                            <el-empty description="重要会议功能开发中..." :image-size="100"></el-empty>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
             </div>
 
             <!-- 资金面页 -->
@@ -567,69 +586,88 @@
 
             <!-- 技术面页 -->
             <div v-if="activeTab === 'technical'" class="space-y-6">
-                <!-- 解析策略列表（放在前面） -->
-                <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800">📋 {{ selectedDate }} 交易策略</h2>
+                <el-tabs v-model="technicalSubTab" type="border-card">
+                    <!-- 波动率曲面子标签 -->
+                    <el-tab-pane label="📊 波动率曲面" name="volatility-surface">
+                        <div class="glass-card">
+                            <el-empty description="波动率曲面功能开发中..." :image-size="100"></el-empty>
+                        </div>
+                    </el-tab-pane>
 
-                    <!-- 所有策略列表 (做多/做空分类) -->
-                    <div v-if="jykStrategies.long.length || jykStrategies.short.length">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div v-if="jykStrategies.long.length">
-                                <h4 class="text-base font-bold mb-3 text-red-600">🔥 做多策略 ({{ jykStrategies.long.length }}个)</h4>
-                                <div class="space-y-2">
-                                    <div v-for="(s, idx) in jykStrategies.long" :key="idx" class="p-3 bg-red-50 border border-red-100 rounded hover:border-red-300 transition-all">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div>
-                                                <span class="variety-badge">{{ s.variety }}</span>
-                                                <span class="font-bold text-gray-800">{{ getVarietyName(s.variety) }}</span>
+                    <!-- 波动率背离子标签 -->
+                    <el-tab-pane label="📉 波动率背离" name="volatility-divergence">
+                        <div class="glass-card">
+                            <el-empty description="波动率背离功能开发中..." :image-size="100"></el-empty>
+                        </div>
+                    </el-tab-pane>
+
+                    <!-- 交易可查子标签 -->
+                    <el-tab-pane label="📋 交易可查" name="trading-strategy">
+                        <!-- 解析策略列表 -->
+                        <div class="glass-card mb-6">
+                            <h2 class="text-xl font-bold mb-4 text-gray-800">📋 {{ selectedDate }} 交易策略</h2>
+
+                            <!-- 所有策略列表 (做多/做空分类) -->
+                            <div v-if="jykStrategies.long.length || jykStrategies.short.length">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div v-if="jykStrategies.long.length">
+                                        <h4 class="text-base font-bold mb-3 text-red-600">🔥 做多策略 ({{ jykStrategies.long.length }}个)</h4>
+                                        <div class="space-y-2">
+                                            <div v-for="(s, idx) in jykStrategies.long" :key="idx" class="p-3 bg-red-50 border border-red-100 rounded hover:border-red-300 transition-all">
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <span class="variety-badge">{{ s.variety }}</span>
+                                                        <span class="font-bold text-gray-800">{{ getVarietyName(s.variety) }}</span>
+                                                    </div>
+                                                    <span class="text-sm">{{ s.signal }}</span>
+                                                </div>
+                                                <div class="text-sm text-gray-600">{{ s.reason }}</div>
                                             </div>
-                                            <span class="text-sm">{{ s.signal }}</span>
                                         </div>
-                                        <div class="text-sm text-gray-600">{{ s.reason }}</div>
+                                    </div>
+                                    <div v-if="jykStrategies.short.length">
+                                        <h4 class="text-base font-bold mb-3 text-green-600">❄️ 做空策略 ({{ jykStrategies.short.length }}个)</h4>
+                                        <div class="space-y-2">
+                                            <div v-for="(s, idx) in jykStrategies.short" :key="idx" class="p-3 bg-green-50 border border-green-100 rounded hover:border-green-300 transition-all">
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <span class="variety-badge">{{ s.variety }}</span>
+                                                        <span class="font-bold text-gray-800">{{ getVarietyName(s.variety) }}</span>
+                                                    </div>
+                                                    <span class="text-sm">{{ s.signal }}</span>
+                                                </div>
+                                                <div class="text-sm text-gray-600">{{ s.reason }}</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="jykStrategies.short.length">
-                                <h4 class="text-base font-bold mb-3 text-green-600">❄️ 做空策略 ({{ jykStrategies.short.length }}个)</h4>
-                                <div class="space-y-2">
-                                    <div v-for="(s, idx) in jykStrategies.short" :key="idx" class="p-3 bg-green-50 border border-green-100 rounded hover:border-green-300 transition-all">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div>
-                                                <span class="variety-badge">{{ s.variety }}</span>
-                                                <span class="font-bold text-gray-800">{{ getVarietyName(s.variety) }}</span>
-                                            </div>
-                                            <span class="text-sm">{{ s.signal }}</span>
-                                        </div>
-                                        <div class="text-sm text-gray-600">{{ s.reason }}</div>
-                                    </div>
+
+                            <el-empty v-if="!jykStrategies.long.length && !jykStrategies.short.length"
+                                description="暂无策略解析数据" :image-size="100"></el-empty>
+                        </div>
+
+                        <!-- 蓝图原图 -->
+                        <div class="glass-card">
+                            <h2 class="text-xl font-bold mb-4 text-gray-800">📊 交易可查 - 每日交易蓝图</h2>
+
+                            <!-- 显示蓝图图片 -->
+                            <div v-if="blueprintData.local_path">
+                                <div class="mb-3">
+                                    <span class="text-sm text-gray-600">日期: {{ blueprintData.date }}</span>
                                 </div>
+                                <img :src="'/api/v1/daily/blueprints/image?date=' + selectedDate + '&refresh=' + imageRefreshKey"
+                                     :key="'blueprint-' + selectedDate + '-' + imageRefreshKey"
+                                     alt="每日交易蓝图"
+                                     class="w-full border border-gray-200 rounded-lg"
+                                     @error="handleImageError">
                             </div>
+
+                            <el-empty v-if="!blueprintData.local_path"
+                                description="暂无蓝图图片" :image-size="100"></el-empty>
                         </div>
-                    </div>
-
-                    <el-empty v-if="!jykStrategies.long.length && !jykStrategies.short.length"
-                        description="暂无策略解析数据" :image-size="100"></el-empty>
-                </div>
-
-                <!-- 蓝图原图（放在后面） -->
-                <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 交易可查 - 每日交易蓝图</h2>
-
-                    <!-- 显示蓝图图片 -->
-                    <div v-if="blueprintData.local_path">
-                        <div class="mb-3">
-                            <span class="text-sm text-gray-600">日期: {{ blueprintData.date }}</span>
-                        </div>
-                        <img :src="'/api/v1/daily/blueprints/image?date=' + selectedDate + '&refresh=' + imageRefreshKey"
-                             :key="'blueprint-' + selectedDate + '-' + imageRefreshKey"
-                             alt="每日交易蓝图"
-                             class="w-full border border-gray-200 rounded-lg"
-                             @error="handleImageError">
-                    </div>
-
-                    <el-empty v-if="!blueprintData.local_path"
-                        description="暂无蓝图图片" :image-size="100"></el-empty>
-                </div>
+                    </el-tab-pane>
+                </el-tabs>
             </div>
 
             <!-- 期限分析页 -->
@@ -891,8 +929,12 @@
                 const imageRefreshKey = ref(0); // 用于强制刷新图片
                 const varietyResearchSummary = ref(null); // 品种详情页面的研报汇总
 
+                // Sub-tab refs
+                const fundamentalSubTab = ref('reports');  // 基本面子标签
+                const technicalSubTab = ref('trading-strategy');  // 技术面子标签
+                const termAnalysisSubTab = ref('virtual-real-ratio');  // 期限分析子标签
+
                 // Virtual-Real Ratio data refs
-                const termAnalysisSubTab = ref('virtual-real-ratio');
                 const vrSummary = ref({
                     total_varieties: 0,
                     high_risk_count: 0,
@@ -1467,9 +1509,10 @@
 
                 // Watch activeTab to fetch data when switching tabs
                 watch(activeTab, (newTab) => {
-                    if (newTab === 'reports') {
+                    if (newTab === 'fundamental') {
+                        // Load zhihui data for fundamental tab
                         if (!zhihuiData.value.length) fetchZhihuiData();
-                        // Render charts when entering reports tab
+                        // Render charts when entering fundamental/reports sub-tab
                         setTimeout(() => {
                             renderSentimentPieChart();
                             renderSentimentBarChart();
@@ -1477,6 +1520,7 @@
                     } else if (newTab === 'capital') {
                         if (!capitalData.value.length) fetchCapitalData();
                     } else if (newTab === 'technical') {
+                        // Load JYK strategies when entering technical tab
                         if (!jykStrategies.value.long.length && !blueprintData.value.date) fetchJYKStrategies();
                     } else if (newTab === 'variety-detail') {
                         // Load all necessary data for variety detail
@@ -1526,8 +1570,11 @@
                     openResearchDetail,
                     loadVarietyResearchSummary,
                     getSentimentType,
-                    // Virtual-Real Ratio
+                    // Sub-tabs
+                    fundamentalSubTab,
+                    technicalSubTab,
                     termAnalysisSubTab,
+                    // Virtual-Real Ratio
                     vrSummary,
                     vrList,
                     vrFilterRisk,
