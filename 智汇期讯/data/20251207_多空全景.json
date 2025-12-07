@@ -12,7 +12,7 @@
     "more_port": "偏多",
     "more_rate": 100.0,
     "main_sentiment": "bull",
-    "record_time": "2025-12-07T14:32:53.914459"
+    "record_time": "2025-12-07T15:26:10.187184"
   },
   {
     "variety_code": "LC",
@@ -27,7 +27,7 @@
     "more_port": "中性",
     "more_rate": 100.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-07T14:32:53.914702"
+    "record_time": "2025-12-07T15:26:10.187197"
   },
   {
     "variety_code": "AO",
@@ -42,6 +42,6 @@
     "more_port": "偏空",
     "more_rate": 100.0,
     "main_sentiment": "bear",
-    "record_time": "2025-12-07T14:32:53.914707"
+    "record_time": "2025-12-07T15:26:10.187199"
   }
 ]

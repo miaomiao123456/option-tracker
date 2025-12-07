@@ -888,7 +888,73 @@
                     <!-- 期限结构子标签 -->
                     <el-tab-pane label="📈 期限结构" name="term-structure">
                         <div class="glass-card">
-                            <el-empty description="期限结构功能开发中..." :image-size="100"></el-empty>
+                            <h2 class="text-xl font-bold mb-6 text-gray-800">📈 期限结构分析</h2>
+
+                            <!-- 品种选择 -->
+                            <div class="flex items-center space-x-4 mb-6">
+                                <el-input
+                                    v-model="termStructureVariety"
+                                    placeholder="输入品种代码 (如: M, C, RB, I)"
+                                    prefix-icon="Search"
+                                    class="w-64"
+                                    @keyup.enter="loadTermStructure">
+                                </el-input>
+                                <el-button type="primary" @click="loadTermStructure">查询期限结构</el-button>
+                            </div>
+
+                            <!-- 市场结构提示 -->
+                            <div v-if="termStructureData" class="mb-6">
+                                <el-alert
+                                    :title="termStructureData.market_structure"
+                                    :description="termStructureData.structure_desc"
+                                    :type="termStructureData.market_structure === '正向市场' ? 'warning' : termStructureData.market_structure === '反向市场' ? 'success' : 'info'"
+                                    :closable="false"
+                                    show-icon>
+                                </el-alert>
+                            </div>
+
+                            <!-- 期限结构图表 -->
+                            <div v-if="termStructureData && termStructureData.contracts.length">
+                                <div id="termStructureChart" class="chart-container" style="height: 500px;"></div>
+
+                                <!-- 合约列表 -->
+                                <div class="mt-6">
+                                    <h3 class="text-lg font-bold mb-4 text-gray-800">合约明细</h3>
+                                    <el-table :data="termStructureData.contracts" style="width: 100%">
+                                        <el-table-column prop="symbol" label="合约代码" width="120"></el-table-column>
+                                        <el-table-column prop="month" label="合约月份" width="100"></el-table-column>
+                                        <el-table-column prop="price" label="价格" width="120">
+                                            <template #default="scope">
+                                                <span class="font-bold">{{ scope.row.price.toFixed(2) }}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column prop="volume" label="成交量" width="150">
+                                            <template #default="scope">
+                                                {{ formatNumber(scope.row.volume) }}
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column prop="open_interest" label="持仓量" width="150">
+                                            <template #default="scope">
+                                                {{ formatNumber(scope.row.open_interest) }}
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </div>
+                            </div>
+
+                            <!-- 默认提示 -->
+                            <div v-else-if="!termStructureData" class="text-center py-12">
+                                <el-empty description="请输入品种代码查看期限结构" :image-size="100">
+                                    <template #default>
+                                        <p class="text-gray-500 text-sm mb-4">例如: M (豆粕), C (玉米), RB (螺纹钢), I (铁矿石)</p>
+                                    </template>
+                                </el-empty>
+                            </div>
+
+                            <!-- 无数据提示 -->
+                            <div v-else-if="termStructureData && !termStructureData.contracts.length" class="text-center py-12">
+                                <el-empty description="未找到该品种的合约数据" :image-size="100"></el-empty>
+                            </div>
                         </div>
                     </el-tab-pane>
                 </el-tabs>
@@ -947,6 +1013,10 @@
                 const vrFilterRisk = ref('');
                 const vrDetailDialogVisible = ref(false);
                 const vrDetailData = ref(null);
+
+                // Term Structure data refs
+                const termStructureVariety = ref('');
+                const termStructureData = ref(null);
 
                 // API Base URL - 自动检测本地或公网环境
                 const API_BASE = window.location.hostname === 'localhost'
@@ -1496,6 +1566,115 @@
                     myChart.setOption(option);
                 };
 
+                // Term Structure functions
+                const loadTermStructure = async () => {
+                    if (!termStructureVariety.value) {
+                        ElMessage.warning('请输入品种代码');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(
+                            `${API_BASE}/term-structure/structure/${termStructureVariety.value.toUpperCase()}`
+                        );
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.success) {
+                                termStructureData.value = data;
+                                // 等待DOM更新后渲染图表
+                                setTimeout(() => {
+                                    renderTermStructureChart();
+                                }, 300);
+                                ElMessage.success(`成功加载 ${data.variety_code} 的期限结构数据`);
+                            } else {
+                                termStructureData.value = null;
+                                ElMessage.warning(data.message || '未找到数据');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载期限结构失败:', error);
+                        ElMessage.error('加载失败，请稍后重试');
+                    }
+                };
+
+                const renderTermStructureChart = () => {
+                    const chartDom = document.getElementById('termStructureChart');
+                    if (!chartDom || !termStructureData.value) return;
+
+                    const myChart = echarts.init(chartDom);
+                    const contracts = termStructureData.value.contracts;
+
+                    const option = {
+                        title: {
+                            text: `${termStructureData.value.variety_code} 期限结构`,
+                            left: 'center',
+                            textStyle: {
+                                color: '#2c3e50',
+                                fontSize: 18,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                const data = params[0];
+                                const contract = contracts[data.dataIndex];
+                                return `合约: ${contract.symbol}<br/>价格: ${contract.price.toFixed(2)}<br/>成交量: ${formatNumber(contract.volume)}<br/>持仓量: ${formatNumber(contract.open_interest)}`;
+                            }
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '15%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: contracts.map(c => c.symbol),
+                            name: '合约',
+                            axisLabel: {
+                                rotate: 45,
+                                interval: 0
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '价格',
+                            axisLabel: {
+                                formatter: '{value}'
+                            }
+                        },
+                        series: [
+                            {
+                                name: '价格',
+                                type: 'line',
+                                data: contracts.map(c => c.price),
+                                smooth: false,
+                                lineStyle: {
+                                    width: 3,
+                                    color: '#409eff'
+                                },
+                                itemStyle: {
+                                    color: '#409eff',
+                                    borderWidth: 2
+                                },
+                                markPoint: {
+                                    data: [
+                                        { type: 'max', name: '最高' },
+                                        { type: 'min', name: '最低' }
+                                    ]
+                                },
+                                markLine: {
+                                    data: [
+                                        { type: 'average', name: '平均' }
+                                    ]
+                                }
+                            }
+                        ]
+                    };
+                    myChart.setOption(option);
+                };
+
                 const onDateChange = () => {
                     // 更新图片刷新键，强制重新加载蓝图图片
                     imageRefreshKey.value++;
@@ -1585,7 +1764,12 @@
                     getVRRiskType,
                     getVRPressureType,
                     formatNumber,
-                    viewVRDetail
+                    viewVRDetail,
+                    // Term Structure
+                    termStructureVariety,
+                    termStructureData,
+                    loadTermStructure,
+                    renderTermStructureChart
                 };
             }
         });

@@ -48,6 +48,10 @@ app.include_router(zhihui.router, prefix="/api/v1/zhihui", tags=["智汇期讯"]
 from app.routers import virtual_real_ratio
 app.include_router(virtual_real_ratio.router, prefix="/api/v1/virtual-real-ratio", tags=["虚实比/期限结构"])
 
+# 新增:期限结构模块路由
+from app.routers import term_structure
+app.include_router(term_structure.router, prefix="/api/v1/term-structure", tags=["期限结构"])
+
 
 @app.on_event("startup")
 async def startup_event():
