@@ -775,8 +775,75 @@
                                 </el-table-column>
                                 <el-table-column prop="impact_analysis" label="影响分析" min-width="280">
                                 </el-table-column>
+                                <el-table-column label="操作" width="100" fixed="right">
+                                    <template #default="scope">
+                                        <el-button size="small" type="primary" @click="viewVRDetail(scope.row.comm_code)">
+                                            详情
+                                        </el-button>
+                                    </template>
+                                </el-table-column>
                             </el-table>
                         </div>
+
+                        <!-- 详情对话框 -->
+                        <el-dialog v-model="vrDetailDialogVisible" :title="vrDetailData ? `${vrDetailData.variety_name} (${vrDetailData.comm_code}) 虚实比详情` : '虚实比详情'" width="900px">
+                            <div v-if="vrDetailData">
+                                <el-descriptions :column="2" border>
+                                    <el-descriptions-item label="品种">
+                                        {{ vrDetailData.variety_name }} ({{ vrDetailData.comm_code }})
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="记录日期">
+                                        {{ vrDetailData.record_date }}
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="虚实比">
+                                        <span class="text-xl font-bold text-red-500">
+                                            {{ vrDetailData.virtual_real_ratio.toFixed(2) }}
+                                        </span>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="逼仓风险">
+                                        <el-tag :type="getVRRiskType(vrDetailData.squeeze_risk)">
+                                            {{ vrDetailData.squeeze_risk }}
+                                        </el-tag>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="仓单量">
+                                        {{ formatNumber(vrDetailData.receipt_quantity) }}
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="仓单变化">
+                                        <span :class="vrDetailData.receipt_change > 0 ? 'text-green-500' : 'text-red-500'">
+                                            {{ vrDetailData.receipt_change > 0 ? '+' : '' }}{{ formatNumber(vrDetailData.receipt_change) }}
+                                        </span>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="持仓量(手)">
+                                        {{ formatNumber(vrDetailData.open_interest) }}
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="持仓变化">
+                                        <span :class="vrDetailData.open_interest_change > 0 ? 'text-green-500' : 'text-red-500'">
+                                            {{ vrDetailData.open_interest_change > 0 ? '+' : '' }}{{ formatNumber(vrDetailData.open_interest_change) }}
+                                        </span>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="虚盘量">
+                                        {{ formatNumber(vrDetailData.virtual_quantity) }}
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="合约单位">
+                                        {{ vrDetailData.contract_unit }} 千克/手
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="价格压力" span="2">
+                                        <el-tag :type="getVRPressureType(vrDetailData.price_pressure)">
+                                            {{ vrDetailData.price_pressure }}
+                                        </el-tag>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="影响分析" span="2">
+                                        {{ vrDetailData.impact_analysis }}
+                                    </el-descriptions-item>
+                                </el-descriptions>
+
+                                <!-- 历史趋势图表 -->
+                                <div class="mt-6">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-4">📊 历史趋势 (近30天)</h3>
+                                    <div id="vrTrendChart" style="width: 100%; height: 400px;"></div>
+                                </div>
+                            </div>
+                        </el-dialog>
                     </el-tab-pane>
 
                     <!-- 期限结构子标签 -->
@@ -835,6 +902,8 @@
                 });
                 const vrList = ref([]);
                 const vrFilterRisk = ref('');
+                const vrDetailDialogVisible = ref(false);
+                const vrDetailData = ref(null);
 
                 // API Base URL - 自动检测本地或公网环境
                 const API_BASE = window.location.hostname === 'localhost'
@@ -1228,6 +1297,130 @@
                     return num ? num.toLocaleString() : '0';
                 };
 
+                // 查看虚实比详情
+                const viewVRDetail = async (commCode) => {
+                    try {
+                        // 获取详情数据
+                        const detailRes = await fetch(
+                            `${API_BASE}/virtual-real-ratio/detail/${commCode}?query_date=${selectedDate.value}`
+                        );
+                        if (detailRes.ok) {
+                            vrDetailData.value = await detailRes.json();
+                            vrDetailDialogVisible.value = true;
+
+                            // 获取历史数据并渲染图表
+                            const historyRes = await fetch(`${API_BASE}/virtual-real-ratio/history/${commCode}?days=30`);
+                            if (historyRes.ok) {
+                                const historyData = await historyRes.json();
+                                // 等待对话框渲染完成后再绘制图表
+                                setTimeout(() => {
+                                    renderVRTrendChart(historyData);
+                                }, 300);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to load VR detail:', error);
+                        ElMessage.error('加载详情失败');
+                    }
+                };
+
+                // 渲染虚实比趋势图表
+                const renderVRTrendChart = (historyData) => {
+                    const chartDom = document.getElementById('vrTrendChart');
+                    if (!chartDom || !historyData.success) return;
+
+                    const myChart = echarts.init(chartDom);
+                    const option = {
+                        title: {
+                            text: `${historyData.variety_name} 虚实比趋势 (近30天)`,
+                            left: 'center',
+                            textStyle: {
+                                color: '#2c3e50',
+                                fontSize: 16
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                let result = params[0].axisValue + '<br/>';
+                                params.forEach(param => {
+                                    if (param.seriesName === '虚实比') {
+                                        result += `${param.marker}${param.seriesName}: ${param.value.toFixed(2)}<br/>`;
+                                    } else {
+                                        result += `${param.marker}${param.seriesName}: ${formatNumber(param.value)}<br/>`;
+                                    }
+                                });
+                                return result;
+                            }
+                        },
+                        legend: {
+                            data: ['虚实比', '仓单量', '持仓量'],
+                            top: 35
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: historyData.data.dates,
+                            axisLabel: {
+                                rotate: 45
+                            }
+                        },
+                        yAxis: [
+                            {
+                                type: 'value',
+                                name: '虚实比',
+                                position: 'left',
+                                axisLabel: {
+                                    formatter: '{value}'
+                                }
+                            },
+                            {
+                                type: 'value',
+                                name: '数量',
+                                position: 'right',
+                                axisLabel: {
+                                    formatter: function(value) {
+                                        return value >= 10000 ? (value / 10000).toFixed(1) + '万' : value;
+                                    }
+                                }
+                            }
+                        ],
+                        series: [
+                            {
+                                name: '虚实比',
+                                type: 'line',
+                                data: historyData.data.virtual_real_ratios,
+                                yAxisIndex: 0,
+                                smooth: true,
+                                itemStyle: { color: '#f56c6c' },
+                                lineStyle: { width: 3 }
+                            },
+                            {
+                                name: '仓单量',
+                                type: 'line',
+                                data: historyData.data.receipt_quantities,
+                                yAxisIndex: 1,
+                                smooth: true,
+                                itemStyle: { color: '#409eff' }
+                            },
+                            {
+                                name: '持仓量',
+                                type: 'line',
+                                data: historyData.data.open_interests,
+                                yAxisIndex: 1,
+                                smooth: true,
+                                itemStyle: { color: '#67c23a' }
+                            }
+                        ]
+                    };
+                    myChart.setOption(option);
+                };
+
                 const onDateChange = () => {
                     // 更新图片刷新键，强制重新加载蓝图图片
                     imageRefreshKey.value++;
@@ -1301,10 +1494,13 @@
                     vrSummary,
                     vrList,
                     vrFilterRisk,
+                    vrDetailDialogVisible,
+                    vrDetailData,
                     loadVRData,
                     getVRRiskType,
                     getVRPressureType,
-                    formatNumber
+                    formatNumber,
+                    viewVRDetail
                 };
             }
         });
