@@ -206,18 +206,27 @@
 
                     <!-- 数据表格 -->
                     <el-table :data="varietyList" stripe style="width: 100%">
-                        <el-table-column prop="variety_name" label="品种" width="120">
+                        <el-table-column prop="variety_name" label="品种" width="120" fixed>
                             <template #default="scope">
                                 <strong>{{ scope.row.variety_name }}</strong>
                                 <span class="text-gray-500 text-sm">({{ scope.row.comm_code }})</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="virtual_real_ratio" label="虚实比" width="120" sortable>
+                        <el-table-column prop="virtual_real_ratio" label="虚实比" width="140" sortable>
                             <template #default="scope">
-                                <span class="text-lg font-bold"
-                                    :class="scope.row.virtual_real_ratio > 10 ? 'text-red-500' : 'text-gray-800'">
-                                    {{ scope.row.virtual_real_ratio.toFixed(2) }}
-                                </span>
+                                <div>
+                                    <span class="text-lg font-bold"
+                                        :class="scope.row.virtual_real_ratio > 100 ? 'text-red-500' : 'text-gray-800'">
+                                        {{ scope.row.virtual_real_ratio.toFixed(2) }}
+                                    </span>
+                                    <div v-if="scope.row.ratio_change_pct !== null && scope.row.ratio_change_pct !== undefined"
+                                         class="text-xs mt-1">
+                                        <span :class="scope.row.ratio_change_pct > 0 ? 'text-red-500' : 'text-green-500'">
+                                            {{ scope.row.ratio_change_pct > 0 ? '↑' : '↓' }}
+                                            {{ Math.abs(scope.row.ratio_change_pct).toFixed(2) }}%
+                                        </span>
+                                    </div>
+                                </div>
                             </template>
                         </el-table-column>
                         <el-table-column prop="squeeze_risk" label="逼仓风险" width="100">
@@ -228,14 +237,32 @@
                                 </span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="receipt_quantity" label="仓单量" width="120">
+                        <el-table-column prop="receipt_quantity" label="仓单量" width="140">
                             <template #default="scope">
-                                {{ formatNumber(scope.row.receipt_quantity) }}
+                                <div>
+                                    <div>{{ formatNumber(scope.row.receipt_quantity) }}</div>
+                                    <div v-if="scope.row.receipt_change_pct !== null && scope.row.receipt_change_pct !== undefined"
+                                         class="text-xs mt-1">
+                                        <span :class="scope.row.receipt_change_pct > 0 ? 'text-green-500' : 'text-red-500'">
+                                            {{ scope.row.receipt_change_pct > 0 ? '↑' : '↓' }}
+                                            {{ Math.abs(scope.row.receipt_change_pct).toFixed(2) }}%
+                                        </span>
+                                    </div>
+                                </div>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="open_interest" label="持仓量(手)" width="120">
+                        <el-table-column prop="open_interest" label="持仓量(手)" width="140">
                             <template #default="scope">
-                                {{ formatNumber(scope.row.open_interest) }}
+                                <div>
+                                    <div>{{ formatNumber(scope.row.open_interest) }}</div>
+                                    <div v-if="scope.row.oi_change_pct !== null && scope.row.oi_change_pct !== undefined"
+                                         class="text-xs mt-1">
+                                        <span :class="scope.row.oi_change_pct > 0 ? 'text-red-500' : 'text-green-500'">
+                                            {{ scope.row.oi_change_pct > 0 ? '↑' : '↓' }}
+                                            {{ Math.abs(scope.row.oi_change_pct).toFixed(2) }}%
+                                        </span>
+                                    </div>
+                                </div>
                             </template>
                         </el-table-column>
                         <el-table-column prop="price_pressure" label="价格压力" width="100">

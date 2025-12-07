@@ -49,7 +49,7 @@ class VirtualRealRatioSummary(BaseModel):
     high_risk_varieties: List[dict]
 
 
-@router.get("/list", response_model=List[VirtualRealRatioResponse])
+@router.get("/list")
 async def get_virtual_real_ratio_list(
     query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
     comm_code: Optional[str] = Query(None, description="品种代码,如AU"),
@@ -57,7 +57,7 @@ async def get_virtual_real_ratio_list(
     db: Session = Depends(get_db)
 ):
     """
-    获取虚实比数据列表
+    获取虚实比数据列表,包含与上一期对比数据
     """
     query = db.query(WarehouseReceipt)
 
@@ -71,7 +71,10 @@ async def get_virtual_real_ratio_list(
             desc(WarehouseReceipt.record_date)
         ).first()
         if latest_date:
-            query = query.filter(WarehouseReceipt.record_date == latest_date[0])
+            target_date = latest_date[0]
+            query = query.filter(WarehouseReceipt.record_date == target_date)
+        else:
+            return []
 
     # 品种筛选
     if comm_code:
@@ -84,7 +87,76 @@ async def get_virtual_real_ratio_list(
     # 按虚实比降序排列
     results = query.order_by(desc(WarehouseReceipt.virtual_real_ratio)).all()
 
-    return results
+    # 获取上一期数据进行对比
+    if results and target_date:
+        # 查找上一个交易日数据
+        prev_date = db.query(WarehouseReceipt.record_date).filter(
+            WarehouseReceipt.record_date < target_date
+        ).order_by(desc(WarehouseReceipt.record_date)).first()
+
+        prev_data_dict = {}
+        if prev_date:
+            prev_records = db.query(WarehouseReceipt).filter(
+                WarehouseReceipt.record_date == prev_date[0]
+            ).all()
+            prev_data_dict = {r.comm_code: r for r in prev_records}
+
+        # 构建返回数据,添加对比信息
+        response_data = []
+        for record in results:
+            item = {
+                "id": record.id,
+                "comm_code": record.comm_code,
+                "variety_name": record.variety_name,
+                "record_date": record.record_date.isoformat(),
+                "receipt_quantity": record.receipt_quantity,
+                "receipt_change": record.receipt_change,
+                "main_contract": record.main_contract,
+                "open_interest": record.open_interest,
+                "open_interest_change": record.open_interest_change,
+                "contract_unit": record.contract_unit,
+                "virtual_quantity": record.virtual_quantity,
+                "virtual_real_ratio": record.virtual_real_ratio,
+                "squeeze_risk": record.squeeze_risk,
+                "impact_analysis": record.impact_analysis,
+                "price_pressure": record.price_pressure,
+                "created_at": record.created_at.isoformat(),
+                "updated_at": record.updated_at.isoformat(),
+            }
+
+            # 添加对比数据
+            if record.comm_code in prev_data_dict:
+                prev = prev_data_dict[record.comm_code]
+
+                # 虚实比变化
+                ratio_change = record.virtual_real_ratio - prev.virtual_real_ratio
+                ratio_change_pct = (ratio_change / prev.virtual_real_ratio * 100) if prev.virtual_real_ratio != 0 else 0
+
+                # 仓单变化百分比
+                receipt_change_pct = (record.receipt_change / prev.receipt_quantity * 100) if prev.receipt_quantity != 0 else 0
+
+                # 持仓变化百分比
+                oi_change_pct = (record.open_interest_change / prev.open_interest * 100) if prev.open_interest != 0 else 0
+
+                item["prev_virtual_real_ratio"] = prev.virtual_real_ratio
+                item["ratio_change"] = round(ratio_change, 2)
+                item["ratio_change_pct"] = round(ratio_change_pct, 2)
+                item["receipt_change_pct"] = round(receipt_change_pct, 2)
+                item["oi_change_pct"] = round(oi_change_pct, 2)
+                item["prev_date"] = prev_date[0].isoformat()
+            else:
+                item["prev_virtual_real_ratio"] = None
+                item["ratio_change"] = None
+                item["ratio_change_pct"] = None
+                item["receipt_change_pct"] = None
+                item["oi_change_pct"] = None
+                item["prev_date"] = None
+
+            response_data.append(item)
+
+        return response_data
+
+    return []
 
 
 @router.get("/summary", response_model=VirtualRealRatioSummary)
