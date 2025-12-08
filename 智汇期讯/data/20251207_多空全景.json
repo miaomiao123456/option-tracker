@@ -12,22 +12,37 @@
     "more_port": "偏多",
     "more_rate": 100.0,
     "main_sentiment": "bull",
-    "record_time": "2025-12-07T15:26:10.187184"
+    "record_time": "2025-12-07T23:31:19.723960"
+  },
+  {
+    "variety_code": "CU",
+    "variety_name": "沪铜",
+    "excessive_ratio": 100.0,
+    "neutral_ratio": 0.0,
+    "empty_ratio": 0.0,
+    "excessive_num": 1,
+    "neutral_num": 0,
+    "empty_num": 0,
+    "sum": 1,
+    "more_port": "偏多",
+    "more_rate": 100.0,
+    "main_sentiment": "bull",
+    "record_time": "2025-12-07T23:31:19.723990"
   },
   {
     "variety_code": "LC",
     "variety_name": "碳酸锂",
     "excessive_ratio": 0.0,
-    "neutral_ratio": 100.0,
-    "empty_ratio": 0.0,
+    "neutral_ratio": 50.0,
+    "empty_ratio": 50.0,
     "excessive_num": 0,
     "neutral_num": 1,
-    "empty_num": 0,
-    "sum": 1,
+    "empty_num": 1,
+    "sum": 2,
     "more_port": "中性",
-    "more_rate": 100.0,
+    "more_rate": 50.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-07T15:26:10.187197"
+    "record_time": "2025-12-07T23:31:19.723996"
   },
   {
     "variety_code": "AO",
@@ -42,6 +57,21 @@
     "more_port": "偏空",
     "more_rate": 100.0,
     "main_sentiment": "bear",
-    "record_time": "2025-12-07T15:26:10.187199"
+    "record_time": "2025-12-07T23:31:19.724000"
+  },
+  {
+    "variety_code": "SP",
+    "variety_name": "纸浆",
+    "excessive_ratio": 0.0,
+    "neutral_ratio": 0.0,
+    "empty_ratio": 100.0,
+    "excessive_num": 0,
+    "neutral_num": 0,
+    "empty_num": 1,
+    "sum": 1,
+    "more_port": "偏空",
+    "more_rate": 100.0,
+    "main_sentiment": "bear",
+    "record_time": "2025-12-07T23:31:19.724011"
   }
 ]

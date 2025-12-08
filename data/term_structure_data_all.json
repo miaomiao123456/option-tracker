@@ -1,0 +1,5168 @@
+{
+  "CU": {
+    "variety_code": "CU",
+    "variety_name": "沪铜",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "CU2512",
+        "month": "2512",
+        "price": 92950.0,
+        "volume": 17305,
+        "open_interest": 26750,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2601",
+        "month": "2601",
+        "price": 92970.0,
+        "volume": 194929,
+        "open_interest": 230045,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2602",
+        "month": "2602",
+        "price": 93030.0,
+        "volume": 120774,
+        "open_interest": 194598,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2603",
+        "month": "2603",
+        "price": 93040.0,
+        "volume": 43016,
+        "open_interest": 88524,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2604",
+        "month": "2604",
+        "price": 92950.0,
+        "volume": 8723,
+        "open_interest": 32554,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2605",
+        "month": "2605",
+        "price": 92780.0,
+        "volume": 15133,
+        "open_interest": 31712,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2606",
+        "month": "2606",
+        "price": 92520.0,
+        "volume": 4303,
+        "open_interest": 17825,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2607",
+        "month": "2607",
+        "price": 92360.0,
+        "volume": 1042,
+        "open_interest": 8859,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2608",
+        "month": "2608",
+        "price": 92180.0,
+        "volume": 1368,
+        "open_interest": 7319,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2609",
+        "month": "2609",
+        "price": 92000.0,
+        "volume": 1514,
+        "open_interest": 10998,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2610",
+        "month": "2610",
+        "price": 91820.0,
+        "volume": 2147,
+        "open_interest": 4700,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CU2611",
+        "month": "2611",
+        "price": 91750.0,
+        "volume": 1786,
+        "open_interest": 4856,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "AL": {
+    "variety_code": "AL",
+    "variety_name": "沪铝",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "AL2512",
+        "month": "2512",
+        "price": 22250.0,
+        "volume": 11275,
+        "open_interest": 17560,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2601",
+        "month": "2601",
+        "price": 22275.0,
+        "volume": 251604,
+        "open_interest": 233139,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2602",
+        "month": "2602",
+        "price": 22350.0,
+        "volume": 206687,
+        "open_interest": 302280,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2603",
+        "month": "2603",
+        "price": 22375.0,
+        "volume": 65509,
+        "open_interest": 96587,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2604",
+        "month": "2604",
+        "price": 22410.0,
+        "volume": 17197,
+        "open_interest": 40556,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2605",
+        "month": "2605",
+        "price": 22415.0,
+        "volume": 9915,
+        "open_interest": 23849,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2606",
+        "month": "2606",
+        "price": 22430.0,
+        "volume": 1719,
+        "open_interest": 6309,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2607",
+        "month": "2607",
+        "price": 22410.0,
+        "volume": 304,
+        "open_interest": 1591,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2608",
+        "month": "2608",
+        "price": 22415.0,
+        "volume": 244,
+        "open_interest": 993,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2609",
+        "month": "2609",
+        "price": 22440.0,
+        "volume": 205,
+        "open_interest": 829,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2610",
+        "month": "2610",
+        "price": 22430.0,
+        "volume": 105,
+        "open_interest": 647,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AL2611",
+        "month": "2611",
+        "price": 22450.0,
+        "volume": 147,
+        "open_interest": 263,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "ZN": {
+    "variety_code": "ZN",
+    "variety_name": "沪锌",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "ZN2512",
+        "month": "2512",
+        "price": 23270.0,
+        "volume": 2485,
+        "open_interest": 4790,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2601",
+        "month": "2601",
+        "price": 23285.0,
+        "volume": 180254,
+        "open_interest": 108666,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2602",
+        "month": "2602",
+        "price": 23310.0,
+        "volume": 67745,
+        "open_interest": 67475,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2603",
+        "month": "2603",
+        "price": 23325.0,
+        "volume": 22706,
+        "open_interest": 25165,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2604",
+        "month": "2604",
+        "price": 23345.0,
+        "volume": 1876,
+        "open_interest": 5071,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2605",
+        "month": "2605",
+        "price": 23340.0,
+        "volume": 613,
+        "open_interest": 2444,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2606",
+        "month": "2606",
+        "price": 23355.0,
+        "volume": 193,
+        "open_interest": 964,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2607",
+        "month": "2607",
+        "price": 23370.0,
+        "volume": 11,
+        "open_interest": 100,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2608",
+        "month": "2608",
+        "price": 23345.0,
+        "volume": 18,
+        "open_interest": 51,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2609",
+        "month": "2609",
+        "price": 23375.0,
+        "volume": 28,
+        "open_interest": 77,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2610",
+        "month": "2610",
+        "price": 23380.0,
+        "volume": 17,
+        "open_interest": 73,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "ZN2611",
+        "month": "2611",
+        "price": 23350.0,
+        "volume": 9,
+        "open_interest": 24,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "PB": {
+    "variety_code": "PB",
+    "variety_name": "沪铅",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "PB2512",
+        "month": "2512",
+        "price": 17285.0,
+        "volume": 425,
+        "open_interest": 1435,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2601",
+        "month": "2601",
+        "price": 17340.0,
+        "volume": 38061,
+        "open_interest": 43107,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2602",
+        "month": "2602",
+        "price": 17335.0,
+        "volume": 16624,
+        "open_interest": 31492,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2603",
+        "month": "2603",
+        "price": 17350.0,
+        "volume": 1957,
+        "open_interest": 3940,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2604",
+        "month": "2604",
+        "price": 17315.0,
+        "volume": 93,
+        "open_interest": 425,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2605",
+        "month": "2605",
+        "price": 17380.0,
+        "volume": 18,
+        "open_interest": 285,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2606",
+        "month": "2606",
+        "price": 17350.0,
+        "volume": 1,
+        "open_interest": 18,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2607",
+        "month": "2607",
+        "price": 17255.0,
+        "volume": 0,
+        "open_interest": 40,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2608",
+        "month": "2608",
+        "price": 17380.0,
+        "volume": 0,
+        "open_interest": 53,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2609",
+        "month": "2609",
+        "price": 17400.0,
+        "volume": 15,
+        "open_interest": 44,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2610",
+        "month": "2610",
+        "price": 17410.0,
+        "volume": 19,
+        "open_interest": 96,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PB2611",
+        "month": "2611",
+        "price": 17410.0,
+        "volume": 14,
+        "open_interest": 21,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "NI": {
+    "variety_code": "NI",
+    "variety_name": "沪镍",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "NI2512",
+        "month": "2512",
+        "price": 117730.0,
+        "volume": 2616,
+        "open_interest": 9030,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2601",
+        "month": "2601",
+        "price": 118030.0,
+        "volume": 124513,
+        "open_interest": 111585,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2602",
+        "month": "2602",
+        "price": 118200.0,
+        "volume": 34477,
+        "open_interest": 67622,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2603",
+        "month": "2603",
+        "price": 118390.0,
+        "volume": 12152,
+        "open_interest": 24373,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2604",
+        "month": "2604",
+        "price": 118670.0,
+        "volume": 1785,
+        "open_interest": 9361,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2605",
+        "month": "2605",
+        "price": 118920.0,
+        "volume": 5073,
+        "open_interest": 16902,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2606",
+        "month": "2606",
+        "price": 119180.0,
+        "volume": 104,
+        "open_interest": 2322,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2607",
+        "month": "2607",
+        "price": 119350.0,
+        "volume": 37,
+        "open_interest": 571,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2608",
+        "month": "2608",
+        "price": 119850.0,
+        "volume": 1,
+        "open_interest": 255,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2609",
+        "month": "2609",
+        "price": 119920.0,
+        "volume": 166,
+        "open_interest": 2913,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2610",
+        "month": "2610",
+        "price": 120170.0,
+        "volume": 17,
+        "open_interest": 155,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "NI2611",
+        "month": "2611",
+        "price": 120470.0,
+        "volume": 30,
+        "open_interest": 122,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "SN": {
+    "variety_code": "SN",
+    "variety_name": "沪锡",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "SN2512",
+        "month": "2512",
+        "price": 318850.0,
+        "volume": 696,
+        "open_interest": 2334,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2601",
+        "month": "2601",
+        "price": 319200.0,
+        "volume": 227244,
+        "open_interest": 48471,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2602",
+        "month": "2602",
+        "price": 319810.0,
+        "volume": 47690,
+        "open_interest": 34763,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2603",
+        "month": "2603",
+        "price": 320140.0,
+        "volume": 9647,
+        "open_interest": 11230,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2604",
+        "month": "2604",
+        "price": 320190.0,
+        "volume": 1868,
+        "open_interest": 4138,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2605",
+        "month": "2605",
+        "price": 319920.0,
+        "volume": 1060,
+        "open_interest": 2919,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2606",
+        "month": "2606",
+        "price": 319190.0,
+        "volume": 146,
+        "open_interest": 1007,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2607",
+        "month": "2607",
+        "price": 318730.0,
+        "volume": 45,
+        "open_interest": 88,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2608",
+        "month": "2608",
+        "price": 318190.0,
+        "volume": 56,
+        "open_interest": 266,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2609",
+        "month": "2609",
+        "price": 318400.0,
+        "volume": 27,
+        "open_interest": 40,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2610",
+        "month": "2610",
+        "price": 317030.0,
+        "volume": 10,
+        "open_interest": 15,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SN2611",
+        "month": "2611",
+        "price": 313690.0,
+        "volume": 5,
+        "open_interest": 12,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "AU": {
+    "variety_code": "AU",
+    "variety_name": "黄金",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "AU2512",
+        "month": "2512",
+        "price": 955.08,
+        "volume": 2517,
+        "open_interest": 10824,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AU2601",
+        "month": "2601",
+        "price": 957.6,
+        "volume": 2662,
+        "open_interest": 2039,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AU2602",
+        "month": "2602",
+        "price": 958.7,
+        "volume": 298231,
+        "open_interest": 197193,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AU2604",
+        "month": "2604",
+        "price": 960.68,
+        "volume": 50231,
+        "open_interest": 74076,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AU2606",
+        "month": "2606",
+        "price": 962.9,
+        "volume": 11559,
+        "open_interest": 36551,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AU2608",
+        "month": "2608",
+        "price": 965.74,
+        "volume": 2027,
+        "open_interest": 8098,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AU2610",
+        "month": "2610",
+        "price": 968.54,
+        "volume": 4776,
+        "open_interest": 8587,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AU2612",
+        "month": "2612",
+        "price": 971.04,
+        "volume": 991,
+        "open_interest": 943,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 8,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "AG": {
+    "variety_code": "AG",
+    "variety_name": "白银",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "AG2512",
+        "month": "2512",
+        "price": 13691.0,
+        "volume": 18050,
+        "open_interest": 20186,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2601",
+        "month": "2601",
+        "price": 13692.0,
+        "volume": 55071,
+        "open_interest": 22539,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2602",
+        "month": "2602",
+        "price": 13706.0,
+        "volume": 2033731,
+        "open_interest": 435755,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2603",
+        "month": "2603",
+        "price": 13705.0,
+        "volume": 104832,
+        "open_interest": 20795,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2604",
+        "month": "2604",
+        "price": 13708.0,
+        "volume": 680641,
+        "open_interest": 132179,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2605",
+        "month": "2605",
+        "price": 13705.0,
+        "volume": 40321,
+        "open_interest": 20158,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2606",
+        "month": "2606",
+        "price": 13703.0,
+        "volume": 93679,
+        "open_interest": 82295,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2607",
+        "month": "2607",
+        "price": 13702.0,
+        "volume": 6847,
+        "open_interest": 6380,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2608",
+        "month": "2608",
+        "price": 13708.0,
+        "volume": 37561,
+        "open_interest": 30498,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2609",
+        "month": "2609",
+        "price": 13717.0,
+        "volume": 10029,
+        "open_interest": 4072,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2610",
+        "month": "2610",
+        "price": 13713.0,
+        "volume": 16827,
+        "open_interest": 10238,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AG2611",
+        "month": "2611",
+        "price": 13725.0,
+        "volume": 5692,
+        "open_interest": 2046,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "RB": {
+    "variety_code": "RB",
+    "variety_name": "螺纹钢",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "RB2512",
+        "month": "2512",
+        "price": 3020.0,
+        "volume": 30,
+        "open_interest": 480,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2601",
+        "month": "2601",
+        "price": 3117.0,
+        "volume": 296173,
+        "open_interest": 494029,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2602",
+        "month": "2602",
+        "price": 3083.0,
+        "volume": 2416,
+        "open_interest": 10909,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2603",
+        "month": "2603",
+        "price": 3093.0,
+        "volume": 78070,
+        "open_interest": 433996,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2604",
+        "month": "2604",
+        "price": 3108.0,
+        "volume": 368,
+        "open_interest": 17685,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2605",
+        "month": "2605",
+        "price": 3123.0,
+        "volume": 1256787,
+        "open_interest": 1477577,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2606",
+        "month": "2606",
+        "price": 3132.0,
+        "volume": 170,
+        "open_interest": 1191,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2607",
+        "month": "2607",
+        "price": 3144.0,
+        "volume": 24435,
+        "open_interest": 70313,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2608",
+        "month": "2608",
+        "price": 3153.0,
+        "volume": 94,
+        "open_interest": 587,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2609",
+        "month": "2609",
+        "price": 3155.0,
+        "volume": 516,
+        "open_interest": 1578,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2610",
+        "month": "2610",
+        "price": 3164.0,
+        "volume": 14075,
+        "open_interest": 47398,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RB2611",
+        "month": "2611",
+        "price": 3167.0,
+        "volume": 97,
+        "open_interest": 103,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 59.6,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "HC": {
+    "variety_code": "HC",
+    "variety_name": "热轧卷板",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "HC2512",
+        "month": "2512",
+        "price": 3265.0,
+        "volume": 90,
+        "open_interest": 1530,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2601",
+        "month": "2601",
+        "price": 3290.0,
+        "volume": 166957,
+        "open_interest": 365594,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2602",
+        "month": "2602",
+        "price": 3289.0,
+        "volume": 81,
+        "open_interest": 436,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2603",
+        "month": "2603",
+        "price": 3289.0,
+        "volume": 55441,
+        "open_interest": 325530,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2604",
+        "month": "2604",
+        "price": 3293.0,
+        "volume": 61,
+        "open_interest": 628,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2605",
+        "month": "2605",
+        "price": 3291.0,
+        "volume": 529595,
+        "open_interest": 1078676,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2606",
+        "month": "2606",
+        "price": 3286.0,
+        "volume": 20,
+        "open_interest": 713,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2607",
+        "month": "2607",
+        "price": 3293.0,
+        "volume": 13440,
+        "open_interest": 46808,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2608",
+        "month": "2608",
+        "price": 3300.0,
+        "volume": 391,
+        "open_interest": 656,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2609",
+        "month": "2609",
+        "price": 3296.0,
+        "volume": 38,
+        "open_interest": 544,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2610",
+        "month": "2610",
+        "price": 3302.0,
+        "volume": 4059,
+        "open_interest": 18186,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "HC2611",
+        "month": "2611",
+        "price": 3300.0,
+        "volume": 8,
+        "open_interest": 45,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "SS": {
+    "variety_code": "SS",
+    "variety_name": "不锈钢",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "SS2512",
+        "month": "2512",
+        "price": 12230.0,
+        "volume": 1116,
+        "open_interest": 1608,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2601",
+        "month": "2601",
+        "price": 12510.0,
+        "volume": 101640,
+        "open_interest": 85685,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2602",
+        "month": "2602",
+        "price": 12625.0,
+        "volume": 60897,
+        "open_interest": 89028,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2603",
+        "month": "2603",
+        "price": 12675.0,
+        "volume": 7886,
+        "open_interest": 18812,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2604",
+        "month": "2604",
+        "price": 12735.0,
+        "volume": 551,
+        "open_interest": 1990,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2605",
+        "month": "2605",
+        "price": 12760.0,
+        "volume": 1374,
+        "open_interest": 6751,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2606",
+        "month": "2606",
+        "price": 12800.0,
+        "volume": 85,
+        "open_interest": 430,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2607",
+        "month": "2607",
+        "price": 12840.0,
+        "volume": 324,
+        "open_interest": 425,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2608",
+        "month": "2608",
+        "price": 12880.0,
+        "volume": 316,
+        "open_interest": 298,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2609",
+        "month": "2609",
+        "price": 12905.0,
+        "volume": 611,
+        "open_interest": 715,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2610",
+        "month": "2610",
+        "price": 12915.0,
+        "volume": 58,
+        "open_interest": 220,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SS2611",
+        "month": "2611",
+        "price": 12985.0,
+        "volume": 13,
+        "open_interest": 38,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 88.52,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "FU": {
+    "variety_code": "FU",
+    "variety_name": "燃料油",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "FU2601",
+        "month": "2601",
+        "price": 2508.0,
+        "volume": 381659,
+        "open_interest": 176786,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2602",
+        "month": "2602",
+        "price": 2535.0,
+        "volume": 167130,
+        "open_interest": 114294,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2603",
+        "month": "2603",
+        "price": 2548.0,
+        "volume": 140763,
+        "open_interest": 145094,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2604",
+        "month": "2604",
+        "price": 2561.0,
+        "volume": 15740,
+        "open_interest": 53354,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2605",
+        "month": "2605",
+        "price": 2573.0,
+        "volume": 55955,
+        "open_interest": 82175,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2606",
+        "month": "2606",
+        "price": 2570.0,
+        "volume": 495,
+        "open_interest": 1847,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2607",
+        "month": "2607",
+        "price": 2566.0,
+        "volume": 4451,
+        "open_interest": 15608,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2608",
+        "month": "2608",
+        "price": 2553.0,
+        "volume": 638,
+        "open_interest": 3770,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2609",
+        "month": "2609",
+        "price": 2534.0,
+        "volume": 7544,
+        "open_interest": 26645,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2610",
+        "month": "2610",
+        "price": 2521.0,
+        "volume": 1127,
+        "open_interest": 4984,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2611",
+        "month": "2611",
+        "price": 2511.0,
+        "volume": 1116,
+        "open_interest": 3713,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FU2612",
+        "month": "2612",
+        "price": 2505.0,
+        "volume": 102,
+        "open_interest": 165,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "BU": {
+    "variety_code": "BU",
+    "variety_name": "沥青",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "BU2512",
+        "month": "2512",
+        "price": 2919.0,
+        "volume": 628,
+        "open_interest": 5174,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2601",
+        "month": "2601",
+        "price": 2941.0,
+        "volume": 98438,
+        "open_interest": 71328,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2602",
+        "month": "2602",
+        "price": 2959.0,
+        "volume": 171875,
+        "open_interest": 195139,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2603",
+        "month": "2603",
+        "price": 2981.0,
+        "volume": 43067,
+        "open_interest": 85148,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2604",
+        "month": "2604",
+        "price": 2996.0,
+        "volume": 7719,
+        "open_interest": 35130,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2605",
+        "month": "2605",
+        "price": 3015.0,
+        "volume": 1469,
+        "open_interest": 2932,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2606",
+        "month": "2606",
+        "price": 3028.0,
+        "volume": 5061,
+        "open_interest": 28155,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2607",
+        "month": "2607",
+        "price": 3032.0,
+        "volume": 3,
+        "open_interest": 63,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2608",
+        "month": "2608",
+        "price": 3045.0,
+        "volume": 2,
+        "open_interest": 28,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2609",
+        "month": "2609",
+        "price": 3044.0,
+        "volume": 18,
+        "open_interest": 2640,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2610",
+        "month": "2610",
+        "price": 3029.0,
+        "volume": 0,
+        "open_interest": 27,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2611",
+        "month": "2611",
+        "price": 3042.0,
+        "volume": 5,
+        "open_interest": 7,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2612",
+        "month": "2612",
+        "price": 3012.0,
+        "volume": 10,
+        "open_interest": 425,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2703",
+        "month": "2703",
+        "price": 3030.0,
+        "volume": 6,
+        "open_interest": 24,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2706",
+        "month": "2706",
+        "price": 3056.0,
+        "volume": 6,
+        "open_interest": 173,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "BU2709",
+        "month": "2709",
+        "price": 3083.0,
+        "volume": 4,
+        "open_interest": 35,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 16,
+    "structure_score": 76.86,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "RU": {
+    "variety_code": "RU",
+    "variety_name": "橡胶",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "RU2601",
+        "month": "2601",
+        "price": 15090.0,
+        "volume": 37854,
+        "open_interest": 41535,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2603",
+        "month": "2603",
+        "price": 15060.0,
+        "volume": 1654,
+        "open_interest": 1819,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2604",
+        "month": "2604",
+        "price": 15140.0,
+        "volume": 16,
+        "open_interest": 126,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2605",
+        "month": "2605",
+        "price": 15065.0,
+        "volume": 200106,
+        "open_interest": 123959,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2606",
+        "month": "2606",
+        "price": 15095.0,
+        "volume": 0,
+        "open_interest": 30,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2607",
+        "month": "2607",
+        "price": 15115.0,
+        "volume": 118,
+        "open_interest": 166,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2608",
+        "month": "2608",
+        "price": 15095.0,
+        "volume": 0,
+        "open_interest": 26,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2609",
+        "month": "2609",
+        "price": 15115.0,
+        "volume": 4316,
+        "open_interest": 12653,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2610",
+        "month": "2610",
+        "price": 15145.0,
+        "volume": 2,
+        "open_interest": 38,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RU2611",
+        "month": "2611",
+        "price": 15130.0,
+        "volume": 1,
+        "open_interest": 18,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 10,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "SP": {
+    "variety_code": "SP",
+    "variety_name": "纸浆",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "SP2512",
+        "month": "2512",
+        "price": 4682.0,
+        "volume": 912,
+        "open_interest": 5046,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2601",
+        "month": "2601",
+        "price": 5392.0,
+        "volume": 156586,
+        "open_interest": 80704,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2602",
+        "month": "2602",
+        "price": 5400.0,
+        "volume": 573,
+        "open_interest": 1342,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2603",
+        "month": "2603",
+        "price": 5414.0,
+        "volume": 35032,
+        "open_interest": 95818,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2604",
+        "month": "2604",
+        "price": 5424.0,
+        "volume": 65,
+        "open_interest": 407,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2605",
+        "month": "2605",
+        "price": 5436.0,
+        "volume": 134261,
+        "open_interest": 136694,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2606",
+        "month": "2606",
+        "price": 5420.0,
+        "volume": 167,
+        "open_interest": 428,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2607",
+        "month": "2607",
+        "price": 5414.0,
+        "volume": 1704,
+        "open_interest": 5514,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2608",
+        "month": "2608",
+        "price": 5432.0,
+        "volume": 13,
+        "open_interest": 56,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2609",
+        "month": "2609",
+        "price": 5426.0,
+        "volume": 819,
+        "open_interest": 4210,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2610",
+        "month": "2610",
+        "price": 5426.0,
+        "volume": 9,
+        "open_interest": 48,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SP2611",
+        "month": "2611",
+        "price": 5426.0,
+        "volume": 9,
+        "open_interest": 69,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 90,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "M": {
+    "variety_code": "M",
+    "variety_name": "豆粕",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "M2512",
+        "month": "2512",
+        "price": 3018.0,
+        "volume": 3,
+        "open_interest": 15,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "M2601",
+        "month": "2601",
+        "price": 3030.0,
+        "volume": 609632,
+        "open_interest": 840915,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "M2603",
+        "month": "2603",
+        "price": 2978.0,
+        "volume": 166459,
+        "open_interest": 553792,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "M2605",
+        "month": "2605",
+        "price": 2778.0,
+        "volume": 1089811,
+        "open_interest": 1890767,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "M2607",
+        "month": "2607",
+        "price": 2763.0,
+        "volume": 25834,
+        "open_interest": 260756,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "M2608",
+        "month": "2608",
+        "price": 2892.0,
+        "volume": 5022,
+        "open_interest": 91508,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "M2609",
+        "month": "2609",
+        "price": 2896.0,
+        "volume": 50933,
+        "open_interest": 136649,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "M2611",
+        "month": "2611",
+        "price": 2912.0,
+        "volume": 5269,
+        "open_interest": 45713,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 8,
+    "structure_score": 55.54,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "C": {
+    "variety_code": "C",
+    "variety_name": "玉米",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "C2601",
+        "month": "2601",
+        "price": 2261.0,
+        "volume": 914137,
+        "open_interest": 848965,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "C2603",
+        "month": "2603",
+        "price": 2232.0,
+        "volume": 421503,
+        "open_interest": 814012,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "C2605",
+        "month": "2605",
+        "price": 2265.0,
+        "volume": 163794,
+        "open_interest": 429267,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "C2607",
+        "month": "2607",
+        "price": 2270.0,
+        "volume": 49130,
+        "open_interest": 216101,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "C2609",
+        "month": "2609",
+        "price": 2274.0,
+        "volume": 11319,
+        "open_interest": 33117,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "C2611",
+        "month": "2611",
+        "price": 2213.0,
+        "volume": 7990,
+        "open_interest": 12662,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "A": {
+    "variety_code": "A",
+    "variety_name": "豆一",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "A2601",
+        "month": "2601",
+        "price": 4085.0,
+        "volume": 89032,
+        "open_interest": 170581,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "A2603",
+        "month": "2603",
+        "price": 4094.0,
+        "volume": 14256,
+        "open_interest": 57378,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "A2605",
+        "month": "2605",
+        "price": 4120.0,
+        "volume": 25277,
+        "open_interest": 64351,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "A2607",
+        "month": "2607",
+        "price": 4125.0,
+        "volume": 3489,
+        "open_interest": 20214,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "A2609",
+        "month": "2609",
+        "price": 4131.0,
+        "volume": 466,
+        "open_interest": 2550,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "A2611",
+        "month": "2611",
+        "price": 4125.0,
+        "volume": 970,
+        "open_interest": 4398,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "B": {
+    "variety_code": "B",
+    "variety_name": "豆二",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "B2512",
+        "month": "2512",
+        "price": 3718.0,
+        "volume": 0,
+        "open_interest": 205,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2601",
+        "month": "2601",
+        "price": 3743.0,
+        "volume": 147696,
+        "open_interest": 100983,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2602",
+        "month": "2602",
+        "price": 3731.0,
+        "volume": 12675,
+        "open_interest": 42217,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2603",
+        "month": "2603",
+        "price": 3679.0,
+        "volume": 8801,
+        "open_interest": 36215,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2604",
+        "month": "2604",
+        "price": 3540.0,
+        "volume": 6478,
+        "open_interest": 20944,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2605",
+        "month": "2605",
+        "price": 3506.0,
+        "volume": 21703,
+        "open_interest": 34692,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2606",
+        "month": "2606",
+        "price": 3482.0,
+        "volume": 508,
+        "open_interest": 1294,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2607",
+        "month": "2607",
+        "price": 3482.0,
+        "volume": 163,
+        "open_interest": 2863,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2608",
+        "month": "2608",
+        "price": 3580.0,
+        "volume": 40,
+        "open_interest": 202,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2609",
+        "month": "2609",
+        "price": 3597.0,
+        "volume": 102,
+        "open_interest": 1576,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2610",
+        "month": "2610",
+        "price": 3622.0,
+        "volume": 22,
+        "open_interest": 97,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "B2611",
+        "month": "2611",
+        "price": 3621.0,
+        "volume": 16,
+        "open_interest": 37,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 52.83,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "Y": {
+    "variety_code": "Y",
+    "variety_name": "豆油",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "Y2512",
+        "month": "2512",
+        "price": 8518.0,
+        "volume": 0,
+        "open_interest": 0,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "Y2601",
+        "month": "2601",
+        "price": 8230.0,
+        "volume": 150089,
+        "open_interest": 258134,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "Y2603",
+        "month": "2603",
+        "price": 8176.0,
+        "volume": 1854,
+        "open_interest": 10821,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "Y2605",
+        "month": "2605",
+        "price": 8032.0,
+        "volume": 168698,
+        "open_interest": 524774,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "Y2607",
+        "month": "2607",
+        "price": 7978.0,
+        "volume": 482,
+        "open_interest": 2311,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "Y2608",
+        "month": "2608",
+        "price": 8004.0,
+        "volume": 23,
+        "open_interest": 93,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "Y2609",
+        "month": "2609",
+        "price": 7952.0,
+        "volume": 6015,
+        "open_interest": 24396,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "Y2611",
+        "month": "2611",
+        "price": 7938.0,
+        "volume": 66,
+        "open_interest": 301,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 8,
+    "structure_score": 80.43,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "P": {
+    "variety_code": "P",
+    "variety_name": "棕榈油",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "P2512",
+        "month": "2512",
+        "price": 8646.0,
+        "volume": 14,
+        "open_interest": 600,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2601",
+        "month": "2601",
+        "price": 8706.0,
+        "volume": 282208,
+        "open_interest": 207236,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2602",
+        "month": "2602",
+        "price": 8696.0,
+        "volume": 967,
+        "open_interest": 8593,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2603",
+        "month": "2603",
+        "price": 8722.0,
+        "volume": 622,
+        "open_interest": 2683,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2604",
+        "month": "2604",
+        "price": 8748.0,
+        "volume": 25,
+        "open_interest": 1075,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2605",
+        "month": "2605",
+        "price": 8702.0,
+        "volume": 155754,
+        "open_interest": 284433,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2606",
+        "month": "2606",
+        "price": 8668.0,
+        "volume": 47,
+        "open_interest": 130,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2607",
+        "month": "2607",
+        "price": 8624.0,
+        "volume": 8,
+        "open_interest": 110,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2608",
+        "month": "2608",
+        "price": 8574.0,
+        "volume": 11,
+        "open_interest": 74,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2609",
+        "month": "2609",
+        "price": 8546.0,
+        "volume": 2851,
+        "open_interest": 24705,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2610",
+        "month": "2610",
+        "price": 8540.0,
+        "volume": 4,
+        "open_interest": 139,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "P2611",
+        "month": "2611",
+        "price": 8558.0,
+        "volume": 2,
+        "open_interest": 32,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "CS": {
+    "variety_code": "CS",
+    "variety_name": "玉米淀粉",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "CS2601",
+        "month": "2601",
+        "price": 2549.0,
+        "volume": 153327,
+        "open_interest": 217169,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CS2603",
+        "month": "2603",
+        "price": 2532.0,
+        "volume": 51608,
+        "open_interest": 95832,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CS2605",
+        "month": "2605",
+        "price": 2587.0,
+        "volume": 13037,
+        "open_interest": 17797,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CS2607",
+        "month": "2607",
+        "price": 2591.0,
+        "volume": 436,
+        "open_interest": 1499,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CS2609",
+        "month": "2609",
+        "price": 2624.0,
+        "volume": 314,
+        "open_interest": 1220,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CS2611",
+        "month": "2611",
+        "price": 2565.0,
+        "volume": 32,
+        "open_interest": 68,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "JD": {
+    "variety_code": "JD",
+    "variety_name": "鸡蛋",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "JD2512",
+        "month": "2512",
+        "price": 2759.0,
+        "volume": 0,
+        "open_interest": 93,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2601",
+        "month": "2601",
+        "price": 3153.0,
+        "volume": 219883,
+        "open_interest": 146486,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2602",
+        "month": "2602",
+        "price": 3038.0,
+        "volume": 70829,
+        "open_interest": 147028,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2603",
+        "month": "2603",
+        "price": 3099.0,
+        "volume": 80317,
+        "open_interest": 142019,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2604",
+        "month": "2604",
+        "price": 3393.0,
+        "volume": 25364,
+        "open_interest": 87328,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2605",
+        "month": "2605",
+        "price": 3637.0,
+        "volume": 37022,
+        "open_interest": 83764,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2606",
+        "month": "2606",
+        "price": 3509.0,
+        "volume": 7533,
+        "open_interest": 35319,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2607",
+        "month": "2607",
+        "price": 3773.0,
+        "volume": 3904,
+        "open_interest": 28713,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2608",
+        "month": "2608",
+        "price": 4298.0,
+        "volume": 14911,
+        "open_interest": 57592,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2609",
+        "month": "2609",
+        "price": 4130.0,
+        "volume": 4823,
+        "open_interest": 17934,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2610",
+        "month": "2610",
+        "price": 3968.0,
+        "volume": 1281,
+        "open_interest": 4742,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JD2611",
+        "month": "2611",
+        "price": 4020.0,
+        "volume": 824,
+        "open_interest": 3455,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "L": {
+    "variety_code": "L",
+    "variety_name": "聚乙烯",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "L2512",
+        "month": "2512",
+        "price": 6644.0,
+        "volume": 6,
+        "open_interest": 298,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2601",
+        "month": "2601",
+        "price": 6643.0,
+        "volume": 234875,
+        "open_interest": 374193,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2602",
+        "month": "2602",
+        "price": 6632.0,
+        "volume": 12117,
+        "open_interest": 46271,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2603",
+        "month": "2603",
+        "price": 6651.0,
+        "volume": 8617,
+        "open_interest": 33198,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2604",
+        "month": "2604",
+        "price": 6697.0,
+        "volume": 2084,
+        "open_interest": 17559,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2605",
+        "month": "2605",
+        "price": 6708.0,
+        "volume": 153809,
+        "open_interest": 315983,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2606",
+        "month": "2606",
+        "price": 6715.0,
+        "volume": 480,
+        "open_interest": 443,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2607",
+        "month": "2607",
+        "price": 6726.0,
+        "volume": 10,
+        "open_interest": 121,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2608",
+        "month": "2608",
+        "price": 6748.0,
+        "volume": 7,
+        "open_interest": 96,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2609",
+        "month": "2609",
+        "price": 6754.0,
+        "volume": 1942,
+        "open_interest": 5089,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2610",
+        "month": "2610",
+        "price": 6753.0,
+        "volume": 19,
+        "open_interest": 65,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "L2611",
+        "month": "2611",
+        "price": 6780.0,
+        "volume": 28,
+        "open_interest": 69,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "V": {
+    "variety_code": "V",
+    "variety_name": "聚氯乙烯",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "V2512",
+        "month": "2512",
+        "price": 4380.0,
+        "volume": 1777,
+        "open_interest": 26287,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2601",
+        "month": "2601",
+        "price": 4431.0,
+        "volume": 651789,
+        "open_interest": 957042,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2602",
+        "month": "2602",
+        "price": 4469.0,
+        "volume": 16574,
+        "open_interest": 50248,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2603",
+        "month": "2603",
+        "price": 4498.0,
+        "volume": 19468,
+        "open_interest": 53445,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2604",
+        "month": "2604",
+        "price": 4694.0,
+        "volume": 3512,
+        "open_interest": 22060,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2605",
+        "month": "2605",
+        "price": 4726.0,
+        "volume": 250077,
+        "open_interest": 538998,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2606",
+        "month": "2606",
+        "price": 4767.0,
+        "volume": 9807,
+        "open_interest": 9893,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2607",
+        "month": "2607",
+        "price": 4804.0,
+        "volume": 2544,
+        "open_interest": 3226,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2608",
+        "month": "2608",
+        "price": 4839.0,
+        "volume": 104,
+        "open_interest": 350,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2609",
+        "month": "2609",
+        "price": 4863.0,
+        "volume": 14661,
+        "open_interest": 71470,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2610",
+        "month": "2610",
+        "price": 4885.0,
+        "volume": 129,
+        "open_interest": 481,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "V2611",
+        "month": "2611",
+        "price": 4911.0,
+        "volume": 151,
+        "open_interest": 288,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 100,
+    "grade": "S",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "PP": {
+    "variety_code": "PP",
+    "variety_name": "聚丙烯",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "PP2512",
+        "month": "2512",
+        "price": 6235.0,
+        "volume": 2378,
+        "open_interest": 3569,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2601",
+        "month": "2601",
+        "price": 6275.0,
+        "volume": 299256,
+        "open_interest": 423064,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2602",
+        "month": "2602",
+        "price": 6292.0,
+        "volume": 10009,
+        "open_interest": 44214,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2603",
+        "month": "2603",
+        "price": 6317.0,
+        "volume": 7824,
+        "open_interest": 41758,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2604",
+        "month": "2604",
+        "price": 6353.0,
+        "volume": 4476,
+        "open_interest": 21453,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2605",
+        "month": "2605",
+        "price": 6370.0,
+        "volume": 139493,
+        "open_interest": 319140,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2606",
+        "month": "2606",
+        "price": 6349.0,
+        "volume": 1143,
+        "open_interest": 5758,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2607",
+        "month": "2607",
+        "price": 6367.0,
+        "volume": 129,
+        "open_interest": 1346,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2608",
+        "month": "2608",
+        "price": 6384.0,
+        "volume": 148,
+        "open_interest": 2990,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2609",
+        "month": "2609",
+        "price": 6409.0,
+        "volume": 2275,
+        "open_interest": 17920,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2610",
+        "month": "2610",
+        "price": 6397.0,
+        "volume": 25,
+        "open_interest": 106,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PP2611",
+        "month": "2611",
+        "price": 6408.0,
+        "volume": 30,
+        "open_interest": 54,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 68.32,
+    "grade": "B",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "J": {
+    "variety_code": "J",
+    "variety_name": "焦炭",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "J2512",
+        "month": "2512",
+        "price": 1500.0,
+        "volume": 0,
+        "open_interest": 21,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2601",
+        "month": "2601",
+        "price": 1537.0,
+        "volume": 25408,
+        "open_interest": 28088,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2602",
+        "month": "2602",
+        "price": 1572.5,
+        "volume": 140,
+        "open_interest": 86,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2603",
+        "month": "2603",
+        "price": 1591.0,
+        "volume": 43,
+        "open_interest": 38,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2604",
+        "month": "2604",
+        "price": 1671.5,
+        "volume": 3,
+        "open_interest": 15,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2605",
+        "month": "2605",
+        "price": 1690.5,
+        "volume": 8831,
+        "open_interest": 18704,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2606",
+        "month": "2606",
+        "price": 1700.0,
+        "volume": 4,
+        "open_interest": 5,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2607",
+        "month": "2607",
+        "price": 1745.5,
+        "volume": 0,
+        "open_interest": 8,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2608",
+        "month": "2608",
+        "price": 1753.5,
+        "volume": 1,
+        "open_interest": 5,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2609",
+        "month": "2609",
+        "price": 1761.5,
+        "volume": 161,
+        "open_interest": 659,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2610",
+        "month": "2610",
+        "price": 1762.0,
+        "volume": 12,
+        "open_interest": 16,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "J2611",
+        "month": "2611",
+        "price": 1804.0,
+        "volume": 0,
+        "open_interest": 2,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 100,
+    "grade": "S",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "JM": {
+    "variety_code": "JM",
+    "variety_name": "焦煤",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "JM2512",
+        "month": "2512",
+        "price": 949.0,
+        "volume": 0,
+        "open_interest": 305,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2601",
+        "month": "2601",
+        "price": 1002.5,
+        "volume": 357976,
+        "open_interest": 275291,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2602",
+        "month": "2602",
+        "price": 1023.0,
+        "volume": 12794,
+        "open_interest": 21826,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2603",
+        "month": "2603",
+        "price": 1045.5,
+        "volume": 6551,
+        "open_interest": 15853,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2604",
+        "month": "2604",
+        "price": 1068.0,
+        "volume": 3638,
+        "open_interest": 9135,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2605",
+        "month": "2605",
+        "price": 1093.5,
+        "volume": 1129532,
+        "open_interest": 493639,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2606",
+        "month": "2606",
+        "price": 1117.5,
+        "volume": 2649,
+        "open_interest": 1932,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2607",
+        "month": "2607",
+        "price": 1134.0,
+        "volume": 349,
+        "open_interest": 647,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2608",
+        "month": "2608",
+        "price": 1146.5,
+        "volume": 136,
+        "open_interest": 388,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2609",
+        "month": "2609",
+        "price": 1161.5,
+        "volume": 16980,
+        "open_interest": 25115,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2610",
+        "month": "2610",
+        "price": 1180.0,
+        "volume": 96,
+        "open_interest": 331,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "JM2611",
+        "month": "2611",
+        "price": 1191.0,
+        "volume": 116,
+        "open_interest": 152,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 100,
+    "grade": "S",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "I": {
+    "variety_code": "I",
+    "variety_name": "铁矿石",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "I2512",
+        "month": "2512",
+        "price": 782.0,
+        "volume": 0,
+        "open_interest": 500,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2601",
+        "month": "2601",
+        "price": 778.5,
+        "volume": 143707,
+        "open_interest": 221407,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2602",
+        "month": "2602",
+        "price": 775.5,
+        "volume": 8491,
+        "open_interest": 72291,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2603",
+        "month": "2603",
+        "price": 772.0,
+        "volume": 10177,
+        "open_interest": 64971,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2604",
+        "month": "2604",
+        "price": 769.0,
+        "volume": 3890,
+        "open_interest": 38495,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2605",
+        "month": "2605",
+        "price": 760.5,
+        "volume": 206640,
+        "open_interest": 429369,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2606",
+        "month": "2606",
+        "price": 755.5,
+        "volume": 3313,
+        "open_interest": 18611,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2607",
+        "month": "2607",
+        "price": 750.5,
+        "volume": 1086,
+        "open_interest": 11493,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2608",
+        "month": "2608",
+        "price": 745.5,
+        "volume": 696,
+        "open_interest": 4480,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2609",
+        "month": "2609",
+        "price": 737.0,
+        "volume": 10176,
+        "open_interest": 61983,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2610",
+        "month": "2610",
+        "price": 733.5,
+        "volume": 829,
+        "open_interest": 2735,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "I2611",
+        "month": "2611",
+        "price": 729.0,
+        "volume": 678,
+        "open_interest": 1820,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 90.33,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "EG": {
+    "variety_code": "EG",
+    "variety_name": "乙二醇",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "EG2512",
+        "month": "2512",
+        "price": 3716.0,
+        "volume": 0,
+        "open_interest": 20,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2601",
+        "month": "2601",
+        "price": 3701.0,
+        "volume": 178188,
+        "open_interest": 310473,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2602",
+        "month": "2602",
+        "price": 3724.0,
+        "volume": 5847,
+        "open_interest": 12419,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2603",
+        "month": "2603",
+        "price": 3738.0,
+        "volume": 3059,
+        "open_interest": 5112,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2604",
+        "month": "2604",
+        "price": 3809.0,
+        "volume": 25,
+        "open_interest": 94,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2605",
+        "month": "2605",
+        "price": 3809.0,
+        "volume": 65602,
+        "open_interest": 161695,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2606",
+        "month": "2606",
+        "price": 3843.0,
+        "volume": 62,
+        "open_interest": 250,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2607",
+        "month": "2607",
+        "price": 3867.0,
+        "volume": 48,
+        "open_interest": 145,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2608",
+        "month": "2608",
+        "price": 3892.0,
+        "volume": 16,
+        "open_interest": 58,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2609",
+        "month": "2609",
+        "price": 3900.0,
+        "volume": 170,
+        "open_interest": 904,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2610",
+        "month": "2610",
+        "price": 3924.0,
+        "volume": 7,
+        "open_interest": 22,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EG2611",
+        "month": "2611",
+        "price": 3953.0,
+        "volume": 4,
+        "open_interest": 3,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 79.13,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "EB": {
+    "variety_code": "EB",
+    "variety_name": "苯乙烯",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "EB2512",
+        "month": "2512",
+        "price": 6550.0,
+        "volume": 1411,
+        "open_interest": 3837,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2601",
+        "month": "2601",
+        "price": 6669.0,
+        "volume": 373652,
+        "open_interest": 266450,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2602",
+        "month": "2602",
+        "price": 6680.0,
+        "volume": 140086,
+        "open_interest": 149337,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2603",
+        "month": "2603",
+        "price": 6719.0,
+        "volume": 38996,
+        "open_interest": 73446,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2604",
+        "month": "2604",
+        "price": 6765.0,
+        "volume": 8665,
+        "open_interest": 20027,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2605",
+        "month": "2605",
+        "price": 6803.0,
+        "volume": 5097,
+        "open_interest": 7511,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2606",
+        "month": "2606",
+        "price": 6833.0,
+        "volume": 2932,
+        "open_interest": 3554,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2607",
+        "month": "2607",
+        "price": 6840.0,
+        "volume": 21,
+        "open_interest": 120,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2608",
+        "month": "2608",
+        "price": 6867.0,
+        "volume": 7,
+        "open_interest": 56,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2609",
+        "month": "2609",
+        "price": 6885.0,
+        "volume": 34,
+        "open_interest": 214,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2610",
+        "month": "2610",
+        "price": 6820.0,
+        "volume": 0,
+        "open_interest": 11,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "EB2611",
+        "month": "2611",
+        "price": 6900.0,
+        "volume": 1,
+        "open_interest": 4,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 76.03,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "RR": {
+    "variety_code": "RR",
+    "variety_name": "粳米",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "RR2512",
+        "month": "2512",
+        "price": 3544.0,
+        "volume": 0,
+        "open_interest": 0,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2601",
+        "month": "2601",
+        "price": 3605.0,
+        "volume": 407,
+        "open_interest": 14246,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2602",
+        "month": "2602",
+        "price": 3603.0,
+        "volume": 921,
+        "open_interest": 15604,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2603",
+        "month": "2603",
+        "price": 3565.0,
+        "volume": 349,
+        "open_interest": 2449,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2604",
+        "month": "2604",
+        "price": 3566.0,
+        "volume": 0,
+        "open_interest": 57,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2605",
+        "month": "2605",
+        "price": 3566.0,
+        "volume": 2,
+        "open_interest": 38,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2606",
+        "month": "2606",
+        "price": 3590.0,
+        "volume": 0,
+        "open_interest": 16,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2607",
+        "month": "2607",
+        "price": 3573.0,
+        "volume": 0,
+        "open_interest": 7,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2608",
+        "month": "2608",
+        "price": 3591.0,
+        "volume": 0,
+        "open_interest": 10,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2609",
+        "month": "2609",
+        "price": 3586.0,
+        "volume": 0,
+        "open_interest": 10,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2610",
+        "month": "2610",
+        "price": 3570.0,
+        "volume": 0,
+        "open_interest": 3,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RR2611",
+        "month": "2611",
+        "price": 3599.0,
+        "volume": 4,
+        "open_interest": 8,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "LH": {
+    "variety_code": "LH",
+    "variety_name": "生猪",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "LH2601",
+        "month": "2601",
+        "price": 11575.0,
+        "volume": 51761,
+        "open_interest": 70601,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "LH2603",
+        "month": "2603",
+        "price": 11385.0,
+        "volume": 108904,
+        "open_interest": 151512,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "LH2605",
+        "month": "2605",
+        "price": 11955.0,
+        "volume": 25905,
+        "open_interest": 78481,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "LH2607",
+        "month": "2607",
+        "price": 12725.0,
+        "volume": 5761,
+        "open_interest": 36528,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "LH2609",
+        "month": "2609",
+        "price": 13650.0,
+        "volume": 6306,
+        "open_interest": 28669,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "LH2611",
+        "month": "2611",
+        "price": 13825.0,
+        "volume": 1918,
+        "open_interest": 6955,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 75,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "SR": {
+    "variety_code": "SR",
+    "variety_name": "白糖",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "SR601",
+        "month": "2601",
+        "price": 5337.0,
+        "volume": 173785,
+        "open_interest": 289716,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SR603",
+        "month": "2603",
+        "price": 5281.0,
+        "volume": 61416,
+        "open_interest": 79349,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SR605",
+        "month": "2605",
+        "price": 5244.0,
+        "volume": 118780,
+        "open_interest": 309725,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SR607",
+        "month": "2607",
+        "price": 5257.0,
+        "volume": 1600,
+        "open_interest": 8036,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SR609",
+        "month": "2609",
+        "price": 5262.0,
+        "volume": 6374,
+        "open_interest": 28876,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SR611",
+        "month": "2611",
+        "price": 5263.0,
+        "volume": 101,
+        "open_interest": 1434,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "CF": {
+    "variety_code": "CF",
+    "variety_name": "棉花",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "CF601",
+        "month": "2601",
+        "price": 13750.0,
+        "volume": 164365,
+        "open_interest": 489062,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CF603",
+        "month": "2603",
+        "price": 13725.0,
+        "volume": 42142,
+        "open_interest": 84165,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CF605",
+        "month": "2605",
+        "price": 13725.0,
+        "volume": 96136,
+        "open_interest": 451830,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CF607",
+        "month": "2607",
+        "price": 13720.0,
+        "volume": 202,
+        "open_interest": 3793,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CF609",
+        "month": "2609",
+        "price": 13845.0,
+        "volume": 2715,
+        "open_interest": 14647,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CF611",
+        "month": "2611",
+        "price": 13950.0,
+        "volume": 29,
+        "open_interest": 614,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "TA": {
+    "variety_code": "TA",
+    "variety_name": "PTA",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "TA512",
+        "month": "2512",
+        "price": 4660.0,
+        "volume": 1097,
+        "open_interest": 29793,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA601",
+        "month": "2601",
+        "price": 4694.0,
+        "volume": 494676,
+        "open_interest": 718633,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA602",
+        "month": "2602",
+        "price": 4722.0,
+        "volume": 107832,
+        "open_interest": 42211,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA603",
+        "month": "2603",
+        "price": 4742.0,
+        "volume": 123247,
+        "open_interest": 95932,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA604",
+        "month": "2604",
+        "price": 4762.0,
+        "volume": 20525,
+        "open_interest": 12087,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA605",
+        "month": "2605",
+        "price": 4770.0,
+        "volume": 213678,
+        "open_interest": 600923,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA606",
+        "month": "2606",
+        "price": 4738.0,
+        "volume": 4,
+        "open_interest": 53,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA607",
+        "month": "2607",
+        "price": 4730.0,
+        "volume": 1,
+        "open_interest": 87,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA609",
+        "month": "2609",
+        "price": 4720.0,
+        "volume": 6342,
+        "open_interest": 68264,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "TA611",
+        "month": "2611",
+        "price": 4710.0,
+        "volume": 10,
+        "open_interest": 13,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 10,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "OI": {
+    "variety_code": "OI",
+    "variety_name": "菜籽油",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "OI601",
+        "month": "2601",
+        "price": 9502.0,
+        "volume": 143210,
+        "open_interest": 121125,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "OI603",
+        "month": "2603",
+        "price": 9410.0,
+        "volume": 36762,
+        "open_interest": 72761,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "OI605",
+        "month": "2605",
+        "price": 9274.0,
+        "volume": 82181,
+        "open_interest": 140386,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "OI607",
+        "month": "2607",
+        "price": 9273.0,
+        "volume": 291,
+        "open_interest": 949,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "OI609",
+        "month": "2609",
+        "price": 9250.0,
+        "volume": 388,
+        "open_interest": 1483,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "OI611",
+        "month": "2611",
+        "price": 9230.0,
+        "volume": 26,
+        "open_interest": 37,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 78.59,
+    "grade": "B",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "MA": {
+    "variety_code": "MA",
+    "variety_name": "甲醇",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "MA512",
+        "month": "2512",
+        "price": 2018.0,
+        "volume": 27,
+        "open_interest": 1772,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA601",
+        "month": "2601",
+        "price": 2089.0,
+        "volume": 828398,
+        "open_interest": 802701,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA602",
+        "month": "2602",
+        "price": 2126.0,
+        "volume": 63963,
+        "open_interest": 49986,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA603",
+        "month": "2603",
+        "price": 2150.0,
+        "volume": 117068,
+        "open_interest": 94481,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA604",
+        "month": "2604",
+        "price": 2167.0,
+        "volume": 38066,
+        "open_interest": 23225,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA605",
+        "month": "2605",
+        "price": 2177.0,
+        "volume": 324309,
+        "open_interest": 639875,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA606",
+        "month": "2606",
+        "price": 2188.0,
+        "volume": 104,
+        "open_interest": 503,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA607",
+        "month": "2607",
+        "price": 2190.0,
+        "volume": 46,
+        "open_interest": 1874,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA608",
+        "month": "2608",
+        "price": 2194.0,
+        "volume": 40,
+        "open_interest": 1017,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA609",
+        "month": "2609",
+        "price": 2179.0,
+        "volume": 6234,
+        "open_interest": 30125,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA610",
+        "month": "2610",
+        "price": 2186.0,
+        "volume": 7,
+        "open_interest": 109,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "MA611",
+        "month": "2611",
+        "price": 2194.0,
+        "volume": 14,
+        "open_interest": 100,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 86.16,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "FG": {
+    "variety_code": "FG",
+    "variety_name": "玻璃",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "FG601",
+        "month": "2601",
+        "price": 1002.0,
+        "volume": 1118251,
+        "open_interest": 1150297,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG602",
+        "month": "2602",
+        "price": 1042.0,
+        "volume": 20574,
+        "open_interest": 46348,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG603",
+        "month": "2603",
+        "price": 1032.0,
+        "volume": 49209,
+        "open_interest": 76291,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG604",
+        "month": "2604",
+        "price": 1119.0,
+        "volume": 16894,
+        "open_interest": 27800,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG605",
+        "month": "2605",
+        "price": 1112.0,
+        "volume": 408641,
+        "open_interest": 591519,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG606",
+        "month": "2606",
+        "price": 1152.0,
+        "volume": 328,
+        "open_interest": 4708,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG607",
+        "month": "2607",
+        "price": 1134.0,
+        "volume": 383,
+        "open_interest": 6206,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG608",
+        "month": "2608",
+        "price": 1182.0,
+        "volume": 238,
+        "open_interest": 1849,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG609",
+        "month": "2609",
+        "price": 1169.0,
+        "volume": 7123,
+        "open_interest": 61902,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG610",
+        "month": "2610",
+        "price": 1189.0,
+        "volume": 343,
+        "open_interest": 1763,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "FG611",
+        "month": "2611",
+        "price": 1180.0,
+        "volume": 235,
+        "open_interest": 724,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 11,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "RM": {
+    "variety_code": "RM",
+    "variety_name": "菜粕",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "RM601",
+        "month": "2601",
+        "price": 2395.0,
+        "volume": 103310,
+        "open_interest": 150196,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RM603",
+        "month": "2603",
+        "price": 2360.0,
+        "volume": 14477,
+        "open_interest": 17841,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RM605",
+        "month": "2605",
+        "price": 2342.0,
+        "volume": 366808,
+        "open_interest": 536927,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RM607",
+        "month": "2607",
+        "price": 2340.0,
+        "volume": 8466,
+        "open_interest": 31117,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RM608",
+        "month": "2608",
+        "price": 2434.0,
+        "volume": 301,
+        "open_interest": 3453,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RM609",
+        "month": "2609",
+        "price": 2408.0,
+        "volume": 16666,
+        "open_interest": 24819,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "RM611",
+        "month": "2611",
+        "price": 2326.0,
+        "volume": 1311,
+        "open_interest": 2114,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 7,
+    "structure_score": 53.64,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "SF": {
+    "variety_code": "SF",
+    "variety_name": "硅铁",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "SF601",
+        "month": "2601",
+        "price": 5382.0,
+        "volume": 16641,
+        "open_interest": 48814,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF602",
+        "month": "2602",
+        "price": 5338.0,
+        "volume": 73651,
+        "open_interest": 47841,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF603",
+        "month": "2603",
+        "price": 5444.0,
+        "volume": 414480,
+        "open_interest": 267182,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF604",
+        "month": "2604",
+        "price": 5398.0,
+        "volume": 214269,
+        "open_interest": 36706,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF605",
+        "month": "2605",
+        "price": 5406.0,
+        "volume": 19717,
+        "open_interest": 63544,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF606",
+        "month": "2606",
+        "price": 5362.0,
+        "volume": 272,
+        "open_interest": 2478,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF607",
+        "month": "2607",
+        "price": 5506.0,
+        "volume": 7,
+        "open_interest": 135,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF609",
+        "month": "2609",
+        "price": 5462.0,
+        "volume": 95,
+        "open_interest": 648,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF610",
+        "month": "2610",
+        "price": 5428.0,
+        "volume": 18,
+        "open_interest": 114,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SF611",
+        "month": "2611",
+        "price": 5568.0,
+        "volume": 3,
+        "open_interest": 16,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 10,
+    "structure_score": 55.37,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "SM": {
+    "variety_code": "SM",
+    "variety_name": "锰硅",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "SM601",
+        "month": "2601",
+        "price": 5728.0,
+        "volume": 69549,
+        "open_interest": 134218,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM602",
+        "month": "2602",
+        "price": 5732.0,
+        "volume": 72103,
+        "open_interest": 31734,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM603",
+        "month": "2603",
+        "price": 5736.0,
+        "volume": 265067,
+        "open_interest": 271282,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM604",
+        "month": "2604",
+        "price": 5758.0,
+        "volume": 30932,
+        "open_interest": 26066,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM605",
+        "month": "2605",
+        "price": 5776.0,
+        "volume": 83793,
+        "open_interest": 157397,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM606",
+        "month": "2606",
+        "price": 5788.0,
+        "volume": 10,
+        "open_interest": 466,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM607",
+        "month": "2607",
+        "price": 5798.0,
+        "volume": 1,
+        "open_interest": 395,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM608",
+        "month": "2608",
+        "price": 5832.0,
+        "volume": 1,
+        "open_interest": 28,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM609",
+        "month": "2609",
+        "price": 5818.0,
+        "volume": 646,
+        "open_interest": 4775,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM610",
+        "month": "2610",
+        "price": 5822.0,
+        "volume": 1,
+        "open_interest": 36,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SM611",
+        "month": "2611",
+        "price": 5902.0,
+        "volume": 3,
+        "open_interest": 11,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 11,
+    "structure_score": 69.11,
+    "grade": "B",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "UR": {
+    "variety_code": "UR",
+    "variety_name": "尿素",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "UR512",
+        "month": "2512",
+        "price": 1634.0,
+        "volume": 299,
+        "open_interest": 3236,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR601",
+        "month": "2601",
+        "price": 1646.0,
+        "volume": 216711,
+        "open_interest": 167074,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR602",
+        "month": "2602",
+        "price": 1651.0,
+        "volume": 20352,
+        "open_interest": 24295,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR603",
+        "month": "2603",
+        "price": 1699.0,
+        "volume": 15005,
+        "open_interest": 39835,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR604",
+        "month": "2604",
+        "price": 1705.0,
+        "volume": 646,
+        "open_interest": 838,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR605",
+        "month": "2605",
+        "price": 1710.0,
+        "volume": 58515,
+        "open_interest": 85105,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR606",
+        "month": "2606",
+        "price": 1715.0,
+        "volume": 220,
+        "open_interest": 615,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR607",
+        "month": "2607",
+        "price": 1740.0,
+        "volume": 114,
+        "open_interest": 260,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR608",
+        "month": "2608",
+        "price": 1731.0,
+        "volume": 88,
+        "open_interest": 248,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR609",
+        "month": "2609",
+        "price": 1724.0,
+        "volume": 1624,
+        "open_interest": 4870,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR610",
+        "month": "2610",
+        "price": 1724.0,
+        "volume": 54,
+        "open_interest": 235,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "UR611",
+        "month": "2611",
+        "price": 1745.0,
+        "volume": 27,
+        "open_interest": 155,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 80.38,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "SA": {
+    "variety_code": "SA",
+    "variety_name": "纯碱",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "SA512",
+        "month": "2512",
+        "price": 1128.0,
+        "volume": 1399,
+        "open_interest": 8625,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA601",
+        "month": "2601",
+        "price": 1133.0,
+        "volume": 767837,
+        "open_interest": 998898,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA602",
+        "month": "2602",
+        "price": 1158.0,
+        "volume": 151128,
+        "open_interest": 48300,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA603",
+        "month": "2603",
+        "price": 1164.0,
+        "volume": 218178,
+        "open_interest": 123855,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA604",
+        "month": "2604",
+        "price": 1195.0,
+        "volume": 56839,
+        "open_interest": 35493,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA605",
+        "month": "2605",
+        "price": 1199.0,
+        "volume": 304954,
+        "open_interest": 646859,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA606",
+        "month": "2606",
+        "price": 1224.0,
+        "volume": 1332,
+        "open_interest": 9311,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA607",
+        "month": "2607",
+        "price": 1227.0,
+        "volume": 2288,
+        "open_interest": 8840,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA608",
+        "month": "2608",
+        "price": 1252.0,
+        "volume": 686,
+        "open_interest": 4228,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA609",
+        "month": "2609",
+        "price": 1254.0,
+        "volume": 14952,
+        "open_interest": 37644,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA610",
+        "month": "2610",
+        "price": 1268.0,
+        "volume": 296,
+        "open_interest": 3094,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "SA611",
+        "month": "2611",
+        "price": 1273.0,
+        "volume": 515,
+        "open_interest": 845,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 12,
+    "structure_score": 100,
+    "grade": "S",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "PF": {
+    "variety_code": "PF",
+    "variety_name": "短纤",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "PF512",
+        "month": "2512",
+        "price": 6102.0,
+        "volume": 42,
+        "open_interest": 971,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF601",
+        "month": "2601",
+        "price": 6220.0,
+        "volume": 10796,
+        "open_interest": 18011,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF602",
+        "month": "2602",
+        "price": 6226.0,
+        "volume": 180226,
+        "open_interest": 192046,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF603",
+        "month": "2603",
+        "price": 6220.0,
+        "volume": 100300,
+        "open_interest": 52334,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF604",
+        "month": "2604",
+        "price": 6260.0,
+        "volume": 31294,
+        "open_interest": 31299,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF605",
+        "month": "2605",
+        "price": 6264.0,
+        "volume": 1460,
+        "open_interest": 4100,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF606",
+        "month": "2606",
+        "price": 6254.0,
+        "volume": 6,
+        "open_interest": 115,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF607",
+        "month": "2607",
+        "price": 6280.0,
+        "volume": 9,
+        "open_interest": 89,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF609",
+        "month": "2609",
+        "price": 6298.0,
+        "volume": 4,
+        "open_interest": 50,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PF610",
+        "month": "2610",
+        "price": 6322.0,
+        "volume": 1,
+        "open_interest": 5,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 10,
+    "structure_score": 70.82,
+    "grade": "B",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "PK": {
+    "variety_code": "PK",
+    "variety_name": "花生",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "PK512",
+        "month": "2512",
+        "price": 8000.0,
+        "volume": 87,
+        "open_interest": 1130,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PK601",
+        "month": "2601",
+        "price": 8056.0,
+        "volume": 32547,
+        "open_interest": 64428,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PK603",
+        "month": "2603",
+        "price": 8018.0,
+        "volume": 161715,
+        "open_interest": 169721,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PK604",
+        "month": "2604",
+        "price": 7972.0,
+        "volume": 65180,
+        "open_interest": 26967,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PK605",
+        "month": "2605",
+        "price": 7970.0,
+        "volume": 17537,
+        "open_interest": 67263,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PK610",
+        "month": "2610",
+        "price": 8186.0,
+        "volume": 74,
+        "open_interest": 733,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "PK611",
+        "month": "2611",
+        "price": 8172.0,
+        "volume": 11,
+        "open_interest": 59,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 7,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "AP": {
+    "variety_code": "AP",
+    "variety_name": "苹果",
+    "market_structure": "反向市场",
+    "structure_desc": "近期合约价格高于远期合约，市场预期价格下跌或现货紧张",
+    "trade_suggestion": "做多",
+    "trade_reason": "Backwardation结构下，近期合约价格偏高，现货紧张，适合做多",
+    "contracts": [
+      {
+        "symbol": "AP601",
+        "month": "2601",
+        "price": 9544.0,
+        "volume": 17340,
+        "open_interest": 46496,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AP603",
+        "month": "2603",
+        "price": 9466.0,
+        "volume": 614,
+        "open_interest": 2336,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AP604",
+        "month": "2604",
+        "price": 9466.0,
+        "volume": 120,
+        "open_interest": 773,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AP605",
+        "month": "2605",
+        "price": 9506.0,
+        "volume": 104482,
+        "open_interest": 126173,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AP610",
+        "month": "2610",
+        "price": 8477.0,
+        "volume": 602,
+        "open_interest": 2546,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "AP611",
+        "month": "2611",
+        "price": 8301.0,
+        "volume": 13,
+        "open_interest": 101,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 90,
+    "grade": "A",
+    "recommend": true,
+    "update_time": "2025-12-08 20:48:34"
+  },
+  "CJ": {
+    "variety_code": "CJ",
+    "variety_name": "红枣",
+    "market_structure": "正向市场",
+    "structure_desc": "远期合约价格高于近期合约，市场预期价格上涨",
+    "trade_suggestion": "做空",
+    "trade_reason": "Contango结构下，远期合约价格偏高，适合做空远期合约",
+    "contracts": [
+      {
+        "symbol": "CJ512",
+        "month": "2512",
+        "price": 9500.0,
+        "volume": 17,
+        "open_interest": 224,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CJ601",
+        "month": "2601",
+        "price": 9180.0,
+        "volume": 141820,
+        "open_interest": 70812,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CJ603",
+        "month": "2603",
+        "price": 9185.0,
+        "volume": 11702,
+        "open_interest": 13260,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CJ605",
+        "month": "2605",
+        "price": 9285.0,
+        "volume": 137231,
+        "open_interest": 100906,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CJ607",
+        "month": "2607",
+        "price": 9435.0,
+        "volume": 8315,
+        "open_interest": 6006,
+        "date": "2025-12-08",
+        "source": "uqer"
+      },
+      {
+        "symbol": "CJ609",
+        "month": "2609",
+        "price": 9595.0,
+        "volume": 8208,
+        "open_interest": 7603,
+        "date": "2025-12-08",
+        "source": "uqer"
+      }
+    ],
+    "total_contracts": 6,
+    "structure_score": 0,
+    "grade": "C",
+    "recommend": false,
+    "update_time": "2025-12-08 20:48:34"
+  }
+}

@@ -194,57 +194,129 @@
                 <el-tab-pane label="📉 技术面" name="technical"></el-tab-pane>
             </el-tabs>
 
-            <!-- 总览页 -->
+            <!-- 总览页 - V2分析总览 -->
             <div v-if="activeTab === 'overview'" class="space-y-6">
-                <!-- 多空排行 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass-card">
-                        <h2 class="text-xl font-bold mb-4 text-gray-800">🔥 看多 Top 5</h2>
-                        <div v-if="zhihuiStats.top_bullish && zhihuiStats.top_bullish.length" class="space-y-3">
-                            <div v-for="(item, idx) in zhihuiStats.top_bullish" :key="idx"
-                                 class="top-mover-card bullish"
-                                 @click="goToVarietyDetail(item.variety_code)">
-                                <div class="flex justify-between items-center mb-2">
-                                    <div class="flex items-center">
-                                        <span class="text-xl font-bold text-red-500 mr-3">#{{ idx + 1 }}</span>
-                                        <div>
-                                            <span class="variety-badge">{{ item.variety_code }}</span>
-                                            <span class="font-bold">{{ item.variety_name }}</span>
-                                        </div>
-                                    </div>
-                                    <span class="bull-tag">{{ item.excessive_ratio.toFixed(1) }}%</span>
-                                </div>
-                                <div class="text-xs text-gray-600">
-                                    看多: {{ item.excessive_num }}家 | 中性: {{ item.neutral_num }}家 | 看空: {{ item.empty_num }}家
-                                </div>
-                            </div>
-                        </div>
-                        <el-empty v-else description="暂无数据" :image-size="80"></el-empty>
+                <!-- 统计卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="stat-card">
+                        <div class="text-sm text-gray-600 mb-1">总品种数</div>
+                        <div class="text-3xl font-bold">{{ v2Stats.total || 0 }}</div>
                     </div>
-                    <div class="glass-card">
-                        <h2 class="text-xl font-bold mb-4 text-gray-800">❄️ 看空 Top 5</h2>
-                        <div v-if="zhihuiStats.top_bearish && zhihuiStats.top_bearish.length" class="space-y-3">
-                            <div v-for="(item, idx) in zhihuiStats.top_bearish" :key="idx"
-                                 class="top-mover-card bearish"
-                                 @click="goToVarietyDetail(item.variety_code)">
-                                <div class="flex justify-between items-center mb-2">
-                                    <div class="flex items-center">
-                                        <span class="text-xl font-bold text-green-600 mr-3">#{{ idx + 1 }}</span>
-                                        <div>
-                                            <span class="variety-badge">{{ item.variety_code }}</span>
-                                            <span class="font-bold">{{ item.variety_name }}</span>
-                                        </div>
-                                    </div>
-                                    <span class="bear-tag">{{ item.empty_ratio.toFixed(1) }}%</span>
-                                </div>
-                                <div class="text-xs text-gray-600">
-                                    看多: {{ item.excessive_num }}家 | 中性: {{ item.neutral_num }}家 | 看空: {{ item.empty_num }}家
-                                </div>
-                            </div>
-                        </div>
-                        <el-empty v-else description="暂无数据" :image-size="80"></el-empty>
+                    <div class="stat-card" style="border-color: #10b981;">
+                        <div class="text-sm text-gray-600 mb-1">多头品种</div>
+                        <div class="text-3xl font-bold" style="color: #10b981;">{{ v2Stats.long || 0 }}</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #ef4444;">
+                        <div class="text-sm text-gray-600 mb-1">空头品种</div>
+                        <div class="text-3xl font-bold" style="color: #ef4444;">{{ v2Stats.short || 0 }}</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #6b7280;">
+                        <div class="text-sm text-gray-600 mb-1">中性品种</div>
+                        <div class="text-3xl font-bold" style="color: #6b7280;">{{ v2Stats.neutral || 0 }}</div>
                     </div>
                 </div>
+
+                <!-- 筛选按钮 -->
+                <div class="glass-card">
+                    <div class="flex justify-between items-center">
+                        <el-radio-group v-model="v2FilterDirection" @change="handleV2FilterChange">
+                            <el-radio-button label="all">全部</el-radio-button>
+                            <el-radio-button label="多头">多头</el-radio-button>
+                            <el-radio-button label="空头">空头</el-radio-button>
+                            <el-radio-button label="中性">中性</el-radio-button>
+                        </el-radio-group>
+                        <el-button type="primary" @click="refreshV2Data" :loading="v2Loading">
+                            <span v-if="!v2Loading">刷新数据</span>
+                            <span v-else>分析中...</span>
+                        </el-button>
+                    </div>
+                </div>
+
+                <!-- V2分析数据表格 -->
+                <div class="glass-card">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 5维度综合分析</h2>
+                    <el-table :data="v2FilteredData" stripe style="width: 100%" v-loading="v2Loading" max-height="600">
+                        <el-table-column prop="品种" label="品种" width="100" fixed />
+                        <el-table-column label="综合方向" width="120">
+                            <template #default="scope">
+                                <span :class="{
+                                    'bull-tag': scope.row.综合方向 === '多头',
+                                    'bear-tag': scope.row.综合方向 === '空头',
+                                    'neutral-tag': scope.row.综合方向 === '中性'
+                                }">
+                                    {{ scope.row.综合方向 }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="综合星级" label="综合强度" width="100" />
+                        <el-table-column prop="净得分" label="净得分" width="100" sortable />
+
+                        <el-table-column label="研报" width="120">
+                            <template #default="scope">
+                                {{ scope.row.研报分析_方向 }} {{ scope.row.研报分析_星级 }}
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column label="虚实比" width="120">
+                            <template #default="scope">
+                                {{ scope.row.虚实比PCR_方向 }} {{ scope.row.虚实比PCR_星级 }}
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column label="期限结构" width="140">
+                            <template #default="scope">
+                                {{ scope.row.期限结构_方向 }} {{ scope.row.期限结构_星级 }}
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column label="波动率背离" width="140">
+                            <template #default="scope">
+                                {{ scope.row.波动率背离_方向 }} {{ scope.row.波动率背离_星级 }}
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column label="资金面" width="120">
+                            <template #default="scope">
+                                {{ scope.row.资金面_方向 }} {{ scope.row.资金面_星级 }}
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column label="操作" width="100" fixed="right">
+                            <template #default="scope">
+                                <el-button type="primary" size="small" @click="viewV2Detail(scope.row.品种)">
+                                    详情
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <!-- V2详情对话框 -->
+                <el-dialog v-model="v2DetailDialogVisible" :title="`${v2SelectedVariety} - 品种详情`" width="80%">
+                    <div v-if="v2SelectedVariety">
+                        <h3 class="text-lg font-bold mb-3">分析信号</h3>
+                        <el-table :data="v2VarietySignals" style="margin-bottom: 20px;">
+                            <el-table-column prop="分析维度" label="分析维度" width="150" />
+                            <el-table-column prop="方向" label="方向" width="100" />
+                            <el-table-column prop="星级" label="强度" width="100" />
+                            <el-table-column prop="理由" label="理由" />
+                        </el-table>
+
+                        <h3 class="text-lg font-bold mb-3 mt-6">期限结构</h3>
+                        <el-table :data="v2VarietyTermStructure">
+                            <el-table-column prop="交割月份" label="交割月份" width="120" />
+                            <el-table-column prop="合约总数" label="合约总数" width="120" />
+                            <el-table-column prop="看涨数量" label="看涨数量" width="120" />
+                            <el-table-column prop="看跌数量" label="看跌数量" width="120" />
+                            <el-table-column prop="PCR" label="PCR" width="100" />
+                            <el-table-column label="行权价范围" width="200">
+                                <template #default="scope">
+                                    {{ scope.row.最低行权价 }} - {{ scope.row.最高行权价 }}
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </el-dialog>
             </div>
 
             <!-- 品种详情页 -->
@@ -887,73 +959,113 @@
 
                     <!-- 期限结构子标签 -->
                     <el-tab-pane label="📈 期限结构" name="term-structure">
-                        <div class="glass-card">
-                            <h2 class="text-xl font-bold mb-6 text-gray-800">📈 期限结构分析</h2>
-
-                            <!-- 品种选择 -->
-                            <div class="flex items-center space-x-4 mb-6">
-                                <el-input
-                                    v-model="termStructureVariety"
-                                    placeholder="输入品种代码 (如: M, C, RB, I)"
-                                    prefix-icon="Search"
-                                    class="w-64"
-                                    @keyup.enter="loadTermStructure">
-                                </el-input>
-                                <el-button type="primary" @click="loadTermStructure">查询期限结构</el-button>
-                            </div>
-
-                            <!-- 市场结构提示 -->
-                            <div v-if="termStructureData" class="mb-6">
-                                <el-alert
-                                    :title="termStructureData.market_structure"
-                                    :description="termStructureData.structure_desc"
-                                    :type="termStructureData.market_structure === '正向市场' ? 'warning' : termStructureData.market_structure === '反向市场' ? 'success' : 'info'"
-                                    :closable="false"
-                                    show-icon>
-                                </el-alert>
-                            </div>
-
-                            <!-- 期限结构图表 -->
-                            <div v-if="termStructureData && termStructureData.contracts.length">
-                                <div id="termStructureChart" class="chart-container" style="height: 500px;"></div>
-
-                                <!-- 合约列表 -->
-                                <div class="mt-6">
-                                    <h3 class="text-lg font-bold mb-4 text-gray-800">合约明细</h3>
-                                    <el-table :data="termStructureData.contracts" style="width: 100%">
-                                        <el-table-column prop="symbol" label="合约代码" width="120"></el-table-column>
-                                        <el-table-column prop="month" label="合约月份" width="100"></el-table-column>
-                                        <el-table-column prop="price" label="价格" width="120">
-                                            <template #default="scope">
-                                                <span class="font-bold">{{ scope.row.price.toFixed(2) }}</span>
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column prop="volume" label="成交量" width="150">
-                                            <template #default="scope">
-                                                {{ formatNumber(scope.row.volume) }}
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column prop="open_interest" label="持仓量" width="150">
-                                            <template #default="scope">
-                                                {{ formatNumber(scope.row.open_interest) }}
-                                            </template>
-                                        </el-table-column>
-                                    </el-table>
+                        <div class="glass-card" style="padding: 16px;">
+                            <div class="flex justify-between items-center mb-3">
+                                <h2 class="text-base font-bold text-gray-800">📈 期限结构分析</h2>
+                                <div class="text-xs text-gray-500" v-if="allTermStructures">
+                                    更新: {{ allTermStructures.contango_varieties?.[0]?.update_time?.split(' ')[0] }}
                                 </div>
                             </div>
 
-                            <!-- 默认提示 -->
-                            <div v-else-if="!termStructureData" class="text-center py-12">
-                                <el-empty description="请输入品种代码查看期限结构" :image-size="100">
-                                    <template #default>
-                                        <p class="text-gray-500 text-sm mb-4">例如: M (豆粕), C (玉米), RB (螺纹钢), I (铁矿石)</p>
-                                    </template>
-                                </el-empty>
+                            <!-- 加载状态 -->
+                            <div v-if="!allTermStructures" class="text-center py-6">
+                                <div class="loading-spinner mx-auto"></div>
+                                <p class="text-gray-500 mt-2 text-xs">加载中...</p>
                             </div>
 
-                            <!-- 无数据提示 -->
-                            <div v-else-if="termStructureData && !termStructureData.contracts.length" class="text-center py-12">
-                                <el-empty description="未找到该品种的合约数据" :image-size="100"></el-empty>
+                            <!-- 所有品种的期限结构 -->
+                            <div v-else>
+                                <!-- 统计概览 -->
+                                <div class="grid grid-cols-3 gap-2 mb-3">
+                                    <div class="stat-card" style="padding: 6px;">
+                                        <div class="text-xs text-gray-600 mb-0.5">总品种数</div>
+                                        <div class="text-lg font-bold">{{ allTermStructures.total_varieties || 0 }}</div>
+                                    </div>
+                                    <div class="stat-card" style="border-color: #f56c6c; padding: 6px;">
+                                        <div class="text-xs text-gray-600 mb-0.5">Contango (做空)</div>
+                                        <div class="text-lg font-bold text-red-500">{{ allTermStructures.contango_count || 0 }}</div>
+                                    </div>
+                                    <div class="stat-card" style="border-color: #67c23a; padding: 6px;">
+                                        <div class="text-xs text-gray-600 mb-0.5">Backwardation (做多)</div>
+                                        <div class="text-lg font-bold text-green-600">{{ allTermStructures.backwardation_count || 0 }}</div>
+                                    </div>
+                                </div>
+
+                                <!-- 分Tab显示 -->
+                                <el-tabs v-model="termStructureSubTab" type="border-card">
+                                    <!-- 推荐品种Tab -->
+                                    <el-tab-pane v-if="recommendedVarieties.length > 0" name="recommended">
+                                        <template #label>
+                                            <span class="text-sm">⭐ 推荐 ({{ recommendedVarieties.length }}个)</span>
+                                        </template>
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <div v-for="variety in recommendedVarieties" :key="'rec_' + variety.variety_code"
+                                                 class="glass-card border-2"
+                                                 :class="variety.grade === 'S' ? 'border-yellow-500' : 'border-yellow-300'"
+                                                 style="padding: 8px;">
+                                                <div class="mb-1">
+                                                    <span class="variety-badge" style="font-size: 10px; padding: 1px 6px;">{{ variety.variety_code }}</span>
+                                                    <el-tag v-if="variety.grade === 'S'" type="warning" size="small" effect="dark" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">⭐S</el-tag>
+                                                    <el-tag v-else type="warning" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">A</el-tag>
+                                                </div>
+                                                <div class="text-xs font-semibold mb-1" style="font-size: 11px;">{{ variety.variety_name || getVarietyName(variety.variety_code) }}</div>
+                                                <el-tag :type="variety.market_structure === '正向市场' ? 'danger' : 'success'" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px; margin-bottom: 4px;">
+                                                    {{ variety.trade_suggestion }}
+                                                </el-tag>
+                                                <div class="text-xs text-gray-500" style="font-size: 10px; margin-bottom: 4px;">分: {{ variety.structure_score?.toFixed(0) || 0 }}</div>
+                                                <div :id="'termChart_rec_' + variety.variety_code" style="width: 100%; height: 180px;"></div>
+                                            </div>
+                                        </div>
+                                    </el-tab-pane>
+
+                                    <!-- Contango Tab (包含所有正向市场品种) -->
+                                    <el-tab-pane v-if="allTermStructures.contango_varieties && allTermStructures.contango_varieties.length" name="contango">
+                                        <template #label>
+                                            <span class="text-sm">🔴 Contango ({{ allTermStructures.contango_count }}个)</span>
+                                        </template>
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <div v-for="variety in allTermStructures.contango_varieties" :key="'con_' + variety.variety_code"
+                                                 class="glass-card"
+                                                 :class="{ 'border-2 border-yellow-400': variety.grade === 'S' || variety.grade === 'A' }"
+                                                 style="padding: 8px;">
+                                                <div class="mb-1">
+                                                    <span class="variety-badge" style="font-size: 10px; padding: 1px 6px;">{{ variety.variety_code }}</span>
+                                                    <el-tag v-if="variety.grade === 'S'" type="warning" size="small" effect="dark" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">⭐S</el-tag>
+                                                    <el-tag v-else-if="variety.grade === 'A'" type="warning" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">A</el-tag>
+                                                    <el-tag v-else-if="variety.grade === 'B'" type="info" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">B</el-tag>
+                                                </div>
+                                                <div class="text-xs font-semibold mb-1" style="font-size: 11px;">{{ variety.variety_name || getVarietyName(variety.variety_code) }}</div>
+                                                <el-tag type="danger" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px; margin-bottom: 4px;">{{ variety.trade_suggestion }}</el-tag>
+                                                <div class="text-xs text-gray-500" style="font-size: 10px; margin-bottom: 4px;">分: {{ variety.structure_score?.toFixed(0) || 0 }}</div>
+                                                <div :id="'termChart_' + variety.variety_code" style="width: 100%; height: 180px;"></div>
+                                            </div>
+                                        </div>
+                                    </el-tab-pane>
+
+                                    <!-- Backwardation Tab (包含所有反向市场品种) -->
+                                    <el-tab-pane v-if="allTermStructures.backwardation_varieties && allTermStructures.backwardation_varieties.length" name="backwardation">
+                                        <template #label>
+                                            <span class="text-sm">🟢 Backwardation ({{ allTermStructures.backwardation_count }}个)</span>
+                                        </template>
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <div v-for="variety in allTermStructures.backwardation_varieties" :key="'back_' + variety.variety_code"
+                                                 class="glass-card"
+                                                 :class="{ 'border-2 border-yellow-400': variety.grade === 'S' || variety.grade === 'A' }"
+                                                 style="padding: 8px;">
+                                                <div class="mb-1">
+                                                    <span class="variety-badge" style="font-size: 10px; padding: 1px 6px;">{{ variety.variety_code }}</span>
+                                                    <el-tag v-if="variety.grade === 'S'" type="warning" size="small" effect="dark" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">⭐S</el-tag>
+                                                    <el-tag v-else-if="variety.grade === 'A'" type="warning" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">A</el-tag>
+                                                    <el-tag v-else-if="variety.grade === 'B'" type="info" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px;">B</el-tag>
+                                                </div>
+                                                <div class="text-xs font-semibold mb-1" style="font-size: 11px;">{{ variety.variety_name || getVarietyName(variety.variety_code) }}</div>
+                                                <el-tag type="success" size="small" style="font-size: 10px; padding: 0 4px; height: 18px; line-height: 18px; margin-bottom: 4px;">{{ variety.trade_suggestion }}</el-tag>
+                                                <div class="text-xs text-gray-500" style="font-size: 10px; margin-bottom: 4px;">分: {{ variety.structure_score?.toFixed(0) || 0 }}</div>
+                                                <div :id="'termChart_' + variety.variety_code" style="width: 100%; height: 180px;"></div>
+                                            </div>
+                                        </div>
+                                    </el-tab-pane>
+                                </el-tabs>
                             </div>
                         </div>
                     </el-tab-pane>
@@ -996,6 +1108,17 @@
                 const imageRefreshKey = ref(0); // 用于强制刷新图片
                 const varietyResearchSummary = ref(null); // 品种详情页面的研报汇总
 
+                // V2分析数据 refs
+                const v2AllData = ref([]);
+                const v2FilteredData = ref([]);
+                const v2FilterDirection = ref('all');
+                const v2Stats = ref({ total: 0, long: 0, short: 0, neutral: 0 });
+                const v2Loading = ref(false);
+                const v2DetailDialogVisible = ref(false);
+                const v2SelectedVariety = ref(null);
+                const v2VarietySignals = ref([]);
+                const v2VarietyTermStructure = ref([]);
+
                 // Sub-tab refs
                 const fundamentalSubTab = ref('reports');  // 基本面子标签
                 const technicalSubTab = ref('trading-strategy');  // 技术面子标签
@@ -1017,11 +1140,20 @@
                 // Term Structure data refs
                 const termStructureVariety = ref('');
                 const termStructureData = ref(null);
+                const allTermStructures = ref(null);  // 所有品种的期限结构数据
+                const recommendedVarieties = ref([]);  // 推荐品种（S/A级）
+                const termStructureSubTab = ref('recommended');  // 期限结构子Tab,默认显示推荐
 
                 // API Base URL - 自动检测本地或公网环境
-                const API_BASE = window.location.hostname === 'localhost'
+                // API配置 - 自动适配本地和公网环境
+                const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                     ? 'http://localhost:8000/api/v1'
                     : `${window.location.origin}/api/v1`;
+
+                // 期限结构API使用独立路径
+                const TERM_STRUCTURE_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:8000/api/term-structure'
+                    : `${window.location.origin}/api/term-structure`;
 
                 // 获取最近的交易日
                 const getLatestTradingDate = async () => {
@@ -1336,6 +1468,90 @@
                     myChart.setOption(option);
                 };
 
+                // V2分析数据加载函数
+                const loadV2Data = async () => {
+                    try {
+                        v2Loading.value = true;
+                        const response = await fetch(`${API_BASE}/analysis-v2/overview`);
+                        const result = await response.json();
+
+                        if (result.success) {
+                            v2AllData.value = result.data;
+                            v2Stats.value = result.stats;
+                            handleV2FilterChange();
+                            ElMessage.success('V2分析数据加载成功');
+                        } else {
+                            ElMessage.error('V2数据加载失败');
+                        }
+                    } catch (error) {
+                        console.error('加载V2数据失败:', error);
+                        ElMessage.error('请求失败: ' + error.message);
+                    } finally {
+                        v2Loading.value = false;
+                    }
+                };
+
+                // V2筛选处理
+                const handleV2FilterChange = () => {
+                    if (v2FilterDirection.value === 'all') {
+                        v2FilteredData.value = v2AllData.value;
+                    } else {
+                        v2FilteredData.value = v2AllData.value.filter(
+                            item => item.综合方向 === v2FilterDirection.value
+                        );
+                    }
+                };
+
+                // 查看V2品种详情
+                const viewV2Detail = async (variety) => {
+                    v2SelectedVariety.value = variety;
+                    v2DetailDialogVisible.value = true;
+
+                    try {
+                        // 加载分析信号
+                        const signalsResponse = await fetch(`${API_BASE}/analysis-v2/variety/${variety}/signals`);
+                        const signalsResult = await signalsResponse.json();
+                        if (signalsResult.success) {
+                            v2VarietySignals.value = signalsResult.signals;
+                        }
+
+                        // 加载期限结构
+                        const termResponse = await fetch(`${API_BASE}/analysis-v2/variety/${variety}/term-structure`);
+                        const termResult = await termResponse.json();
+                        if (termResult.success) {
+                            v2VarietyTermStructure.value = termResult.term_structure;
+                        }
+                    } catch (error) {
+                        console.error('加载详情失败:', error);
+                        ElMessage.error('加载详情失败');
+                    }
+                };
+
+                // 刷新V2数据
+                const refreshV2Data = async () => {
+                    try {
+                        v2Loading.value = true;
+                        ElMessage.info('正在重新运行分析系统，请稍候...');
+
+                        const response = await fetch(`${API_BASE}/analysis-v2/refresh`, {
+                            method: 'POST'
+                        });
+                        const result = await response.json();
+
+                        if (result.success) {
+                            ElMessage.success('分析完成，正在重新加载数据...');
+                            await loadV2Data();
+                        } else {
+                            ElMessage.error('分析失败: ' + result.detail);
+                        }
+                    } catch (error) {
+                        console.error('刷新失败:', error);
+                        ElMessage.error('刷新失败: ' + error.message);
+                    } finally {
+                        v2Loading.value = false;
+                    }
+                };
+
                 const fetchCapitalData = async () => {
                     try {
                         const res = await fetch(`${API_BASE}/capital/option-flow/all?hours=24`);
@@ -1575,7 +1791,7 @@
 
                     try {
                         const res = await fetch(
-                            `${API_BASE}/term-structure/structure/${termStructureVariety.value.toUpperCase()}`
+                            `${TERM_STRUCTURE_BASE}/structure/${termStructureVariety.value.toUpperCase()}`
                         );
                         if (res.ok) {
                             const data = await res.json();
@@ -1603,6 +1819,17 @@
 
                     const myChart = echarts.init(chartDom);
                     const contracts = termStructureData.value.contracts;
+
+                    // 计算价格范围以优化Y轴显示
+                    const prices = contracts.map(c => c.price);
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    const priceRange = maxPrice - minPrice;
+
+                    // 添加10%的padding使图表更美观
+                    const padding = priceRange * 0.1;
+                    const yAxisMin = Math.floor(minPrice - padding);
+                    const yAxisMax = Math.ceil(maxPrice + padding);
 
                     const option = {
                         title: {
@@ -1640,6 +1867,8 @@
                         yAxis: {
                             type: 'value',
                             name: '价格',
+                            min: yAxisMin,
+                            max: yAxisMax,
                             axisLabel: {
                                 formatter: '{value}'
                             }
@@ -1675,6 +1904,275 @@
                     myChart.setOption(option);
                 };
 
+                // 加载所有品种的期限结构
+                const loadAllTermStructures = async () => {
+                    try {
+                        const res = await fetch(`${TERM_STRUCTURE_BASE}/all-structures`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.success) {
+                                // 按分数排序Contango和Backwardation列表
+                                const sortedContango = data.contango_varieties.sort((a, b) => {
+                                    return (b.structure_score || 0) - (a.structure_score || 0);
+                                });
+
+                                const sortedBackwardation = data.backwardation_varieties.sort((a, b) => {
+                                    return (b.structure_score || 0) - (a.structure_score || 0);
+                                });
+
+                                // 提取推荐品种（S/A级）
+                                recommendedVarieties.value = [
+                                    ...data.contango_varieties.filter(v => v.grade === 'S' || v.grade === 'A'),
+                                    ...data.backwardation_varieties.filter(v => v.grade === 'S' || v.grade === 'A')
+                                ].sort((a, b) => {
+                                    // S级优先，然后按得分排序
+                                    if (a.grade === 'S' && b.grade !== 'S') return -1;
+                                    if (a.grade !== 'S' && b.grade === 'S') return 1;
+                                    return (b.structure_score || 0) - (a.structure_score || 0);
+                                });
+
+                                // 更新数据
+                                allTermStructures.value = {
+                                    ...data,
+                                    contango_varieties: sortedContango,
+                                    backwardation_varieties: sortedBackwardation,
+                                    contango_count: sortedContango.length,
+                                    backwardation_count: sortedBackwardation.length
+                                };
+
+                                // 设置默认Tab - 优先显示推荐
+                                if (recommendedVarieties.value.length > 0) {
+                                    termStructureSubTab.value = 'recommended';
+                                } else if (sortedContango.length > 0) {
+                                    termStructureSubTab.value = 'contango';
+                                } else if (sortedBackwardation.length > 0) {
+                                    termStructureSubTab.value = 'backwardation';
+                                }
+
+                                // 使用nextTick确保DOM已更新后再渲染图表
+                                Vue.nextTick(() => {
+                                    setTimeout(() => {
+                                        if (termStructureSubTab.value === 'recommended' && recommendedVarieties.value.length > 0) {
+                                            console.log('渲染推荐品种图表:', recommendedVarieties.value.length);
+                                            recommendedVarieties.value.forEach((variety, index) => {
+                                                setTimeout(() => {
+                                                    console.log('渲染图表:', variety.variety_code);
+                                                    renderSingleTermChart(variety.variety_code, variety.contracts);
+                                                }, 100 * (index + 1));
+                                            });
+                                        } else if (termStructureSubTab.value === 'contango' && sortedContango.length > 0) {
+                                            console.log('渲染Contango品种图表:', sortedContango.length);
+                                            sortedContango.forEach((variety, index) => {
+                                                setTimeout(() => {
+                                                    renderSingleTermChart(variety.variety_code, variety.contracts);
+                                                }, 100 * (index + 1));
+                                            });
+                                        } else if (termStructureSubTab.value === 'backwardation' && sortedBackwardation.length > 0) {
+                                            console.log('渲染Backwardation品种图表:', sortedBackwardation.length);
+                                            sortedBackwardation.forEach((variety, index) => {
+                                                setTimeout(() => {
+                                                    renderSingleTermChart(variety.variety_code, variety.contracts);
+                                                }, 100 * (index + 1));
+                                            });
+                                        }
+                                    }, 800);  // 增加延迟确保Tab切换动画完成
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载所有期限结构失败:', error);
+                        ElMessage.error('加载失败，请稍后重试');
+                    }
+                };
+
+                // 渲染单个品种的期限结构图表
+                const renderSingleTermChart = (varietyCode, contracts) => {
+                    // 根据当前tab选择正确的DOM ID前缀
+                    let chartDom = null;
+                    if (termStructureSubTab.value === 'recommended') {
+                        chartDom = document.getElementById(`termChart_rec_${varietyCode}`);
+                    } else {
+                        // contango 和 backwardation 都使用普通前缀
+                        chartDom = document.getElementById(`termChart_${varietyCode}`);
+                    }
+
+                    if (!chartDom || !contracts || !contracts.length) {
+                        console.warn(`图表DOM未找到: ${varietyCode}, tab=${termStructureSubTab.value}`);
+                        return;
+                    }
+
+                    // 获取或创建ECharts实例（避免重复初始化）
+                    let myChart = echarts.getInstanceByDom(chartDom);
+                    if (!myChart) {
+                        myChart = echarts.init(chartDom);
+                    }
+
+                    // 计算价格范围以优化Y轴显示
+                    const prices = contracts.map(c => c.price);
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    const priceRange = maxPrice - minPrice;
+
+                    // 添加5%的padding使图表更美观
+                    const padding = priceRange * 0.05;
+                    const yAxisMin = Math.floor(minPrice - padding);
+                    const yAxisMax = Math.ceil(maxPrice + padding);
+
+                    // 根据价格趋势判断颜色 (Contango用红色, Backwardation用绿色)
+                    const isContango = prices[0] < prices[prices.length - 1];
+                    const lineColor = isContango ? '#f56c6c' : '#67c23a';
+
+                    const option = {
+                        title: {
+                            text: `${varietyCode}`,
+                            left: 'center',
+                            top: '2',
+                            textStyle: {
+                                color: '#2c3e50',
+                                fontSize: 11,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                const data = params[0];
+                                const contract = contracts[data.dataIndex];
+                                return `${contract.symbol}<br/>价格: ${contract.price.toFixed(2)}<br/>量: ${formatNumber(contract.volume)}`;
+                            },
+                            textStyle: {
+                                fontSize: 10
+                            }
+                        },
+                        grid: {
+                            left: '10%',
+                            right: '5%',
+                            bottom: '18%',
+                            top: '15%',
+                            containLabel: false
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: contracts.map(c => c.symbol),
+                            axisLabel: {
+                                rotate: 45,
+                                interval: 0,
+                                fontSize: 8
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '',
+                            min: yAxisMin,
+                            max: yAxisMax,
+                            axisLabel: {
+                                formatter: '{value}',
+                                fontSize: 8
+                            }
+                        },
+                        series: [
+                            {
+                                name: '价格',
+                                type: 'line',
+                                data: contracts.map(c => c.price),
+                                smooth: false,
+                                lineStyle: {
+                                    width: 2,
+                                    color: lineColor
+                                },
+                                itemStyle: {
+                                    color: lineColor,
+                                    borderWidth: 1
+                                },
+                                areaStyle: {
+                                    color: {
+                                        type: 'linear',
+                                        x: 0,
+                                        y: 0,
+                                        x2: 0,
+                                        y2: 1,
+                                        colorStops: [{
+                                            offset: 0,
+                                            color: isContango ? 'rgba(245, 108, 108, 0.2)' : 'rgba(103, 194, 58, 0.2)'
+                                        }, {
+                                            offset: 1,
+                                            color: isContango ? 'rgba(245, 108, 108, 0.02)' : 'rgba(103, 194, 58, 0.02)'
+                                        }]
+                                    }
+                                }
+                            }
+                        ]
+                    };
+                    myChart.setOption(option);
+                };
+
+                // 渲染所有期限结构图表
+                const renderAllTermStructureCharts = () => {
+                    if (!allTermStructures.value) return;
+
+                    // 首先渲染推荐品种 (使用rec_前缀)
+                    if (recommendedVarieties.value && recommendedVarieties.value.length > 0) {
+                        recommendedVarieties.value.forEach(variety => {
+                            setTimeout(() => {
+                                const chartDom = document.getElementById(`termChart_rec_${variety.variety_code}`);
+                                if (chartDom) {
+                                    renderSingleTermChart(variety.variety_code, variety.contracts);
+                                }
+                            }, 100);
+                        });
+                    }
+
+                    // 渲染Contango品种
+                    if (allTermStructures.value.contango_varieties) {
+                        allTermStructures.value.contango_varieties.forEach(variety => {
+                            setTimeout(() => {
+                                renderSingleTermChart(variety.variety_code, variety.contracts);
+                            }, 100);
+                        });
+                    }
+
+                    // 渲染Backwardation品种
+                    if (allTermStructures.value.backwardation_varieties) {
+                        allTermStructures.value.backwardation_varieties.forEach(variety => {
+                            setTimeout(() => {
+                                renderSingleTermChart(variety.variety_code, variety.contracts);
+                            }, 100);
+                        });
+                    }
+                };
+
+                // 添加watch termStructureSubTab来动态渲染图表
+                watch(termStructureSubTab, (newSubTab) => {
+                    console.log('Tab切换到:', newSubTab);
+                    // 使用Vue.nextTick + setTimeout确保DOM完全更新
+                    Vue.nextTick(() => {
+                        setTimeout(() => {
+                            if (newSubTab === 'recommended' && recommendedVarieties.value?.length > 0) {
+                                console.log('watch: 渲染推荐品种', recommendedVarieties.value.length);
+                                recommendedVarieties.value.forEach((variety, index) => {
+                                    setTimeout(() => {
+                                        renderSingleTermChart(variety.variety_code, variety.contracts);
+                                    }, 100 * (index + 1));
+                                });
+                            } else if (newSubTab === 'contango' && allTermStructures.value?.contango_varieties) {
+                                console.log('watch: 渲染Contango品种', allTermStructures.value.contango_varieties.length);
+                                allTermStructures.value.contango_varieties.forEach((variety, index) => {
+                                    setTimeout(() => {
+                                        renderSingleTermChart(variety.variety_code, variety.contracts);
+                                    }, 100 * (index + 1));
+                                });
+                            } else if (newSubTab === 'backwardation' && allTermStructures.value?.backwardation_varieties) {
+                                console.log('watch: 渲染Backwardation品种', allTermStructures.value.backwardation_varieties.length);
+                                allTermStructures.value.backwardation_varieties.forEach((variety, index) => {
+                                    setTimeout(() => {
+                                        renderSingleTermChart(variety.variety_code, variety.contracts);
+                                    }, 100 * (index + 1));
+                                });
+                            }
+                        }, 600);  // 增加延迟确保Tab切换动画完成
+                    });
+                });
+
                 const onDateChange = () => {
                     // 更新图片刷新键，强制重新加载蓝图图片
                     imageRefreshKey.value++;
@@ -1689,7 +2187,10 @@
 
                 // Watch activeTab to fetch data when switching tabs
                 watch(activeTab, (newTab) => {
-                    if (newTab === 'fundamental') {
+                    if (newTab === 'overview') {
+                        // Load V2 analysis data for overview tab
+                        if (!v2AllData.value.length) loadV2Data();
+                    } else if (newTab === 'fundamental') {
                         // Load zhihui data for fundamental tab
                         if (!zhihuiData.value.length) fetchZhihuiData();
                         // Render charts when entering fundamental/reports sub-tab
@@ -1713,6 +2214,13 @@
                     }
                 });
 
+                // Watch termAnalysisSubTab to load term structure data
+                watch(termAnalysisSubTab, (newSubTab) => {
+                    if (newSubTab === 'term-structure') {
+                        if (!allTermStructures.value) loadAllTermStructures();
+                    }
+                });
+
                 onMounted(async () => {
                     // 首先获取最近的交易日期并设置为默认日期
                     const latestTradingDate = await getLatestTradingDate();
@@ -1722,6 +2230,7 @@
                     fetchCommodityMapping();  // 先获取品种映射
                     fetchZhihuiStats();
                     fetchZhihuiData();
+                    loadV2Data();  // 加载V2分析数据
                 });
 
                 return {
@@ -1768,8 +2277,27 @@
                     // Term Structure
                     termStructureVariety,
                     termStructureData,
+                    allTermStructures,
+                    recommendedVarieties,
+                    termStructureSubTab,
                     loadTermStructure,
-                    renderTermStructureChart
+                    loadAllTermStructures,
+                    renderTermStructureChart,
+                    renderAllTermStructureCharts,
+                    // V2 Analysis
+                    v2AllData,
+                    v2FilteredData,
+                    v2FilterDirection,
+                    v2Stats,
+                    v2Loading,
+                    v2DetailDialogVisible,
+                    v2SelectedVariety,
+                    v2VarietySignals,
+                    v2VarietyTermStructure,
+                    loadV2Data,
+                    handleV2FilterChange,
+                    viewV2Detail,
+                    refreshV2Data
                 };
             }
         });

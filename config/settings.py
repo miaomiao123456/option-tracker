@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # API Keys
     GEMINI_API_KEY: str
     GEMINI_BASE_URL: str = "https://www.apillm.online/v1"
+    UQER_TOKEN: str = ""  # 优矿API Token
 
     # 飞书告警配置
     FEISHU_WEBHOOK: str = ""  # 飞书机器人 Webhook URL

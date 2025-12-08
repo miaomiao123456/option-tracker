@@ -50,7 +50,11 @@ app.include_router(virtual_real_ratio.router, prefix="/api/v1/virtual-real-ratio
 
 # 新增:期限结构模块路由
 from app.routers import term_structure
-app.include_router(term_structure.router, prefix="/api/v1/term-structure", tags=["期限结构"])
+app.include_router(term_structure.router, prefix="/api/term-structure", tags=["期限结构"])
+
+# 新增:V2分析系统路由
+from app.routers import analysis_v2
+app.include_router(analysis_v2.router, prefix="/api/v1/analysis-v2", tags=["V2分析系统"])
 
 
 @app.on_event("startup")
@@ -166,6 +170,22 @@ async def get_data_governance_page():
             }
         )
     return HTMLResponse("<h1>Data Governance page not found</h1>", status_code=404)
+
+
+@app.get("/analysis-v2", response_class=HTMLResponse)
+async def get_analysis_v2_page():
+    """返回V2分析总览页面"""
+    analysis_path = Path(__file__).parent / "analysis_v2.html"
+    if analysis_path.exists():
+        return FileResponse(
+            analysis_path,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+    return HTMLResponse("<h1>Analysis V2 page not found</h1>", status_code=404)
 
 
 @app.get("/zhihui", response_class=HTMLResponse)

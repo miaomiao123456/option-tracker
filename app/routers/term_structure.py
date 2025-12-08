@@ -4,14 +4,52 @@
 """
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, List, Dict
-import akshare as ak
-import pandas as pd
+import json
 from datetime import datetime, date
+from pathlib import Path
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def load_term_structure_data():
+    """
+    从JSON文件加载期限结构数据 (推荐品种,S/A级)
+    """
+    data_file = Path(__file__).parent.parent.parent / "data" / "term_structure_data.json"
+
+    if not data_file.exists():
+        logger.warning(f"期限结构数据文件不存在: {data_file}")
+        return None
+
+    try:
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        logger.error(f"加载期限结构数据失败: {e}")
+        return None
+
+
+def load_all_term_structure_data():
+    """
+    从JSON文件加载所有品种的期限结构数据
+    """
+    data_file = Path(__file__).parent.parent.parent / "data" / "term_structure_data_all.json"
+
+    if not data_file.exists():
+        logger.warning(f"所有品种数据文件不存在: {data_file}")
+        return None
+
+    try:
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        logger.error(f"加载所有品种数据失败: {e}")
+        return None
 
 
 @router.get("/varieties")
@@ -59,90 +97,170 @@ async def get_term_structure(
     try:
         variety_code = variety_code.upper()
 
-        # 临时使用模拟数据，展示功能效果
-        # TODO: 后续需要接入真实期货行情数据源
-        mock_data = {
-            "M": [  # 豆粕
-                {"symbol": "M2501", "month": "2501", "price": 3520, "volume": 125000, "open_interest": 580000},
-                {"symbol": "M2503", "month": "2503", "price": 3540, "volume": 95000, "open_interest": 420000},
-                {"symbol": "M2505", "month": "2505", "price": 3565, "volume": 180000, "open_interest": 650000},
-                {"symbol": "M2507", "month": "2507", "price": 3580, "volume": 72000, "open_interest": 310000},
-                {"symbol": "M2509", "month": "2509", "price": 3595, "volume": 155000, "open_interest": 720000},
-                {"symbol": "M2511", "month": "2511", "price": 3605, "volume": 42000, "open_interest": 185000},
-            ],
-            "C": [  # 玉米
-                {"symbol": "C2501", "month": "2501", "price": 2480, "volume": 98000, "open_interest": 450000},
-                {"symbol": "C2503", "month": "2503", "price": 2495, "volume": 76000, "open_interest": 380000},
-                {"symbol": "C2505", "month": "2505", "price": 2510, "volume": 125000, "open_interest": 590000},
-                {"symbol": "C2507", "month": "2507", "price": 2520, "volume": 55000, "open_interest": 280000},
-                {"symbol": "C2509", "month": "2509", "price": 2535, "volume": 140000, "open_interest": 680000},
-            ],
-            "RB": [  # 螺纹钢
-                {"symbol": "RB2501", "month": "2501", "price": 3780, "volume": 220000, "open_interest": 950000},
-                {"symbol": "RB2502", "month": "2502", "price": 3770, "volume": 85000, "open_interest": 380000},
-                {"symbol": "RB2503", "month": "2503", "price": 3760, "volume": 65000, "open_interest": 290000},
-                {"symbol": "RB2504", "month": "2504", "price": 3750, "volume": 48000, "open_interest": 210000},
-                {"symbol": "RB2505", "month": "2505", "price": 3740, "volume": 180000, "open_interest": 820000},
-                {"symbol": "RB2506", "month": "2506", "price": 3730, "volume": 42000, "open_interest": 185000},
-            ],
-            "I": [  # 铁矿石
-                {"symbol": "I2501", "month": "2501", "price": 865, "volume": 185000, "open_interest": 720000},
-                {"symbol": "I2502", "month": "2502", "price": 860, "volume": 72000, "open_interest": 310000},
-                {"symbol": "I2503", "month": "2503", "price": 855, "volume": 58000, "open_interest": 265000},
-                {"symbol": "I2504", "month": "2504", "price": 850, "volume": 45000, "open_interest": 198000},
-                {"symbol": "I2505", "month": "2505", "price": 845, "volume": 165000, "open_interest": 780000},
-            ],
-            "Y": [  # 豆油
-                {"symbol": "Y2501", "month": "2501", "price": 8620, "volume": 92000, "open_interest": 420000},
-                {"symbol": "Y2503", "month": "2503", "price": 8650, "volume": 68000, "open_interest": 310000},
-                {"symbol": "Y2505", "month": "2505", "price": 8680, "volume": 125000, "open_interest": 580000},
-                {"symbol": "Y2507", "month": "2507", "price": 8710, "volume": 48000, "open_interest": 220000},
-                {"symbol": "Y2509", "month": "2509", "price": 8740, "volume": 135000, "open_interest": 650000},
-            ],
-        }
+        # 从JSON文件加载数据
+        all_data = load_term_structure_data()
 
-        contracts = mock_data.get(variety_code, [])
+        if all_data is None:
+            raise HTTPException(
+                status_code=500,
+                detail="无法加载期限结构数据,请稍后重试"
+            )
 
-        if not contracts:
+        # 获取指定品种的数据
+        variety_data = all_data.get(variety_code)
+
+        if not variety_data:
             return {
                 "success": False,
                 "variety_code": variety_code,
-                "message": f"暂不支持品种 {variety_code}，当前支持: M(豆粕), C(玉米), RB(螺纹钢), I(铁矿石), Y(豆油)",
+                "message": f"未找到品种 {variety_code} 的数据",
                 "contracts": []
             }
 
-        # 按合约月份排序
-        contracts.sort(key=lambda x: x['month'])
+        return {
+            "success": True,
+            "variety_code": variety_data["variety_code"],
+            "query_date": query_date or date.today().strftime('%Y-%m-%d'),
+            "market_structure": variety_data["market_structure"],
+            "structure_desc": variety_data["structure_desc"],
+            "trade_suggestion": variety_data["trade_suggestion"],
+            "trade_reason": variety_data["trade_reason"],
+            "contracts": variety_data["contracts"],
+            "total_contracts": variety_data["total_contracts"],
+            "update_time": variety_data.get("update_time", "")
+        }
 
-        # 计算期限结构特征
-        prices = [c['price'] for c in contracts]
-        if len(prices) >= 2:
-            # 判断市场结构
-            if prices[0] < prices[-1]:
-                market_structure = "正向市场"  # Contango
-                structure_desc = "远期合约价格高于近期合约，市场预期价格上涨"
-            elif prices[0] > prices[-1]:
-                market_structure = "反向市场"  # Backwardation
-                structure_desc = "近期合约价格高于远期合约，市场预期价格下跌或现货紧张"
-            else:
-                market_structure = "平坦市场"
-                structure_desc = "各合约价格基本持平"
-        else:
-            market_structure = "数据不足"
-            structure_desc = ""
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取期限结构失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/all-structures")
+async def get_all_term_structures(query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD")):
+    """
+    获取所有品种的期限结构数据 (包含所有品种)
+
+    返回所有支持品种的期限结构汇总,包括Contango和Backwardation分类
+    """
+    try:
+        # 从JSON文件加载所有品种数据
+        all_data = load_all_term_structure_data()
+
+        if all_data is None:
+            raise HTTPException(
+                status_code=500,
+                detail="无法加载期限结构数据,请稍后重试"
+            )
+
+        contango_varieties = []  # Contango结构品种(做空)
+        backwardation_varieties = []  # Backwardation结构品种(做多)
+
+        # 分类所有品种
+        for variety_code, variety_data in all_data.items():
+            variety_info = {
+                "variety_code": variety_data["variety_code"],
+                "variety_name": variety_data["variety_name"],
+                "market_structure": variety_data["market_structure"],
+                "structure_desc": variety_data["structure_desc"],
+                "trade_suggestion": variety_data["trade_suggestion"],
+                "trade_reason": variety_data["trade_reason"],
+                "contracts": variety_data["contracts"],
+                "total_contracts": variety_data["total_contracts"],
+                "grade": variety_data.get("grade", "C"),
+                "structure_score": variety_data.get("structure_score", 0),
+                "recommend": variety_data.get("recommend", False),
+                "update_time": variety_data.get("update_time", "")
+            }
+
+            # 根据市场结构分类
+            if variety_data["market_structure"] == "正向市场":
+                contango_varieties.append(variety_info)
+            elif variety_data["market_structure"] == "反向市场":
+                backwardation_varieties.append(variety_info)
 
         return {
             "success": True,
-            "variety_code": variety_code,
             "query_date": query_date or date.today().strftime('%Y-%m-%d'),
-            "market_structure": market_structure,
-            "structure_desc": structure_desc,
-            "contracts": contracts,
-            "total_contracts": len(contracts)
+            "total_varieties": len(all_data),
+            "contango_count": len(contango_varieties),
+            "backwardation_count": len(backwardation_varieties),
+            "contango_varieties": contango_varieties,
+            "backwardation_varieties": backwardation_varieties
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"获取期限结构失败: {e}")
+        logger.error(f"获取所有期限结构失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/recommended-structures")
+async def get_recommended_term_structures(query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD")):
+    """
+    获取推荐的期限结构品种 (S/A级)
+
+    返回最符合Contango/Backwardation结构的品种
+    """
+    try:
+        # 从JSON文件加载推荐品种数据
+        recommended_data = load_term_structure_data()
+
+        if recommended_data is None:
+            raise HTTPException(
+                status_code=500,
+                detail="无法加载推荐品种数据,请稍后重试"
+            )
+
+        contango_varieties = []  # Contango结构品种(做空)
+        backwardation_varieties = []  # Backwardation结构品种(做多)
+
+        # 分类推荐品种
+        for variety_code, variety_data in recommended_data.items():
+            variety_info = {
+                "variety_code": variety_data["variety_code"],
+                "variety_name": variety_data["variety_name"],
+                "market_structure": variety_data["market_structure"],
+                "structure_desc": variety_data["structure_desc"],
+                "trade_suggestion": variety_data["trade_suggestion"],
+                "trade_reason": variety_data["trade_reason"],
+                "contracts": variety_data["contracts"],
+                "total_contracts": variety_data["total_contracts"],
+                "grade": variety_data.get("grade", "A"),
+                "structure_score": variety_data.get("structure_score", 0),
+                "update_time": variety_data.get("update_time", "")
+            }
+
+            # 根据市场结构分类
+            if variety_data["market_structure"] == "正向市场":
+                contango_varieties.append(variety_info)
+            elif variety_data["market_structure"] == "反向市场":
+                backwardation_varieties.append(variety_info)
+
+        # 按得分排序
+        contango_varieties.sort(key=lambda x: x['structure_score'], reverse=True)
+        backwardation_varieties.sort(key=lambda x: x['structure_score'], reverse=True)
+
+        return {
+            "success": True,
+            "query_date": query_date or date.today().strftime('%Y-%m-%d'),
+            "total_varieties": len(recommended_data),
+            "contango_count": len(contango_varieties),
+            "backwardation_count": len(backwardation_varieties),
+            "contango_varieties": contango_varieties,
+            "backwardation_varieties": backwardation_varieties
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取推荐期限结构失败: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

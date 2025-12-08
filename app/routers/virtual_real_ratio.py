@@ -285,9 +285,21 @@ async def refresh_virtual_real_ratio_data(
     """
     手动刷新虚实比数据
     """
-    from app.crawlers.virtual_real_ratio_spider import VirtualRealRatioSpider
+    from app.crawlers.virtual_real_ratio_spider_uqer import VirtualRealRatioSpiderUqer
+    from app.services.uqer_sdk_client import init_uqer_sdk_client
+    from config.settings import get_settings
 
-    spider = VirtualRealRatioSpider(db=db)
+    # 初始化优矿SDK客户端
+    settings = get_settings()
+    if settings.UQER_TOKEN:
+        init_uqer_sdk_client(settings.UQER_TOKEN)
+    else:
+        return {
+            "success": False,
+            "message": "优矿Token未配置"
+        }
+
+    spider = VirtualRealRatioSpiderUqer(db=db)
 
     if comm_code:
         # 刷新单个品种

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V2分析总览 - OptionAlpha</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .content-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .direction-long {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .direction-short {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .direction-neutral {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header-bar">
+            <div style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 28px;">📊 V2分析总览</h1>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">5维度期权分析系统</p>
+                </div>
+                <el-button type="primary" @click="refreshData" :loading="loading">
+                    刷新数据
+                </el-button>
+            </div>
+        </div>
+
+        <div class="content-container">
+            <!-- 统计面板 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.total }}</div>
+                    <div class="stat-label">总品种数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #10b981;">{{ stats.long }}</div>
+                    <div class="stat-label">多头品种</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #ef4444;">{{ stats.short }}</div>
+                    <div class="stat-label">空头品种</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #6b7280;">{{ stats.neutral }}</div>
+                    <div class="stat-label">中性品种</div>
+                </div>
+            </div>
+
+            <!-- 筛选按钮 -->
+            <el-card style="margin-bottom: 20px;">
+                <el-radio-group v-model="filterDirection" @change="handleFilterChange">
+                    <el-radio-button label="all">全部</el-radio-button>
+                    <el-radio-button label="多头">多头</el-radio-button>
+                    <el-radio-button label="空头">空头</el-radio-button>
+                    <el-radio-button label="中性">中性</el-radio-button>
+                </el-radio-group>
+            </el-card>
+
+            <!-- 数据表格 -->
+            <el-card>
+                <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
+                    <el-table-column prop="品种" label="品种" width="100" fixed />
+                    <el-table-column label="综合方向" width="120">
+                        <template #default="scope">
+                            <span :class="{
+                                'direction-long': scope.row.综合方向 === '多头',
+                                'direction-short': scope.row.综合方向 === '空头',
+                                'direction-neutral': scope.row.综合方向 === '中性'
+                            }">
+                                {{ scope.row.综合方向 }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="综合星级" label="综合强度" width="100" />
+                    <el-table-column prop="净得分" label="净得分" width="100" sortable />
+
+                    <el-table-column label="研报" width="120">
+                        <template #default="scope">
+                            {{ scope.row.研报分析_方向 }} {{ scope.row.研报分析_星级 }}
+                        </template>
+                    </el-table-column>
+
+                    <el-table-column label="虚实比" width="120">
+                        <template #default="scope">
+                            {{ scope.row.虚实比PCR_方向 }} {{ scope.row.虚实比PCR_星级 }}
+                        </template>
+                    </el-table-column>
+
+                    <el-table-column label="期限结构" width="140">
+                        <template #default="scope">
+                            {{ scope.row.期限结构_方向 }} {{ scope.row.期限结构_星级 }}
+                        </template>
+                    </el-table-column>
+
+                    <el-table-column label="波动率背离" width="140">
+                        <template #default="scope">
+                            {{ scope.row.波动率背离_方向 }} {{ scope.row.波动率背离_星级 }}
+                        </template>
+                    </el-table-column>
+
+                    <el-table-column label="资金面" width="120">
+                        <template #default="scope">
+                            {{ scope.row.资金面_方向 }} {{ scope.row.资金面_星级 }}
+                        </template>
+                    </el-table-column>
+
+                    <el-table-column label="操作" width="100" fixed="right">
+                        <template #default="scope">
+                            <el-button type="primary" size="small" @click="viewDetail(scope.row.品种)">
+                                详情
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-card>
+        </div>
+
+        <!-- 详情对话框 -->
+        <el-dialog v-model="detailDialogVisible" title="品种详情" width="80%">
+            <div v-if="selectedVariety">
+                <h3>{{ selectedVariety }} - 分析信号</h3>
+                <el-table :data="varietySignals" style="margin-bottom: 20px;">
+                    <el-table-column prop="分析维度" label="分析维度" />
+                    <el-table-column prop="方向" label="方向" />
+                    <el-table-column prop="星级" label="强度" />
+                    <el-table-column prop="理由" label="理由" />
+                </el-table>
+
+                <h3>期限结构</h3>
+                <el-table :data="varietyTermStructure">
+                    <el-table-column prop="交割月份" label="交割月份" />
+                    <el-table-column prop="合约总数" label="合约总数" />
+                    <el-table-column prop="看涨数量" label="看涨数量" />
+                    <el-table-column prop="看跌数量" label="看跌数量" />
+                    <el-table-column prop="PCR" label="PCR" />
+                    <el-table-column label="行权价范围">
+                        <template #default="scope">
+                            {{ scope.row.最低行权价 }} - {{ scope.row.最高行权价 }}
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            data() {
+                return {
+                    loading: false,
+                    allData: [],
+                    filteredData: [],
+                    filterDirection: 'all',
+                    stats: {
+                        total: 0,
+                        long: 0,
+                        short: 0,
+                        neutral: 0
+                    },
+                    detailDialogVisible: false,
+                    selectedVariety: null,
+                    varietySignals: [],
+                    varietyTermStructure: []
+                };
+            },
+            mounted() {
+                this.loadData();
+            },
+            methods: {
+                async loadData() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/api/v1/analysis-v2/overview');
+                        const result = await response.json();
+
+                        if (result.success) {
+                            this.allData = result.data;
+                            this.stats = result.stats;
+                            this.handleFilterChange();
+                            ElMessage.success('数据加载成功');
+                        } else {
+                            ElMessage.error('数据加载失败');
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        ElMessage.error('请求失败: ' + error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                handleFilterChange() {
+                    if (this.filterDirection === 'all') {
+                        this.filteredData = this.allData;
+                    } else {
+                        this.filteredData = this.allData.filter(
+                            item => item.综合方向 === this.filterDirection
+                        );
+                    }
+                },
+                async viewDetail(variety) {
+                    this.selectedVariety = variety;
+                    this.detailDialogVisible = true;
+
+                    try {
+                        // 加载分析信号
+                        const signalsResponse = await fetch(`/api/v1/analysis-v2/variety/${variety}/signals`);
+                        const signalsResult = await signalsResponse.json();
+                        if (signalsResult.success) {
+                            this.varietySignals = signalsResult.signals;
+                        }
+
+                        // 加载期限结构
+                        const termResponse = await fetch(`/api/v1/analysis-v2/variety/${variety}/term-structure`);
+                        const termResult = await termResponse.json();
+                        if (termResult.success) {
+                            this.varietyTermStructure = termResult.term_structure;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        ElMessage.error('加载详情失败');
+                    }
+                },
+                async refreshData() {
+                    this.loading = true;
+                    try {
+                        ElMessage.info('正在重新运行分析系统，请稍候...');
+                        const response = await fetch('/api/v1/analysis-v2/refresh', {
+                            method: 'POST'
+                        });
+                        const result = await response.json();
+
+                        if (result.success) {
+                            ElMessage.success('分析完成，正在重新加载数据...');
+                            await this.loadData();
+                        } else {
+                            ElMessage.error('分析失败: ' + result.detail);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        ElMessage.error('刷新失败: ' + error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

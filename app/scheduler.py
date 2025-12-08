@@ -591,11 +591,21 @@ def init_scheduler():
         logger.info("[虚实比] 开始执行数据爬取任务")
         logger.info("=" * 50)
 
-        from app.crawlers.virtual_real_ratio_spider import VirtualRealRatioSpider
+        from app.crawlers.virtual_real_ratio_spider_uqer import VirtualRealRatioSpiderUqer
+        from app.services.uqer_sdk_client import init_uqer_sdk_client
+        from config.settings import get_settings
+
+        # 初始化优矿SDK客户端
+        settings = get_settings()
+        if settings.UQER_TOKEN:
+            init_uqer_sdk_client(settings.UQER_TOKEN)
+        else:
+            logger.error("[虚实比] 优矿Token未配置")
+            return
 
         db = SessionLocal()
         try:
-            spider = VirtualRealRatioSpider(db=db)
+            spider = VirtualRealRatioSpiderUqer(db=db)
             results = spider.crawl_all_varieties()
 
             success_count = sum(1 for v in results.values() if v)
