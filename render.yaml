@@ -1,23 +1,20 @@
 services:
   - type: web
-    name: option-alpha-api
+    name: option-tracker
     env: python
-    region: oregon
+    region: singapore
     plan: free
-    buildCommand: "pip install -r requirements.txt && playwright install chromium"
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
     envVars:
+      - key: UQER_TOKEN
+        value: 190bbd239ab55cb2f3f2919601622b0b793e94c35d7967e0c4b325682eddd981
       - key: DATABASE_URL
         value: sqlite:///./option_tracker.db
       - key: DEBUG
-        value: false
+        value: False
       - key: LOG_LEVEL
         value: INFO
-      - key: JYK_USER
-        sync: false
-      - key: JYK_PASS
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GEMINI_BASE_URL
-        value: https://www.apillm.online/v1
+      - key: PYTHON_VERSION
+        value: 3.11.0
