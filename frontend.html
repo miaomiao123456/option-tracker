@@ -1144,16 +1144,11 @@
                 const recommendedVarieties = ref([]);  // 推荐品种（S/A级）
                 const termStructureSubTab = ref('recommended');  // 期限结构子Tab,默认显示推荐
 
-                // API Base URL - 自动检测本地或公网环境
-                // API配置 - 自动适配本地和公网环境
-                const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:8000/api/v1'
-                    : `${window.location.origin}/api/v1`;
+                // API Base URL - 固定使用 Render 部署地址
+                const API_BASE = 'https://option-tracker-xqxk.onrender.com/api/v1';
 
                 // 期限结构API使用独立路径
-                const TERM_STRUCTURE_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:8000/api/term-structure'
-                    : `${window.location.origin}/api/term-structure`;
+                const TERM_STRUCTURE_BASE = 'https://option-tracker-xqxk.onrender.com/api/term-structure';
 
                 // 获取最近的交易日
                 const getLatestTradingDate = async () => {

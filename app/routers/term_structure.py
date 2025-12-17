@@ -2,12 +2,17 @@
 期限结构模块 API
 提供期货合约期限结构数据
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List, Dict
+from sqlalchemy.orm import Session
 import json
 from datetime import datetime, date
 from pathlib import Path
 import logging
+
+from app.models.database import get_db
+from app.models.models import TermStructureHistory
+from app.services.term_structure_analyzer import TermStructureAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -348,3 +353,275 @@ async def get_term_structure_analysis(variety_code: str):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ========== Phase 3 新增API端点 ==========
+
+@router.get("/latest-date")
+async def get_latest_term_structure_date(db: Session = Depends(get_db)):
+    """
+    获取数据库中最新的期限结构日期
+    用于前端日期选择器默认值
+    """
+    try:
+        from sqlalchemy import desc
+
+        latest_record = db.query(TermStructureHistory.record_date).order_by(
+            desc(TermStructureHistory.record_date)
+        ).first()
+
+        if latest_record:
+            return {
+                "success": True,
+                "latest_date": latest_record[0].strftime('%Y-%m-%d')
+            }
+        else:
+            return {
+                "success": True,
+                "latest_date": date.today().strftime('%Y-%m-%d')
+            }
+    except Exception as e:
+        logger.error(f"获取最新日期失败: {e}")
+        return {
+            "success": False,
+            "latest_date": date.today().strftime('%Y-%m-%d')
+        }
+
+
+@router.get("/history/{comm_code}")
+async def get_term_structure_history(
+    comm_code: str,
+    query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取指定品种的期限结构历史记录
+    (Phase 3: 从数据库获取,支持历史查询)
+    """
+    try:
+        comm_code = comm_code.upper()
+
+        # 解析日期
+        if query_date:
+            target_date = datetime.strptime(query_date, '%Y-%m-%d').date()
+        else:
+            # 获取最新日期
+            from sqlalchemy import desc
+            latest_record = db.query(TermStructureHistory.record_date).order_by(
+                desc(TermStructureHistory.record_date)
+            ).first()
+            target_date = latest_record[0] if latest_record else date.today()
+
+        # 查询历史记录
+        record = db.query(TermStructureHistory).filter(
+            TermStructureHistory.comm_code == comm_code,
+            TermStructureHistory.record_date == target_date
+        ).first()
+
+        if not record:
+            return {
+                "success": False,
+                "comm_code": comm_code,
+                "message": f"未找到 {comm_code} 在 {target_date} 的期限结构数据"
+            }
+
+        return {
+            "success": True,
+            "comm_code": record.comm_code,
+            "variety_name": record.variety_name,
+            "record_date": record.record_date.strftime('%Y-%m-%d'),
+            "structure_type": record.structure_type,
+            "market_structure": record.market_structure,
+            "structure_desc": record.structure_desc,
+            "near_contract": record.near_contract,
+            "far_contract": record.far_contract,
+            "near_price": record.near_price,
+            "far_price": record.far_price,
+            "price_spread": record.price_spread,
+            "spread_pct": record.spread_pct,
+            "structure_score": record.structure_score,
+            "grade": record.grade,
+            "recommend": bool(record.recommend),
+            "trade_suggestion": record.trade_suggestion
+        }
+
+    except Exception as e:
+        logger.error(f"获取期限结构历史失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/conversion-signal/{comm_code}")
+async def get_structure_conversion_signal(
+    comm_code: str,
+    query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    lookback_days: int = Query(7, description="回溯天数"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取期限结构转换信号 (Phase 3.5核心功能)
+    检测 Contango ↔ Backwardation 转换
+    """
+    try:
+        comm_code = comm_code.upper()
+
+        # 解析日期
+        if query_date:
+            target_date = datetime.strptime(query_date, '%Y-%m-%d').date()
+        else:
+            from sqlalchemy import desc
+            latest_record = db.query(TermStructureHistory.record_date).order_by(
+                desc(TermStructureHistory.record_date)
+            ).first()
+            target_date = latest_record[0] if latest_record else date.today()
+
+        # 创建分析器
+        analyzer = TermStructureAnalyzer(db)
+
+        # 检测转换信号
+        conversion = analyzer.detect_structure_conversion(
+            comm_code, target_date, lookback_days
+        )
+
+        return {
+            "success": True,
+            "comm_code": comm_code,
+            "analysis_date": target_date.strftime('%Y-%m-%d'),
+            **conversion
+        }
+
+    except Exception as e:
+        logger.error(f"获取结构转换信号失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/spread-analysis/{comm_code}")
+async def get_spread_analysis(
+    comm_code: str,
+    query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取价差历史分析 (Phase 3.6核心功能)
+    包含: 百分位、Z-score、变化率
+    """
+    try:
+        comm_code = comm_code.upper()
+
+        # 解析日期
+        if query_date:
+            target_date = datetime.strptime(query_date, '%Y-%m-%d').date()
+        else:
+            from sqlalchemy import desc
+            latest_record = db.query(TermStructureHistory.record_date).order_by(
+                desc(TermStructureHistory.record_date)
+            ).first()
+            target_date = latest_record[0] if latest_record else date.today()
+
+        # 创建分析器
+        analyzer = TermStructureAnalyzer(db)
+
+        # 价差分析
+        spread_analysis = analyzer.analyze_spread_history(comm_code, target_date)
+
+        return {
+            "success": True,
+            "comm_code": comm_code,
+            "analysis_date": target_date.strftime('%Y-%m-%d'),
+            **spread_analysis
+        }
+
+    except Exception as e:
+        logger.error(f"获取价差分析失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/enhanced-analysis/{comm_code}")
+async def get_term_structure_enhanced_analysis(
+    comm_code: str,
+    query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取期限结构增强分析 (Phase 3完整功能)
+    包含: 结构转换信号 + 价差分析 + 综合得分
+    """
+    try:
+        comm_code = comm_code.upper()
+
+        # 解析日期
+        if query_date:
+            target_date = datetime.strptime(query_date, '%Y-%m-%d').date()
+        else:
+            from sqlalchemy import desc
+            latest_record = db.query(TermStructureHistory.record_date).order_by(
+                desc(TermStructureHistory.record_date)
+            ).first()
+            target_date = latest_record[0] if latest_record else date.today()
+
+        # 创建分析器
+        analyzer = TermStructureAnalyzer(db)
+
+        # 计算所有增强指标
+        result = analyzer.calculate_all_enhancements(comm_code, target_date)
+
+        return {
+            "success": True,
+            **result
+        }
+
+    except Exception as e:
+        logger.error(f"获取期限结构增强分析失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/score/{comm_code}")
+async def get_term_structure_score(
+    comm_code: str,
+    query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取期限结构得分 (用于多维度综合分析)
+    返回: -5 到 +5 的得分和理由
+    """
+    try:
+        comm_code = comm_code.upper()
+
+        # 解析日期
+        if query_date:
+            target_date = datetime.strptime(query_date, '%Y-%m-%d').date()
+        else:
+            from sqlalchemy import desc
+            latest_record = db.query(TermStructureHistory.record_date).order_by(
+                desc(TermStructureHistory.record_date)
+            ).first()
+            target_date = latest_record[0] if latest_record else date.today()
+
+        # 创建分析器
+        analyzer = TermStructureAnalyzer(db)
+
+        # 获取得分
+        score, reasons = analyzer.get_term_structure_score_for_综合分析(
+            comm_code, target_date
+        )
+
+        return {
+            "success": True,
+            "comm_code": comm_code,
+            "analysis_date": target_date.strftime('%Y-%m-%d'),
+            "score": score,
+            "reasons": reasons
+        }
+
+    except Exception as e:
+        logger.error(f"获取期限结构得分失败: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

@@ -271,51 +271,15 @@
                                 </div>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="market_activity" label="市场活跃度" width="120">
+                        <el-table-column prop="price_pressure" label="价格压力" width="100">
                             <template #default="scope">
-                                <el-tag :type="getActivityType(scope.row.market_activity)" size="small">
-                                    {{ scope.row.market_activity }}
+                                <el-tag :type="getPressureType(scope.row.price_pressure)" size="small">
+                                    {{ scope.row.price_pressure }}
                                 </el-tag>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="impact_analysis" label="风险提示" min-width="280">
+                        <el-table-column prop="impact_analysis" label="影响分析" min-width="280">
                         </el-table-column>
-
-                        <!-- Phase 1 新增: 历史位置列 -->
-                        <el-table-column label="历史位置" width="140" align="center">
-                            <template #default="scope">
-                                <div v-if="scope.row.percentile_30d !== null && scope.row.percentile_30d !== undefined">
-                                    <div class="text-sm font-semibold mb-1"
-                                         :class="getPercentileColor(scope.row.percentile_30d)">
-                                        {{ scope.row.percentile_30d.toFixed(0) }}% 分位
-                                    </div>
-                                    <div class="text-xs text-gray-500">
-                                        Z: {{ scope.row.zscore ? scope.row.zscore.toFixed(2) : 'N/A' }}
-                                    </div>
-                                </div>
-                                <span v-else class="text-gray-400 text-xs">数据不足</span>
-                            </template>
-                        </el-table-column>
-
-                        <!-- Phase 1 新增: 交易信号列 -->
-                        <el-table-column label="交易信号" width="160" align="center">
-                            <template #default="scope">
-                                <div v-if="scope.row.signal_type && scope.row.signal_type !== '无明显信号'">
-                                    <el-tag :type="getSignalTagType(scope.row.signal_score)"
-                                            effect="dark"
-                                            size="small"
-                                            class="mb-1">
-                                        {{ scope.row.signal_type }}
-                                    </el-tag>
-                                    <div class="text-xs font-bold mt-1"
-                                         :class="getSignalScoreColor(scope.row.signal_score)">
-                                        得分: {{ scope.row.signal_score }}
-                                    </div>
-                                </div>
-                                <span v-else class="text-gray-400 text-xs">-</span>
-                            </template>
-                        </el-table-column>
-
                         <el-table-column label="操作" width="120" fixed="right">
                             <template #default="scope">
                                 <el-button size="small" type="primary" @click="viewDetail(scope.row.comm_code)">
@@ -338,11 +302,9 @@
         </div>
 
         <!-- 详情对话框 -->
-        <!-- 详情弹窗 -->
-        <el-dialog v-model="detailDialogVisible" title="虚实比详情" width="900px" top="5vh">
+        <el-dialog v-model="detailDialogVisible" title="虚实比详情" width="800px">
             <div v-if="detailData">
-                <!-- 基础信息 -->
-                <el-descriptions :column="2" border size="small">
+                <el-descriptions :column="2" border>
                     <el-descriptions-item label="品种">
                         {{ detailData.variety_name }} ({{ detailData.comm_code }})
                     </el-descriptions-item>
@@ -359,27 +321,6 @@
                             {{ detailData.squeeze_risk }}
                         </span>
                     </el-descriptions-item>
-
-                    <!-- Phase 1 新增: 增强指标展示 -->
-                    <el-descriptions-item label="历史位置" v-if="detailData.percentile_30d">
-                        <div class="flex items-center gap-2">
-                            <el-tag :type="detailData.percentile_30d < 30 ? 'danger' : 'info'" size="small">
-                                {{ detailData.percentile_30d.toFixed(0) }}% 分位
-                            </el-tag>
-                            <span class="text-xs text-gray-500">Z: {{ detailData.zscore?.toFixed(2) || 'N/A' }}</span>
-                        </div>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="交易信号" v-if="detailData.signal_type && detailData.signal_type !== '无明显信号'">
-                        <div class="flex items-center gap-2">
-                            <el-tag :type="getSignalTagType(detailData.signal_score)" effect="dark" size="small">
-                                {{ detailData.signal_type }}
-                            </el-tag>
-                            <span class="text-xs font-bold" :class="getSignalScoreColor(detailData.signal_score)">
-                                得分: {{ detailData.signal_score }}
-                            </span>
-                        </div>
-                    </el-descriptions-item>
-
                     <el-descriptions-item label="仓单量">
                         {{ formatNumber(detailData.receipt_quantity) }}
                     </el-descriptions-item>
@@ -402,21 +343,15 @@
                     <el-descriptions-item label="合约单位">
                         {{ detailData.contract_unit }} 千克/手
                     </el-descriptions-item>
-                    <el-descriptions-item label="市场活跃度" span="2">
-                        <el-tag :type="getActivityType(detailData.market_activity)">
-                            {{ detailData.market_activity }}
+                    <el-descriptions-item label="价格压力" span="2">
+                        <el-tag :type="getPressureType(detailData.price_pressure)">
+                            {{ detailData.price_pressure }}
                         </el-tag>
                     </el-descriptions-item>
-                    <el-descriptions-item label="风险提示" span="2">
+                    <el-descriptions-item label="影响分析" span="2">
                         {{ detailData.impact_analysis }}
                     </el-descriptions-item>
                 </el-descriptions>
-
-                <!-- Phase 1 新增: 走势图 -->
-                <div class="mt-6">
-                    <h3 class="text-lg font-semibold mb-3 text-gray-700">📈 30日走势</h3>
-                    <div id="detailTrendChart" style="width: 100%; height: 350px;"></div>
-                </div>
 
                 <div class="mt-4">
                     <el-button type="primary" @click="viewHistory(detailData.comm_code)">查看历史趋势</el-button>
@@ -508,111 +443,16 @@
                 // 查看详情
                 const viewDetail = async (commCode) => {
                     try {
-                        // 同时获取详情和历史数据
-                        const [detailRes, historyRes] = await Promise.all([
-                            fetch(`${API_BASE}/virtual-real-ratio/detail/${commCode}?query_date=${selectedDate.value}`),
-                            fetch(`${API_BASE}/virtual-real-ratio/history/${commCode}?days=30`)
-                        ]);
-
-                        if (detailRes.ok && historyRes.ok) {
-                            detailData.value = await detailRes.json();
-                            const historyData = await historyRes.json();
-
+                        const res = await fetch(
+                            `${API_BASE}/virtual-real-ratio/detail/${commCode}?query_date=${selectedDate.value}`
+                        );
+                        if (res.ok) {
+                            detailData.value = await res.json();
                             detailDialogVisible.value = true;
-
-                            // 在弹窗打开后绘制图表
-                            setTimeout(() => {
-                                drawDetailChart(historyData);
-                            }, 100);
                         }
                     } catch (error) {
                         ElementPlus.ElMessage.error('加载详情失败');
                     }
-                };
-
-                // 绘制详情弹窗中的图表
-                const drawDetailChart = (data) => {
-                    const chartDom = document.getElementById('detailTrendChart');
-                    if (!chartDom) return;
-
-                    const chart = echarts.init(chartDom);
-                    const option = {
-                        title: {
-                            text: `${data.variety_name} 虚实比趋势 (近30天)`,
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: {
-                            trigger: 'axis',
-                            axisPointer: { type: 'cross' }
-                        },
-                        legend: {
-                            data: ['虚实比', '仓单量', '持仓量'],
-                            top: 30
-                        },
-                        grid: {
-                            left: '3%',
-                            right: '4%',
-                            bottom: '3%',
-                            top: 80,
-                            containLabel: true
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: data.data.dates,
-                            boundaryGap: false
-                        },
-                        yAxis: [
-                            {
-                                type: 'value',
-                                name: '虚实比',
-                                position: 'left',
-                                axisLabel: {
-                                    formatter: '{value}'
-                                }
-                            },
-                            {
-                                type: 'value',
-                                name: '数量',
-                                position: 'right',
-                                axisLabel: {
-                                    formatter: function(value) {
-                                        return (value / 1000).toFixed(0) + 'K';
-                                    }
-                                }
-                            }
-                        ],
-                        series: [
-                            {
-                                name: '虚实比',
-                                type: 'line',
-                                data: data.data.virtual_real_ratios,
-                                smooth: true,
-                                yAxisIndex: 0,
-                                lineStyle: { width: 3, color: '#f56c6c' },
-                                itemStyle: { color: '#f56c6c' }
-                            },
-                            {
-                                name: '仓单量',
-                                type: 'line',
-                                data: data.data.receipt_quantities,
-                                smooth: true,
-                                yAxisIndex: 1,
-                                lineStyle: { width: 2, color: '#409eff' },
-                                itemStyle: { color: '#409eff' }
-                            },
-                            {
-                                name: '持仓量',
-                                type: 'line',
-                                data: data.data.open_interests,
-                                smooth: true,
-                                yAxisIndex: 1,
-                                lineStyle: { width: 2, color: '#67c23a' },
-                                itemStyle: { color: '#67c23a' }
-                            }
-                        ]
-                    };
-                    chart.setOption(option);
                 };
 
                 // 查看历史趋势
@@ -708,14 +548,13 @@
                     return map[risk] || 'risk-none';
                 };
 
-                const getActivityType = (activity) => {
+                const getPressureType = (pressure) => {
                     const map = {
-                        '极度活跃': 'danger',
-                        '活跃': 'warning',
-                        '平稳': 'info',
-                        '平淡': 'success'
+                        '上涨': 'danger',
+                        '下跌': 'success',
+                        '中性': 'info'
                     };
-                    return map[activity] || 'info';
+                    return map[pressure] || 'info';
                 };
 
                 const formatNumber = (num) => {
@@ -724,28 +563,6 @@
 
                 const goBack = () => {
                     window.history.back();
-                };
-
-                // Phase 1 新增: 百分位颜色
-                const getPercentileColor = (percentile) => {
-                    if (percentile < 10) return 'text-red-600';  // 极端低位
-                    if (percentile < 30) return 'text-orange-500';  // 低位
-                    if (percentile > 70) return 'text-blue-500';  // 高位
-                    return 'text-gray-700';  // 正常
-                };
-
-                // Phase 1 新增: 信号标签类型
-                const getSignalTagType = (score) => {
-                    if (score >= 70) return 'danger';  // 强信号
-                    if (score >= 40) return 'warning';  // 中等信号
-                    return 'info';  // 弱信号
-                };
-
-                // Phase 1 新增: 信号得分颜色
-                const getSignalScoreColor = (score) => {
-                    if (score >= 70) return 'text-red-600';
-                    if (score >= 40) return 'text-orange-500';
-                    return 'text-blue-500';
                 };
 
                 onMounted(() => {
@@ -767,14 +584,9 @@
                     viewDetail,
                     viewHistory,
                     getRiskClass,
-                    getActivityType,
+                    getPressureType,
                     formatNumber,
-                    goBack,
-                    // Phase 1 新增函数
-                    getPercentileColor,
-                    getSignalTagType,
-                    getSignalScoreColor,
-                    drawDetailChart
+                    goBack
                 };
             }
         });

@@ -314,3 +314,85 @@ async def get_research_summary(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/enhanced-analysis/{comm_code}")
+async def get_research_enhanced_analysis(
+    comm_code: str,
+    query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取研报增强分析 (Phase 2新增)
+    包含: 一致性指标、变化信号、Bull-Bear指数
+    """
+    from app.services.research_enhancement_service import ResearchEnhancementService
+
+    try:
+        # 解析日期
+        if query_date:
+            target_date = datetime.strptime(query_date, '%Y-%m-%d').date()
+        else:
+            # 获取最新日期
+            latest_record = db.query(MarketFullView.record_date).order_by(
+                desc(MarketFullView.record_date)
+            ).first()
+            target_date = latest_record[0] if latest_record else date.today()
+
+        # 创建增强服务
+        service = ResearchEnhancementService(db)
+
+        # 计算所有增强指标
+        result = service.calculate_all_enhancements(comm_code.upper(), target_date)
+
+        return {
+            "success": True,
+            **result
+        }
+
+    except Exception as e:
+        logger.error(f"获取研报增强分析失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/sentiment-score/{comm_code}")
+async def get_research_sentiment_score(
+    comm_code: str,
+    query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取研报情绪得分 (用于多维度综合分析)
+    返回: -5 到 +5 的得分和理由
+    """
+    from app.services.research_enhancement_service import ResearchEnhancementService
+
+    try:
+        # 解析日期
+        if query_date:
+            target_date = datetime.strptime(query_date, '%Y-%m-%d').date()
+        else:
+            latest_record = db.query(MarketFullView.record_date).order_by(
+                desc(MarketFullView.record_date)
+            ).first()
+            target_date = latest_record[0] if latest_record else date.today()
+
+        # 创建增强服务
+        service = ResearchEnhancementService(db)
+
+        # 获取评分
+        score, reasons = service.get_research_score_for_综合分析(comm_code.upper(), target_date)
+
+        return {
+            "success": True,
+            "comm_code": comm_code.upper(),
+            "analysis_date": target_date.isoformat(),
+            "score": score,
+            "reasons": reasons
+        }
+
+    except Exception as e:
+        logger.error(f"获取研报情绪得分失败: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

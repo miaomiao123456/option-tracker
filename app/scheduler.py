@@ -625,7 +625,7 @@ def init_scheduler():
             db.close()
 
     scheduler.add_job(
-        lambda: asyncio.create_task(crawl_virtual_real_ratio()),
+        crawl_virtual_real_ratio,
         CronTrigger(hour=18, minute=0),
         id='crawl_virtual_real_ratio',
         name='虚实比数据-18:00',

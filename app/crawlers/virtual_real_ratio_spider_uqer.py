@@ -234,10 +234,12 @@ class VirtualRealRatioSpiderUqer:
         contract_unit: float
     ) -> Dict:
         """
-        计算虚实比和影响分析
+        计算虚实比和风险评估
 
         虚实比定义: 衡量期货市场持仓量与可交割实物库存的比例关系
         标准公式: 虚实比 = 持仓量(手) ÷ 仓单量
+
+        注意: 虚实比是风险指标,不能独立判断价格方向
 
         Args:
             receipt_qty: 仓单量(库存) - 可交割的实物数量
@@ -248,8 +250,8 @@ class VirtualRealRatioSpiderUqer:
                 virtual_qty: 虚盘量(即持仓量),
                 ratio: 虚实比,
                 squeeze_risk: 逼仓风险,
-                impact: 影响分析,
-                price_pressure: 价格压力
+                impact: 风险提示,
+                market_activity: 市场活跃度
             }
         """
         # 虚实比 = 持仓量 / 仓单量 (业界标准公式)
@@ -258,35 +260,35 @@ class VirtualRealRatioSpiderUqer:
         if receipt_qty == 0:
             ratio = 0
             squeeze_risk = "无"
-            impact = "仓单为0,无法计算虚实比"
-            price_pressure = "中性"
+            impact = "仓单数据缺失,无法计算虚实比"
+            market_activity = "平淡"
         else:
             ratio = open_interest / receipt_qty
 
-            # 判断逼仓风险 (根据虚实比阈值)
+            # 判断逼仓风险和市场活跃度 (根据虚实比阈值)
             if ratio > 100:
                 squeeze_risk = "高"
-                impact = f"虚实比高达{ratio:.2f},持仓量是仓单的{ratio:.0f}倍,存在极高逼仓风险。空头难以交割,买方可能推高价格。"
-                price_pressure = "上涨"
+                impact = f"极高逼仓风险!持仓量是仓单的{ratio:.0f}倍,市场博弈极其激烈,需密切关注交割风险。"
+                market_activity = "极度活跃"
             elif ratio > 50:
                 squeeze_risk = "中"
-                impact = f"虚实比为{ratio:.2f},持仓量明显高于仓单,存在一定逼仓风险。关注仓单变化和交割压力。"
-                price_pressure = "上涨"
+                impact = f"存在逼仓风险,持仓量显著高于库存。建议关注仓单变化和交割月临近时的风险。"
+                market_activity = "活跃"
             elif ratio > 20:
                 squeeze_risk = "低"
-                impact = f"虚实比为{ratio:.2f},市场相对平衡,短期逼仓风险较低。"
-                price_pressure = "中性"
+                impact = f"市场相对平衡,逼仓风险可控。"
+                market_activity = "平稳"
             else:
                 squeeze_risk = "无"
-                impact = f"虚实比为{ratio:.2f},可交割库存充足,无逼仓风险。实物供应充裕可能对价格形成压制。"
-                price_pressure = "下跌"
+                impact = f"库存充足,无明显逼仓风险,市场博弈不激烈。"
+                market_activity = "平淡"
 
         return {
             "virtual_qty": virtual_qty,
             "ratio": ratio,
             "squeeze_risk": squeeze_risk,
             "impact": impact,
-            "price_pressure": price_pressure
+            "market_activity": market_activity
         }
 
     def crawl_single_variety(self, comm_code: str) -> bool:
@@ -345,7 +347,7 @@ class VirtualRealRatioSpiderUqer:
             existing.virtual_real_ratio = calc_result["ratio"]
             existing.squeeze_risk = calc_result["squeeze_risk"]
             existing.impact_analysis = calc_result["impact"]
-            existing.price_pressure = calc_result["price_pressure"]
+            existing.market_activity = calc_result["market_activity"]
             existing.updated_at = datetime.now()
         else:
             # 新增
@@ -363,13 +365,23 @@ class VirtualRealRatioSpiderUqer:
                 virtual_real_ratio=calc_result["ratio"],
                 squeeze_risk=calc_result["squeeze_risk"],
                 impact_analysis=calc_result["impact"],
-                price_pressure=calc_result["price_pressure"]
+                market_activity=calc_result["market_activity"]
             )
             self.db.add(new_record)
 
         self.db.commit()
 
         logger.info(f"✅ {variety_name}虚实比数据保存成功: 虚实比={calc_result['ratio']:.2f}, 风险={calc_result['squeeze_risk']}")
+
+        # Phase 1.5: 自动计算增强指标
+        try:
+            from app.services.vr_enhancement_service import VREnhancementService
+            enhancement_service = VREnhancementService(self.db)
+            enhancement_service.update_record_enhancements(comm_code, record_date)
+            logger.info(f"  ✅ 增强指标计算完成")
+        except Exception as e:
+            logger.warning(f"  ⚠️ 增强指标计算失败: {e}")
+
         return True
 
     def crawl_all_varieties(self) -> Dict[str, bool]:

@@ -32,7 +32,20 @@ class VirtualRealRatioResponse(BaseModel):
     virtual_real_ratio: float
     squeeze_risk: str
     impact_analysis: str
-    price_pressure: str
+    market_activity: str
+
+    # Phase 1 增强字段
+    percentile_30d: Optional[float] = None
+    percentile_90d: Optional[float] = None
+    mean_30d: Optional[float] = None
+    std_30d: Optional[float] = None
+    zscore: Optional[float] = None
+    change_rate_3d: Optional[float] = None
+    change_rate_7d: Optional[float] = None
+    acceleration: Optional[float] = None
+    signal_type: Optional[str] = None
+    signal_score: Optional[int] = None
+
     created_at: datetime
     updated_at: datetime
 
@@ -119,7 +132,20 @@ async def get_virtual_real_ratio_list(
                 "virtual_real_ratio": record.virtual_real_ratio,
                 "squeeze_risk": record.squeeze_risk,
                 "impact_analysis": record.impact_analysis,
-                "price_pressure": record.price_pressure,
+                "market_activity": record.market_activity,
+
+                # Phase 1 增强字段
+                "percentile_30d": record.percentile_30d,
+                "percentile_90d": record.percentile_90d,
+                "mean_30d": record.mean_30d,
+                "std_30d": record.std_30d,
+                "zscore": record.zscore,
+                "change_rate_3d": record.change_rate_3d,
+                "change_rate_7d": record.change_rate_7d,
+                "acceleration": record.acceleration,
+                "signal_type": record.signal_type,
+                "signal_score": record.signal_score,
+
                 "created_at": record.created_at.isoformat(),
                 "updated_at": record.updated_at.isoformat(),
             }

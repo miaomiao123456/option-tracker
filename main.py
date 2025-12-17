@@ -56,6 +56,10 @@ app.include_router(term_structure.router, prefix="/api/term-structure", tags=["�
 from app.routers import analysis_v2
 app.include_router(analysis_v2.router, prefix="/api/v1/analysis-v2", tags=["V2分析系统"])
 
+# 新增:多维度综合分析路由 (Phase 5)
+from app.routers import comprehensive
+app.include_router(comprehensive.router, prefix="/api/v1/comprehensive", tags=["多维度综合分析"])
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -218,6 +222,22 @@ async def get_report_detail_page():
             }
         )
     return HTMLResponse("<h1>Report detail page not found</h1>", status_code=404)
+
+
+@app.get("/opportunity-radar", response_class=HTMLResponse)
+async def get_opportunity_radar_page():
+    """返回机会雷达页面"""
+    radar_path = Path(__file__).parent / "opportunity_radar.html"
+    if radar_path.exists():
+        return FileResponse(
+            radar_path,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+    return HTMLResponse("<h1>Opportunity radar page not found</h1>", status_code=404)
 
 
 if __name__ == "__main__":

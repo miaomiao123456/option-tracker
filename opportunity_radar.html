@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机会雷达 - OptionAlpha</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .content-container {
+            max-width: 1600px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .radar-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .grade-s {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3);
+        }
+
+        .grade-a {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(250, 112, 154, 0.3);
+        }
+
+        .grade-b {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .grade-c {
+            background: #e5e7eb;
+            color: #666;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .direction-bull {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .direction-bear {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .direction-neutral {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .confidence-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .opportunity-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .opportunity-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .opportunity-card.s-grade {
+            border-color: #f5576c;
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.05) 0%, rgba(245, 87, 108, 0.05) 100%);
+        }
+
+        .opportunity-card.a-grade {
+            border-color: #fa709a;
+            background: linear-gradient(135deg, rgba(250, 112, 154, 0.05) 0%, rgba(254, 225, 64, 0.05) 100%);
+        }
+
+        .score-display {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .dimension-tag {
+            display: inline-block;
+            background: #f3f4f6;
+            color: #374151;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin: 4px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 12px;
+        }
+
+        .tab-button {
+            padding: 10px 24px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 加载动画 -->
+        <div v-if="loading" class="loading-overlay">
+            <div style="text-align: center; color: white;">
+                <el-icon :size="60" class="is-loading" style="margin-bottom: 16px;">
+                    <loading />
+                </el-icon>
+                <div style="font-size: 18px;">正在扫描市场机会...</div>
+            </div>
+        </div>
+
+        <!-- 顶部导航 -->
+        <div class="header-bar">
+            <div style="max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 32px; font-weight: 800;">🎯 机会雷达</h1>
+                    <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">
+                        多维度综合分析 · 自动识别高胜率交易机会
+                    </p>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <div style="text-align: right; margin-right: 12px; opacity: 0.9;">
+                        <div style="font-size: 12px;">分析日期</div>
+                        <div style="font-size: 16px; font-weight: 600;">{{ analysisDate }}</div>
+                    </div>
+                    <el-button type="primary" size="large" @click="refreshData" :loading="loading">
+                        <el-icon><refresh /></el-icon>
+                        刷新雷达
+                    </el-button>
+                    <el-button size="large" @click="goToHome" style="background: rgba(255,255,255,0.2); color: white; border: none;">
+                        <el-icon><home-filled /></el-icon>
+                        返回首页
+                    </el-button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-container">
+            <!-- 市场统计卡片 -->
+            <div class="radar-card">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700;">📊 市场全景扫描</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.total_varieties || 0 }}</div>
+                        <div class="stat-label">扫描品种</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);">
+                        <div class="stat-number" style="-webkit-text-fill-color: white; color: white;">
+                            {{ stats.grade_distribution?.S || 0 }}
+                        </div>
+                        <div class="stat-label" style="color: white; opacity: 0.9;">S级机会</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <div class="stat-number" style="-webkit-text-fill-color: white; color: white;">
+                            {{ stats.grade_distribution?.A || 0 }}
+                        </div>
+                        <div class="stat-label" style="color: white; opacity: 0.9;">A级机会</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <div class="stat-number">{{ stats.grade_distribution?.B || 0 }}</div>
+                        <div class="stat-label">B级机会</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);">
+                        <div class="stat-number" style="-webkit-text-fill-color: #065f46; color: #065f46;">
+                            {{ stats.direction_distribution?.多头 || 0 }}
+                        </div>
+                        <div class="stat-label">多头机会</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                        <div class="stat-number" style="-webkit-text-fill-color: #991b1b; color: #991b1b;">
+                            {{ stats.direction_distribution?.空头 || 0 }}
+                        </div>
+                        <div class="stat-label">空头机会</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.avg_score || 0 }}</div>
+                        <div class="stat-label">市场平均得分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.avg_confidence || 0 }}%</div>
+                        <div class="stat-label">平均置信度</div>
+                    </div>
+                </div>
+
+                <!-- 市场情绪指示器 -->
+                <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 14px; color: #666; margin-bottom: 4px;">市场整体情绪</div>
+                            <div style="font-size: 24px; font-weight: 700;">
+                                <span v-if="stats.avg_score > 1" style="color: #065f46;">📈 偏多</span>
+                                <span v-else-if="stats.avg_score < -1" style="color: #991b1b;">📉 偏空</span>
+                                <span v-else style="color: #666;">➡️ 中性</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 4px;">三维度分析版本</div>
+                            <div style="font-size: 12px; color: #999;">期限结构 42.8% · 研报 35.7% · 虚实比 21.4%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab切换 -->
+            <div class="tab-bar">
+                <button
+                    class="tab-button"
+                    :class="{ active: activeTab === 'all' }"
+                    @click="activeTab = 'all'"
+                >
+                    🎯 全部机会 ({{ allOpportunities.length }})
+                </button>
+                <button
+                    class="tab-button"
+                    :class="{ active: activeTab === 'top' }"
+                    @click="activeTab = 'top'; loadTopOpportunities()"
+                >
+                    ⭐ Top 10
+                </button>
+                <button
+                    class="tab-button"
+                    :class="{ active: activeTab === 'bull' }"
+                    @click="activeTab = 'bull'; loadBullOpportunities()"
+                >
+                    📈 多头机会
+                </button>
+                <button
+                    class="tab-button"
+                    :class="{ active: activeTab === 'bear' }"
+                    @click="activeTab = 'bear'; loadBearOpportunities()"
+                >
+                    📉 空头机会
+                </button>
+            </div>
+
+            <!-- 机会列表 -->
+            <div class="radar-card">
+                <!-- 筛选器 -->
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; align-items: center;">
+                    <el-select v-model="minGrade" @change="filterOpportunities" placeholder="最低等级" style="width: 150px;">
+                        <el-option label="S级以上" value="S"></el-option>
+                        <el-option label="A级以上" value="A"></el-option>
+                        <el-option label="B级以上" value="B"></el-option>
+                    </el-select>
+                    <el-input
+                        v-model="searchKeyword"
+                        placeholder="搜索品种代码或名称..."
+                        @input="filterOpportunities"
+                        clearable
+                        style="width: 300px;"
+                    >
+                        <template #prefix>
+                            <el-icon><search /></el-icon>
+                        </template>
+                    </el-input>
+                    <div style="flex: 1;"></div>
+                    <div style="color: #666; font-size: 14px;">
+                        显示 {{ filteredOpportunities.length }} 个机会
+                    </div>
+                </div>
+
+                <!-- 机会卡片列表 -->
+                <div v-if="filteredOpportunities.length > 0">
+                    <div
+                        v-for="opp in filteredOpportunities"
+                        :key="opp.comm_code"
+                        :class="['opportunity-card', opp.grade.toLowerCase() + '-grade']"
+                        @click="viewDetail(opp.comm_code)"
+                    >
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <!-- 左侧:品种信息 -->
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                    <div style="font-size: 24px; font-weight: 800;">{{ opp.comm_code }}</div>
+                                    <div style="color: #666; font-size: 16px;">{{ opp.variety_name }}</div>
+                                    <span :class="'grade-' + opp.grade.toLowerCase()">{{ opp.grade }}级</span>
+                                    <span :class="getDirectionClass(opp.direction)">{{ opp.strength }}</span>
+                                </div>
+
+                                <!-- 分析理由 -->
+                                <div style="margin-bottom: 12px;">
+                                    <div
+                                        v-for="(reason, idx) in opp.reasons"
+                                        :key="idx"
+                                        style="font-size: 13px; color: #666; margin-bottom: 4px; line-height: 1.6;"
+                                    >
+                                        {{ reason }}
+                                    </div>
+                                </div>
+
+                                <!-- 置信度条 -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 4px;">
+                                        <span>置信度</span>
+                                        <span style="font-weight: 600;">{{ opp.confidence }}%</span>
+                                    </div>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" :style="{ width: opp.confidence + '%' }"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 右侧:得分显示 -->
+                            <div style="text-align: center; min-width: 120px; padding-left: 24px; border-left: 2px solid #e5e7eb;">
+                                <div style="color: #666; font-size: 12px; margin-bottom: 8px;">综合得分</div>
+                                <div
+                                    class="score-display"
+                                    :style="{ color: opp.total_score > 0 ? '#10b981' : '#ef4444' }"
+                                >
+                                    {{ opp.total_score > 0 ? '+' : '' }}{{ opp.total_score.toFixed(2) }}
+                                </div>
+                                <div style="margin-top: 12px; font-size: 11px; color: #999;">
+                                    点击查看详情 →
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 空状态 -->
+                <div v-else style="text-align: center; padding: 60px 20px; color: #999;">
+                    <el-icon :size="60" style="margin-bottom: 16px; opacity: 0.3;">
+                        <inbox />
+                    </el-icon>
+                    <div style="font-size: 16px;">暂无符合条件的机会</div>
+                    <div style="font-size: 14px; margin-top: 8px;">尝试调整筛选条件</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        createApp({
+            data() {
+                return {
+                    loading: false,
+                    analysisDate: '',
+                    stats: {},
+                    allOpportunities: [],
+                    filteredOpportunities: [],
+                    activeTab: 'all',
+                    minGrade: 'B',
+                    searchKeyword: ''
+                };
+            },
+            mounted() {
+                this.loadMarketStats();
+                this.loadOpportunities();
+            },
+            methods: {
+                async loadMarketStats() {
+                    try {
+                        const response = await fetch('/api/v1/comprehensive/stats');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.stats = data.stats;
+                            this.analysisDate = data.analysis_date;
+                        }
+                    } catch (error) {
+                        console.error('加载市场统计失败:', error);
+                    }
+                },
+
+                async loadOpportunities() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/v1/comprehensive/opportunities?min_grade=${this.minGrade}`);
+                        const data = await response.json();
+                        if (data.success) {
+                            this.allOpportunities = data.opportunities;
+                            this.filterOpportunities();
+                            ElMessage.success(`扫描完成! 发现 ${data.stats.total_opportunities} 个机会`);
+                        }
+                    } catch (error) {
+                        console.error('加载机会列表失败:', error);
+                        ElMessage.error('加载失败,请重试');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async loadTopOpportunities() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/api/v1/comprehensive/opportunities/top?limit=10');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.filteredOpportunities = data.opportunities;
+                        }
+                    } catch (error) {
+                        console.error('加载Top机会失败:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async loadBullOpportunities() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/api/v1/comprehensive/opportunities/top?direction=多头&limit=20');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.filteredOpportunities = data.opportunities;
+                        }
+                    } catch (error) {
+                        console.error('加载多头机会失败:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async loadBearOpportunities() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/api/v1/comprehensive/opportunities/top?direction=空头&limit=20');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.filteredOpportunities = data.opportunities;
+                        }
+                    } catch (error) {
+                        console.error('加载空头机会失败:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                filterOpportunities() {
+                    if (this.activeTab !== 'all') return;
+
+                    let filtered = this.allOpportunities;
+
+                    // 搜索关键词过滤
+                    if (this.searchKeyword) {
+                        const keyword = this.searchKeyword.toLowerCase();
+                        filtered = filtered.filter(opp =>
+                            opp.comm_code.toLowerCase().includes(keyword) ||
+                            (opp.variety_name && opp.variety_name.includes(this.searchKeyword))
+                        );
+                    }
+
+                    this.filteredOpportunities = filtered;
+                },
+
+                getDirectionClass(direction) {
+                    if (direction === '多头') return 'direction-bull';
+                    if (direction === '空头') return 'direction-bear';
+                    return 'direction-neutral';
+                },
+
+                viewDetail(commCode) {
+                    ElMessageBox.alert(
+                        `即将跳转到 ${commCode} 的详细分析页面`,
+                        '查看详情',
+                        {
+                            confirmButtonText: '确定',
+                            callback: () => {
+                                // TODO: 跳转到详情页
+                                window.open(`/api/v1/comprehensive/analysis/${commCode}`, '_blank');
+                            }
+                        }
+                    );
+                },
+
+                async refreshData() {
+                    this.loading = true;
+                    await this.loadMarketStats();
+                    await this.loadOpportunities();
+                    ElMessage.success('数据刷新完成!');
+                },
+
+                goToHome() {
+                    window.location.href = '/frontend';
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>
