@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # 期权交易策略系统主应用
+  option-tracker:
+    build: .
+    container_name: option-tracker-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/option_tracker.db
+      - UQER_TOKEN=${UQER_TOKEN:-your_token_here}
+      - JYK_USER=${JYK_USER:-}
+      - JYK_PASS=${JYK_PASS:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://www.apillm.online/v1}
+      - DEBUG=False
+      - LOG_LEVEL=INFO
+      - PORT=8000
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./option_tracker.db:/app/option_tracker.db
+    networks:
+      - option-tracker-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx反向代理(可选,用于生产环境)
+  nginx:
+    image: nginx:alpine
+    container_name: option-tracker-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - option-tracker
+    networks:
+      - option-tracker-network
+
+networks:
+  option-tracker-network:
+    driver: bridge
+
+volumes:
+  data:
+  logs:

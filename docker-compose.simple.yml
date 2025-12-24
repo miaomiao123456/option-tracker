@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # 期权交易策略系统 - 简化版(不含nginx)
+  option-tracker:
+    build: .
+    container_name: option-tracker-app
+    restart: unless-stopped
+    ports:
+      - "80:8000"  # 直接映射到80端口,方便外网访问
+    environment:
+      - DATABASE_URL=sqlite:///./data/option_tracker.db
+      - UQER_TOKEN=${UQER_TOKEN:-your_token_here}
+      - JYK_USER=${JYK_USER:-}
+      - JYK_PASS=${JYK_PASS:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://www.apillm.online/v1}
+      - DEBUG=False
+      - LOG_LEVEL=INFO
+      - PORT=8000
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./option_tracker.db:/app/option_tracker.db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  data:
+  logs:
