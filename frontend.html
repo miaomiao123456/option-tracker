@@ -178,7 +178,8 @@
                             placeholder="选择日期"
                             @change="onDateChange"
                             format="YYYY-MM-DD"
-                            value-format="YYYY-MM-DD">
+                            value-format="YYYY-MM-DD"
+                            :disabled-date="disableFutureDate">
                         </el-date-picker>
                         <!-- 系统通知栏 -->
                         <el-popover placement="bottom" :width="400" trigger="click">
@@ -215,217 +216,76 @@
                 <el-tab-pane label="📊 总览" name="overview"></el-tab-pane>
                 <el-tab-pane label="📰 基本面" name="fundamental"></el-tab-pane>
                 <el-tab-pane label="💼 持仓分析" name="capital"></el-tab-pane>
+                <el-tab-pane label="🏢 席位分析" name="seat-analysis"></el-tab-pane>
                 <el-tab-pane label="⚖️ 虚实比" name="virtual-real-ratio"></el-tab-pane>
                 <el-tab-pane label="📈 期限结构" name="term-structure"></el-tab-pane>
-                <el-tab-pane label="📉 技术面" name="technical"></el-tab-pane>
             </el-tabs>
 
-            <!-- 总览页 - V2分析总览 + 机会雷达 + 品种详情 -->
+            <!-- 总览页 - V2分析总览 + 品种详情 -->
             <div v-if="activeTab === 'overview'" class="space-y-6">
-                <!-- 机会雷达统计卡片 -->
+
+                <!-- 综合分析数据表格 -->
                 <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 市场总览 - 交易机会雷达</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- 多头机会 - 红色 -->
-                        <div class="stat-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%); border: 2px solid #ef4444;">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <div class="text-sm text-red-900 font-semibold mb-1">📈 多头机会</div>
-                                    <div class="text-4xl font-bold text-red-700">{{ bullOpportunityCount }}</div>
-                                    <div class="text-sm text-red-800 mt-2">
-                                        A级及以上: <span class="font-bold text-lg">{{ getBullAAndAbove() }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 显示多头A级品种 -->
-                            <div class="mt-4 pt-3 border-t border-red-300" v-if="getBullAList().length > 0">
-                                <div class="text-xs text-red-900 font-semibold mb-2">A级品种:</div>
-                                <div class="flex flex-wrap gap-2">
-                                    <div v-for="opp in getBullAList()" :key="opp.comm_code"
-                                        class="inline-flex items-center bg-white bg-opacity-60 rounded px-2 py-1 text-xs cursor-pointer hover:bg-opacity-80 transition-all"
-                                        @click="handleRowClick({品种: opp.comm_code})">
-                                        <span class="font-bold text-red-700">{{ opp.comm_code }}</span>
-                                        <span class="text-gray-600 mx-1">{{ getVarietyName(opp.comm_code) }}</span>
-                                        <el-tag :type="opp.grade === 'S' ? 'danger' : 'warning'" size="small" effect="plain" style="height: 18px; padding: 0 4px; margin: 0 3px;">
-                                            {{ opp.grade }}
-                                        </el-tag>
-                                        <span class="text-gray-500">{{ opp.confidence }}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 空头机会 - 绿色 -->
-                        <div class="stat-card" style="background: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%); border: 2px solid #10b981;">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <div class="text-sm text-green-900 font-semibold mb-1">📉 空头机会</div>
-                                    <div class="text-4xl font-bold text-green-700">{{ bearOpportunityCount }}</div>
-                                    <div class="text-sm text-green-800 mt-2">
-                                        A级及以上: <span class="font-bold text-lg">{{ getBearAAndAbove() }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 显示空头A级品种 -->
-                            <div class="mt-4 pt-3 border-t border-green-300" v-if="getBearAList().length > 0">
-                                <div class="text-xs text-green-900 font-semibold mb-2">A级品种:</div>
-                                <div class="flex flex-wrap gap-2">
-                                    <div v-for="opp in getBearAList()" :key="opp.comm_code"
-                                        class="inline-flex items-center bg-white bg-opacity-60 rounded px-2 py-1 text-xs cursor-pointer hover:bg-opacity-80 transition-all"
-                                        @click="handleRowClick({品种: opp.comm_code})">
-                                        <span class="font-bold text-green-700">{{ opp.comm_code }}</span>
-                                        <span class="text-gray-600 mx-1">{{ getVarietyName(opp.comm_code) }}</span>
-                                        <el-tag :type="opp.grade === 'S' ? 'danger' : 'warning'" size="small" effect="plain" style="height: 18px; padding: 0 4px; margin: 0 3px;">
-                                            {{ opp.grade }}
-                                        </el-tag>
-                                        <span class="text-gray-500">{{ opp.confidence }}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 筛选按钮 -->
-                <div class="glass-card">
-                    <div class="flex justify-between items-center flex-wrap gap-3">
-                        <el-radio-group v-model="v2FilterDirection" @change="handleV2FilterChange">
-                            <el-radio-button label="all">全部</el-radio-button>
-                            <el-radio-button label="多头">多头</el-radio-button>
-                            <el-radio-button label="空头">空头</el-radio-button>
-                            <el-radio-button label="中性">中性</el-radio-button>
-                        </el-radio-group>
-
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <el-select v-model="overviewMinGrade" @change="handleV2FilterChange" placeholder="等级筛选" style="width: 140px;" size="small">
-                                <el-option label="全部等级" value=""></el-option>
-                                <el-option label="S级以上" value="S"></el-option>
-                                <el-option label="A级以上" value="A"></el-option>
-                                <el-option label="B级以上" value="B"></el-option>
-                            </el-select>
-
-                            <el-input
-                                v-model="overviewSearchKeyword"
-                                placeholder="搜索品种..."
-                                @input="handleV2FilterChange"
-                                clearable
-                                style="width: 200px;"
-                                size="small">
-                                <template #prefix>🔍</template>
-                            </el-input>
-
-                            <el-button type="primary" @click="refreshOverviewData" :loading="v2Loading || opportunitiesLoading" size="small">
-                                刷新数据
-                            </el-button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 综合分析数据表格(增强版) - 点击查看品种详情 -->
-                <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 品种分析列表 <span class="text-sm text-gray-500 font-normal">(点击行查看详情)</span></h2>
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 品种分析列表</h2>
                     <el-table :data="v2FilteredData" stripe style="width: 100%" v-loading="v2Loading || opportunitiesLoading" max-height="650" :scroll-bar-always-on="true"
                         @row-click="handleRowClick" :row-style="{cursor: 'pointer'}">
-                        <el-table-column label="品种" width="150" fixed>
+                        <el-table-column label="品种" min-width="150">
                             <template #default="scope">
-                                <div>
-                                    <div class="font-bold text-base">{{ scope.row.品种 }}</div>
-                                    <div class="text-xs text-gray-500">{{ getVarietyName(scope.row.品种) }}</div>
-                                </div>
+                                <strong>{{ getVarietyName(scope.row.品种) }}</strong>
                             </template>
                         </el-table-column>
 
-                        <!-- 机会雷达等级 -->
-                        <el-table-column label="等级" width="80" sortable :sort-method="(a, b) => sortByGrade(a, b)">
+                        <el-table-column label="研报" min-width="150" align="center">
                             <template #default="scope">
-                                <el-tag v-if="scope.row.机会等级"
-                                    :type="scope.row.机会等级 === 'S' ? 'danger' : scope.row.机会等级 === 'A' ? 'warning' : 'info'"
-                                    size="small">
-                                    {{ scope.row.机会等级 }}
-                                </el-tag>
-                                <span v-else class="text-gray-400 text-xs">-</span>
-                            </template>
-                        </el-table-column>
-
-                        <el-table-column label="综合方向" width="120">
-                            <template #default="scope">
-                                <span :class="{
-                                    'bull-tag': scope.row.综合方向 === '多头',
-                                    'bear-tag': scope.row.综合方向 === '空头',
-                                    'neutral-tag': scope.row.综合方向 === '中性'
+                                <span v-if="scope.row.研报分析_方向" :class="{
+                                    'text-red-600 font-bold': scope.row.研报分析_方向 === '多头',
+                                    'text-green-600 font-bold': scope.row.研报分析_方向 === '空头',
+                                    'text-gray-500': scope.row.研报分析_方向 === '中性'
                                 }">
-                                    {{ scope.row.综合方向 }}
+                                    {{ scope.row.研报分析_方向 === '多头' ? '📈 看多' : scope.row.研报分析_方向 === '空头' ? '📉 看空' : '➖ 中性' }}
                                 </span>
+                                <span v-else class="text-gray-400">-</span>
                             </template>
                         </el-table-column>
 
-                        <!-- 置信度 -->
-                        <el-table-column label="置信度" width="100" sortable prop="置信度">
+                        <el-table-column label="席位" min-width="150" align="center">
                             <template #default="scope">
-                                <span v-if="scope.row.置信度" class="font-semibold" :style="{color: scope.row.置信度 >= 80 ? '#10b981' : scope.row.置信度 >= 60 ? '#f59e0b' : '#6b7280'}">
-                                    {{ scope.row.置信度 }}%
+                                <span v-if="getDivergentInfo(scope.row.品种)" :class="{
+                                    'text-red-600 font-bold': getDivergentInfo(scope.row.品种).institutionDirection === 'long',
+                                    'text-green-600 font-bold': getDivergentInfo(scope.row.品种).institutionDirection === 'short'
+                                }">
+                                    {{ getDivergentInfo(scope.row.品种).institutionDirection === 'long' ? '📈 做多' : '📉 做空' }}
                                 </span>
-                                <span v-else class="text-gray-400 text-xs">-</span>
+                                <span v-else class="text-gray-400">-</span>
                             </template>
                         </el-table-column>
 
-                        <el-table-column prop="综合星级" label="综合强度" width="100" />
-
-                        <!-- 综合得分 -->
-                        <el-table-column label="综合得分" width="120" sortable prop="综合得分">
+                        <el-table-column label="虚实比" min-width="150" align="center">
                             <template #default="scope">
-                                <span v-if="scope.row.综合得分 !== undefined" class="font-bold text-lg"
-                                    :style="{color: scope.row.综合得分 > 0 ? '#10b981' : scope.row.综合得分 < 0 ? '#ef4444' : '#6b7280'}">
-                                    {{ scope.row.综合得分 > 0 ? '+' : '' }}{{ scope.row.综合得分.toFixed(2) }}
-                                </span>
-                                <span v-else-if="scope.row.净得分" class="font-semibold">{{ scope.row.净得分 }}</span>
-                                <span v-else class="text-gray-400 text-xs">-</span>
-                            </template>
-                        </el-table-column>
-
-                        <el-table-column label="研报" width="120">
-                            <template #default="scope">
-                                {{ scope.row.研报分析_方向 }} {{ scope.row.研报分析_星级 }}
-                            </template>
-                        </el-table-column>
-
-                        <el-table-column label="虚实比" width="120">
-                            <template #default="scope">
-                                {{ scope.row.虚实比PCR_方向 }} {{ scope.row.虚实比PCR_星级 }}
-                            </template>
-                        </el-table-column>
-
-                        <el-table-column label="期限结构" width="140">
-                            <template #default="scope">
-                                {{ scope.row.期限结构_方向 }} {{ scope.row.期限结构_星级 }}
-                            </template>
-                        </el-table-column>
-
-                        <el-table-column label="波动率背离" width="140">
-                            <template #default="scope">
-                                {{ scope.row.波动率背离_方向 }} {{ scope.row.波动率背离_星级 }}
-                            </template>
-                        </el-table-column>
-
-                        <el-table-column label="资金面" width="120">
-                            <template #default="scope">
-                                {{ scope.row.资金面_方向 }} {{ scope.row.资金面_星级 }}
-                            </template>
-                        </el-table-column>
-
-                        <!-- 交易理由 -->
-                        <el-table-column label="交易理由" min-width="300">
-                            <template #default="scope">
-                                <div v-if="scope.row.交易理由 && scope.row.交易理由.length > 0" style="font-size: 12px; color: #666;">
-                                    <div v-for="(reason, idx) in scope.row.交易理由" :key="idx" style="margin-bottom: 2px;">
-                                        • {{ reason }}
-                                    </div>
+                                <div v-if="getVRInfo(scope.row.品种)">
+                                    <span class="font-bold text-lg"
+                                        :class="getVRInfo(scope.row.品种).virtual_real_ratio > 100 ? 'text-red-500' :
+                                                getVRInfo(scope.row.品种).virtual_real_ratio > 50 ? 'text-orange-500' : 'text-gray-800'">
+                                        {{ getVRInfo(scope.row.品种).virtual_real_ratio?.toFixed(2) }}
+                                    </span>
+                                    <el-tag v-if="getVRInfo(scope.row.品种).squeeze_risk === '高'" type="danger" size="small" class="ml-1">高风险</el-tag>
                                 </div>
-                                <span v-else class="text-gray-400 text-xs">无</span>
+                                <span v-else class="text-gray-400">-</span>
                             </template>
                         </el-table-column>
+
+                        <el-table-column label="期限结构" min-width="150" align="center">
+                            <template #default="scope">
+                                <el-tag v-if="scope.row.期限结构_方向 && scope.row.期限结构_方向 !== '中性'"
+                                    :type="scope.row.期限结构_方向 === '多头' ? 'success' : 'danger'"
+                                    size="small">
+                                    {{ scope.row.期限结构_方向 === '多头' ? 'Back' : 'Con' }}
+                                </el-tag>
+                                <span v-else-if="scope.row.期限结构_方向 === '中性'" class="text-gray-500">中性</span>
+                                <span v-else class="text-gray-400">-</span>
+                            </template>
+                        </el-table-column>
+
                     </el-table>
                 </div>
 
@@ -665,15 +525,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- 默认显示 -->
-                    <div v-else class="text-center py-12">
-                        <el-empty description="请搜索品种代码或名称查看详情" :image-size="100">
-                            <template #default>
-                                <p class="text-gray-500 text-sm mb-4">例如: 搜索 "C" 或 "玉米"</p>
-                            </template>
-                        </el-empty>
-                    </div>
                 </div>
 
             <!-- 基本面页 -->
@@ -819,110 +670,438 @@
                 </el-tabs>
             </div>
 
-            <!-- 资金面页 -->
-            <div v-if="activeTab === 'capital'" style="width: 100%; height: calc(100vh - 120px);">
-                <iframe
-                    src="position_analysis.html"
-                    style="width: 100%; height: 100%; border: none; border-radius: 8px;"
-                    frameborder="0">
-                </iframe>
+            <!-- 资金面页 - 持仓分析（直接集成） -->
+            <div v-if="activeTab === 'capital'" class="space-y-6">
+                <!-- 查询栏 -->
+                <div class="glass-card">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 持仓分析</h2>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <el-input v-model="positionVarietyName" placeholder="品种名称(如: 螺纹钢)" style="width: 200px;"></el-input>
+                        <el-input v-model="positionContractCode" placeholder="合约代码(如: rb2603)" style="width: 200px;"></el-input>
+                        <el-button type="primary" @click="loadPositionData" :loading="positionLoading">
+                            🔍 查询
+                        </el-button>
+                    </div>
+                </div>
+
+                <!-- 统计概览 -->
+                <div v-if="positionData" class="grid grid-cols-3 gap-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f56c6c 0%, #e74c3c 100%); color: white;">
+                        <div class="text-sm opacity-90 mb-1">多头前5总计</div>
+                        <div class="text-3xl font-bold">{{ positionData.long_top5_total?.toLocaleString() || 0 }}</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #67c23a 0%, #27ae60 100%); color: white;">
+                        <div class="text-sm opacity-90 mb-1">空头前5总计</div>
+                        <div class="text-3xl font-bold">{{ positionData.short_top5_total?.toLocaleString() || 0 }}</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <div class="text-sm opacity-90 mb-1">多空比</div>
+                        <div class="text-3xl font-bold">{{ positionData.long_short_ratio || '-' }}</div>
+                    </div>
+                </div>
+
+                <!-- 持仓趋势图 -->
+                <div v-if="positionFullData" class="glass-card">
+                    <h2 class="text-lg font-bold mb-4 text-gray-800">📈 持仓趋势分析</h2>
+                    <div id="positionTrendChart" style="width: 100%; height: 400px;"></div>
+                </div>
+
+                <!-- 多空对比图 -->
+                <div v-if="positionFullData" class="glass-card">
+                    <h2 class="text-lg font-bold mb-4 text-gray-800">⚖️ 多空对比</h2>
+                    <div id="positionComparisonChart" style="width: 100%; height: 400px;"></div>
+                </div>
+
+                <!-- 净持仓趋势 -->
+                <div v-if="positionFullData" class="glass-card">
+                    <h2 class="text-lg font-bold mb-4 text-gray-800">📊 净持仓趋势</h2>
+                    <div id="netPositionChart" style="width: 100%; height: 400px;"></div>
+                </div>
+
+                <!-- 多空席位表格 -->
+                <div v-if="positionData" class="grid grid-cols-2 gap-6">
+                    <!-- 多头席位 -->
+                    <div class="glass-card">
+                        <h2 class="text-lg font-bold mb-4" style="color: #f56c6c;">🔴 多头席位 Top 20</h2>
+                        <el-table :data="positionData.long_positions" stripe max-height="500">
+                            <el-table-column prop="rank" label="排名" width="70">
+                                <template #default="scope">
+                                    <el-tag :type="scope.row.rank <= 3 ? 'warning' : 'info'" size="small">{{ scope.row.rank }}</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="broker" label="席位" min-width="120"></el-table-column>
+                            <el-table-column label="持仓量" width="100">
+                                <template #default="scope">
+                                    {{ scope.row.volume?.toLocaleString() }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="增减" width="80">
+                                <template #default="scope">
+                                    <span :style="{color: scope.row.change >= 0 ? '#f56c6c' : '#67c23a', fontWeight: 'bold'}">
+                                        {{ scope.row.change >= 0 ? '+' : '' }}{{ scope.row.change }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="净持仓" width="100">
+                                <template #default="scope">
+                                    <span :style="{color: scope.row.net_position >= 0 ? '#f56c6c' : '#67c23a', fontWeight: 'bold'}">
+                                        {{ scope.row.net_position?.toLocaleString() }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+
+                    <!-- 空头席位 -->
+                    <div class="glass-card">
+                        <h2 class="text-lg font-bold mb-4" style="color: #67c23a;">🟢 空头席位 Top 20</h2>
+                        <el-table :data="positionData.short_positions" stripe max-height="500">
+                            <el-table-column prop="rank" label="排名" width="70">
+                                <template #default="scope">
+                                    <el-tag :type="scope.row.rank <= 3 ? 'warning' : 'info'" size="small">{{ scope.row.rank }}</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="broker" label="席位" min-width="120"></el-table-column>
+                            <el-table-column label="持仓量" width="100">
+                                <template #default="scope">
+                                    {{ scope.row.volume?.toLocaleString() }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="增减" width="80">
+                                <template #default="scope">
+                                    <span :style="{color: scope.row.change >= 0 ? '#f56c6c' : '#67c23a', fontWeight: 'bold'}">
+                                        {{ scope.row.change >= 0 ? '+' : '' }}{{ scope.row.change }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="净持仓" width="100">
+                                <template #default="scope">
+                                    <span :style="{color: scope.row.net_position >= 0 ? '#f56c6c' : '#67c23a', fontWeight: 'bold'}">
+                                        {{ scope.row.net_position?.toLocaleString() }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- 价格季节性分析 -->
+                <div class="glass-card">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">📅 价格季节性分析</h2>
+                    <div v-if="seasonalPriceData && seasonalPriceData.length > 0" id="seasonalPriceChart" style="width: 100%; height: 400px;"></div>
+                    <div v-else-if="seasonalPriceLoading" class="text-center py-8">
+                        <el-icon class="is-loading" style="font-size: 24px;"><Loading /></el-icon>
+                        <div class="text-gray-500 mt-2">正在加载价格数据...</div>
+                    </div>
+                    <el-empty v-else description="请先查询持仓数据，将自动加载价格季节性分析" :image-size="100"></el-empty>
+                </div>
             </div>
 
-            <!-- 技术面页 -->
-            <div v-if="activeTab === 'technical'" class="space-y-6">
-                <el-tabs v-model="technicalSubTab" type="border-card">
-                    <!-- 波动率曲面子标签 -->
-                    <el-tab-pane label="📊 波动率曲面" name="volatility-surface">
-                        <div class="glass-card">
-                            <el-empty description="波动率曲面功能开发中..." :image-size="100"></el-empty>
+            <!-- 席位分析页 - 机构VS散户 -->
+            <div v-if="activeTab === 'seat-analysis'" class="space-y-6">
+                <!-- 机构散户方向相反的品种扫描 -->
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 class="text-xl font-bold text-gray-800">⚠️ 机构VS散户</h2>
+                        <el-button type="info" @click="showSeatConfig = true" size="small">
+                            ⚙️ 席位配置
+                        </el-button>
+                    </div>
+
+                    <!-- 扫描进度 -->
+                    <div v-if="divergentScanning" class="mb-4">
+                        <el-progress :percentage="divergentScanProgress" :format="() => `${divergentScanCurrent}/${divergentScanTotal}`"></el-progress>
+                        <div class="text-sm text-gray-500 mt-1">正在扫描: {{ divergentScanCurrentName }}</div>
+                    </div>
+
+                    <!-- 方向相反的品种列表 - 按机构方向分类 -->
+                    <div v-if="divergentVarieties.length > 0">
+                        <div class="text-sm text-gray-600 mb-4">
+                            发现 <span class="font-bold text-orange-500">{{ divergentVarieties.length }}</span> 个品种机构与散户方向相反
                         </div>
-                    </el-tab-pane>
 
-                    <!-- 波动率背离子标签 -->
-                    <el-tab-pane label="📉 波动率背离" name="volatility-divergence">
-                        <div class="glass-card">
-                            <el-empty description="波动率背离功能开发中..." :image-size="100"></el-empty>
-                        </div>
-                    </el-tab-pane>
-
-                    <!-- 交易可查子标签 -->
-                    <el-tab-pane label="📋 交易可查" name="trading-strategy">
-                        <!-- 解析策略列表 -->
-                        <div class="glass-card mb-6">
-                            <h2 class="text-xl font-bold mb-4 text-gray-800">📋 {{ selectedDate }} 交易策略</h2>
-
-                            <!-- 所有策略列表 (做多/做空分类) -->
-                            <div v-if="jykStrategies.long.length || jykStrategies.short.length">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div v-if="jykStrategies.long.length">
-                                        <h4 class="text-base font-bold mb-3 text-red-600">🔥 做多策略 ({{ jykStrategies.long.length }}个)</h4>
-                                        <div class="space-y-2">
-                                            <div v-for="(s, idx) in jykStrategies.long" :key="idx" class="p-3 bg-red-50 border border-red-100 rounded hover:border-red-300 transition-all">
-                                                <div class="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <span class="variety-badge">{{ s.variety }}</span>
-                                                        <span class="font-bold text-gray-800">{{ getVarietyName(s.variety) }}</span>
-                                                    </div>
-                                                    <span class="text-sm">{{ s.signal }}</span>
-                                                </div>
-                                                <div class="text-sm text-gray-600">{{ s.reason }}</div>
-                                            </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <!-- 做多 (散户做空) -->
+                            <div>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="text-lg font-bold text-red-500">📈 做多</span>
+                                    <el-tag type="danger" size="small">{{ divergentLongVarieties.length }}个</el-tag>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;">
+                                    <div
+                                        v-for="item in divergentLongVarieties"
+                                        :key="item.code"
+                                        @click="selectDivergentVariety(item)"
+                                        :class="{'ring-2 ring-red-400': seatSelectedVariety === item.code}"
+                                        style="cursor: pointer; padding: 12px 16px; border-radius: 8px; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 1px solid #f87171;"
+                                    >
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-bold text-gray-800">{{ item.name }}</span>
+                                            <span class="text-xs text-gray-500">{{ item.contract }}</span>
                                         </div>
-                                    </div>
-                                    <div v-if="jykStrategies.short.length">
-                                        <h4 class="text-base font-bold mb-3 text-green-600">❄️ 做空策略 ({{ jykStrategies.short.length }}个)</h4>
-                                        <div class="space-y-2">
-                                            <div v-for="(s, idx) in jykStrategies.short" :key="idx" class="p-3 bg-green-50 border border-green-100 rounded hover:border-green-300 transition-all">
-                                                <div class="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <span class="variety-badge">{{ s.variety }}</span>
-                                                        <span class="font-bold text-gray-800">{{ getVarietyName(s.variety) }}</span>
-                                                    </div>
-                                                    <span class="text-sm">{{ s.signal }}</span>
-                                                </div>
-                                                <div class="text-sm text-gray-600">{{ s.reason }}</div>
-                                            </div>
+                                        <div class="text-xs text-gray-600 mt-1">
+                                            机构净持仓: <span class="text-red-600 font-bold">+{{ item.institutionNet?.toLocaleString() }}</span>
+                                            | 散户: <span class="text-green-600">{{ item.retailNet?.toLocaleString() }}</span>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <el-empty v-if="!jykStrategies.long.length && !jykStrategies.short.length"
-                                description="暂无策略解析数据" :image-size="100"></el-empty>
-                        </div>
-
-                        <!-- 蓝图原图 -->
-                        <div class="glass-card">
-                            <h2 class="text-xl font-bold mb-4 text-gray-800">📊 交易可查 - 每日交易蓝图</h2>
-
-                            <!-- 显示蓝图图片 -->
-                            <div v-if="blueprintData.local_path">
-                                <div class="mb-3">
-                                    <span class="text-sm text-gray-600">日期: {{ blueprintData.date }}</span>
+                                <div v-if="divergentLongVarieties.length === 0" class="text-center text-gray-400 py-4">
+                                    暂无做多品种
                                 </div>
-                                <img :src="'/api/v1/daily/blueprints/image?date=' + selectedDate + '&refresh=' + imageRefreshKey"
-                                     :key="'blueprint-' + selectedDate + '-' + imageRefreshKey"
-                                     alt="每日交易蓝图"
-                                     class="w-full border border-gray-200 rounded-lg"
-                                     @error="handleImageError">
                             </div>
 
-                            <el-empty v-if="!blueprintData.local_path"
-                                description="暂无蓝图图片" :image-size="100"></el-empty>
+                            <!-- 做空 (散户做多) -->
+                            <div>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="text-lg font-bold text-green-500">📉 做空</span>
+                                    <el-tag type="success" size="small">{{ divergentShortVarieties.length }}个</el-tag>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;">
+                                    <div
+                                        v-for="item in divergentShortVarieties"
+                                        :key="item.code"
+                                        @click="selectDivergentVariety(item)"
+                                        :class="{'ring-2 ring-green-400': seatSelectedVariety === item.code}"
+                                        style="cursor: pointer; padding: 12px 16px; border-radius: 8px; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: 1px solid #34d399;"
+                                    >
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-bold text-gray-800">{{ item.name }}</span>
+                                            <span class="text-xs text-gray-500">{{ item.contract }}</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 mt-1">
+                                            机构净持仓: <span class="text-green-600 font-bold">{{ item.institutionNet?.toLocaleString() }}</span>
+                                            | 散户: <span class="text-red-600">+{{ item.retailNet?.toLocaleString() }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="divergentShortVarieties.length === 0" class="text-center text-gray-400 py-4">
+                                    暂无做空品种
+                                </div>
+                            </div>
                         </div>
-                    </el-tab-pane>
-                </el-tabs>
+                    </div>
+                    <div v-else-if="!divergentScanning && divergentScanCompleted" class="text-center text-gray-500 py-4">
+                        ✅ 扫描完成，未发现机构散户方向相反的品种
+                    </div>
+                    <div v-else-if="divergentLoading" class="text-center text-gray-400 py-4">
+                        <el-icon class="is-loading"><Loading /></el-icon> 正在加载扫描结果...
+                    </div>
+                    <div v-else class="text-center text-gray-400 py-4">
+                        等待数据加载...
+                    </div>
+                </div>
+
+                <!-- 查询栏 -->
+                <div class="glass-card">
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <!-- 品种下拉选择 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="text-gray-600">品种</span>
+                            <el-select
+                                v-model="seatSelectedVariety"
+                                filterable
+                                placeholder="选择品种..."
+                                style="width: 200px;"
+                                @change="onSeatVarietyChange"
+                            >
+                                <el-option
+                                    v-for="item in seatVarietyList"
+                                    :key="item.code"
+                                    :label="item.name"
+                                    :value="item.code"
+                                >
+                                    <span style="float: left">{{ item.name }}</span>
+                                    <span style="float: right; color: #8492a6; font-size: 12px; margin-left: 16px;">{{ item.code.toUpperCase() }}</span>
+                                </el-option>
+                            </el-select>
+                        </div>
+
+                        <!-- 合约下拉选择 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="text-gray-600">合约</span>
+                            <el-select
+                                v-model="seatContractCode"
+                                filterable
+                                placeholder="选择合约..."
+                                style="width: 160px;"
+                                :disabled="!seatSelectedVariety"
+                            >
+                                <el-option
+                                    v-for="contract in seatContractList"
+                                    :key="contract"
+                                    :label="contract"
+                                    :value="contract"
+                                >
+                                </el-option>
+                            </el-select>
+                        </div>
+
+                        <el-button type="primary" @click="loadSeatAnalysisData" :loading="seatLoading" :disabled="!seatSelectedVariety || !seatContractCode">
+                            🔍 查询
+                        </el-button>
+                    </div>
+                </div>
+
+                <!-- 机构vs散户对比统计 -->
+                <div v-if="institutionData" class="grid grid-cols-2 gap-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <div class="text-sm opacity-90 mb-1">机构净持仓</div>
+                        <div class="text-4xl font-bold">{{ institutionData.institution?.net_position?.toLocaleString() || 0 }}</div>
+                        <div class="text-sm mt-2">方向: {{ institutionData.institution?.direction === 'long' ? '📈 多头' : '📉 空头' }}</div>
+                        <div class="text-xs mt-1 opacity-80">多头: {{ institutionData.institution?.long_position?.toLocaleString() || 0 }} | 空头: {{ institutionData.institution?.short_position?.toLocaleString() || 0 }}</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <div class="text-sm opacity-90 mb-1">散户净持仓</div>
+                        <div class="text-4xl font-bold">{{ institutionData.retail?.net_position?.toLocaleString() || 0 }}</div>
+                        <div class="text-sm mt-2">方向: {{ institutionData.retail?.direction === 'long' ? '📈 多头' : '📉 空头' }}</div>
+                        <div class="text-xs mt-1 opacity-80">多头: {{ institutionData.retail?.long_position?.toLocaleString() || 0 }} | 空头: {{ institutionData.retail?.short_position?.toLocaleString() || 0 }}</div>
+                    </div>
+                </div>
+
+                <!-- 机构散户方向相反预警 -->
+                <div v-if="institutionData && institutionData.divergence" class="glass-card" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+                    <div class="font-bold text-lg text-yellow-800">⚠️ 机构与散户持仓方向相反!</div>
+                    <div class="text-sm text-yellow-700 mt-1">这可能是重要的交易信号，请关注市场走势。</div>
+                </div>
+
+                <!-- 持仓趋势图 -->
+                <div class="glass-card">
+                    <h2 class="text-lg font-bold mb-4 text-gray-800">📈 持仓趋势</h2>
+                    <div v-if="institutionTrendData" id="institutionTrendChart" style="width: 100%; height: 400px;"></div>
+                    <el-empty v-else description="请先查询持仓数据" :image-size="100"></el-empty>
+                </div>
+
+                <!-- 席位持仓明细列表 -->
+                <div class="glass-card">
+                    <h2 class="text-lg font-bold mb-4 text-gray-800">📋 席位持仓明细</h2>
+                    <el-table v-if="seatPositionDetails.length > 0" :data="seatPositionDetails" stripe max-height="500" style="width: 100%" :default-sort="{ prop: 'netPosition', order: 'descending' }">
+                        <el-table-column prop="broker" label="席位名称" min-width="120" sortable>
+                            <template #default="scope">
+                                <span class="font-medium">{{ scope.row.broker }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="type" label="类型" width="80" sortable :filters="[{text: '机构', value: '机构'}, {text: '散户', value: '散户'}]" :filter-method="(value, row) => row.type === value">
+                            <template #default="scope">
+                                <el-tag :type="scope.row.type === '机构' ? 'primary' : 'warning'" size="small">
+                                    {{ scope.row.type }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="longVolume" label="多头持仓" width="110" sortable>
+                            <template #default="scope">
+                                <span class="text-red-500">{{ scope.row.longVolume?.toLocaleString() || 0 }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="longChange" label="多头变化" width="100" sortable>
+                            <template #default="scope">
+                                <span :class="scope.row.longChange >= 0 ? 'text-red-500' : 'text-green-500'">
+                                    {{ scope.row.longChange >= 0 ? '+' : '' }}{{ scope.row.longChange || 0 }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="shortVolume" label="空头持仓" width="110" sortable>
+                            <template #default="scope">
+                                <span class="text-green-500">{{ scope.row.shortVolume?.toLocaleString() || 0 }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="shortChange" label="空头变化" width="100" sortable>
+                            <template #default="scope">
+                                <span :class="scope.row.shortChange >= 0 ? 'text-red-500' : 'text-green-500'">
+                                    {{ scope.row.shortChange >= 0 ? '+' : '' }}{{ scope.row.shortChange || 0 }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="netPosition" label="净持仓" width="120" sortable>
+                            <template #default="scope">
+                                <span :class="scope.row.netPosition >= 0 ? 'text-red-500 font-bold' : 'text-green-500 font-bold'">
+                                    {{ scope.row.netPosition?.toLocaleString() || 0 }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="direction" label="方向" width="80" sortable :filters="[{text: '多头', value: '多头'}, {text: '空头', value: '空头'}, {text: '双边', value: '双边'}]" :filter-method="(value, row) => row.direction === value">
+                            <template #default="scope">
+                                <el-tag :type="scope.row.direction === '多头' ? 'danger' : (scope.row.direction === '空头' ? 'success' : 'info')" size="small">
+                                    {{ scope.row.direction }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-empty v-else description="请先查询持仓数据" :image-size="100"></el-empty>
+                </div>
+
+                <!-- 席位配置对话框 -->
+                <el-dialog v-model="showSeatConfig" title="席位分类配置" width="800px">
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- 机构席位配置 -->
+                        <div>
+                            <h3 class="text-lg font-bold mb-3" style="color: #667eea;">🏢 机构席位</h3>
+                            <p style="color: #666; margin-bottom: 12px; font-size: 13px;">大型期货公司，通常代表机构资金</p>
+                            <el-select
+                                v-model="selectedInstitutionSeats"
+                                multiple
+                                filterable
+                                allow-create
+                                default-first-option
+                                placeholder="搜索并选择机构席位"
+                                style="width: 100%;"
+                                :multiple-limit="50">
+                                <el-option
+                                    v-for="broker in allBrokersList"
+                                    :key="'inst-' + broker"
+                                    :label="broker"
+                                    :value="broker">
+                                </el-option>
+                            </el-select>
+                            <div style="margin-top: 8px; color: #909399; font-size: 12px;">
+                                已选择 {{ selectedInstitutionSeats.length }} 个机构席位
+                            </div>
+                        </div>
+
+                        <!-- 散户席位配置 -->
+                        <div>
+                            <h3 class="text-lg font-bold mb-3" style="color: #f093fb;">🧑‍💼 散户席位</h3>
+                            <p style="color: #666; margin-bottom: 12px; font-size: 13px;">中小型期货公司，通常代表散户资金</p>
+                            <el-select
+                                v-model="selectedRetailSeats"
+                                multiple
+                                filterable
+                                allow-create
+                                default-first-option
+                                placeholder="搜索并选择散户席位"
+                                style="width: 100%;"
+                                :multiple-limit="50">
+                                <el-option
+                                    v-for="broker in allBrokersList"
+                                    :key="'retail-' + broker"
+                                    :label="broker"
+                                    :value="broker">
+                                </el-option>
+                            </el-select>
+                            <div style="margin-top: 8px; color: #909399; font-size: 12px;">
+                                已选择 {{ selectedRetailSeats.length }} 个散户席位
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 12px; background: #f5f7fa; border-radius: 8px;">
+                        <div class="text-sm text-gray-600">
+                            <strong>说明:</strong> 未被分类的席位将自动归为"其他"类别。机构席位通常是交易量大的大型期货公司。
+                        </div>
+                    </div>
+
+                    <template #footer>
+                        <el-button @click="resetSeatConfig">恢复默认</el-button>
+                        <el-button @click="showSeatConfig = false">取消</el-button>
+                        <el-button type="primary" @click="saveSeatConfig">保存并应用</el-button>
+                    </template>
+                </el-dialog>
             </div>
 
             <!-- 期限分析页 -->
             <!-- 虚实比页 -->
             <div v-if="activeTab === 'virtual-real-ratio'" class="space-y-6">
                         <!-- 统计概览 -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <div class="stat-card">
-                                <div class="text-sm text-gray-600 mb-1">总品种数</div>
-                                <div class="text-3xl font-bold">{{ vrSummary.total_varieties || 0 }}</div>
-                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                             <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                                 <div class="text-sm opacity-90 mb-1">高风险品种</div>
                                 <div class="text-3xl font-bold">{{ vrSummary.high_risk_count || 0 }}</div>
@@ -1148,7 +1327,7 @@
                             <div class="flex justify-between items-center mb-3">
                                 <h2 class="text-base font-bold text-gray-800">📈 期限结构分析</h2>
                                 <div class="text-xs text-gray-500" v-if="allTermStructures">
-                                    更新: {{ allTermStructures.contango_varieties?.[0]?.update_time?.split(' ')[0] }}
+                                    日期: {{ selectedDate }}
                                 </div>
                             </div>
 
@@ -1160,22 +1339,6 @@
 
                             <!-- 所有品种的期限结构 -->
                             <div v-else>
-                                <!-- 统计概览 -->
-                                <div class="grid grid-cols-3 gap-2 mb-3">
-                                    <div class="stat-card" style="padding: 6px;">
-                                        <div class="text-xs text-gray-600 mb-0.5">总品种数</div>
-                                        <div class="text-lg font-bold">{{ allTermStructures.total_varieties || 0 }}</div>
-                                    </div>
-                                    <div class="stat-card" style="border-color: #f56c6c; padding: 6px;">
-                                        <div class="text-xs text-gray-600 mb-0.5">Contango (做空)</div>
-                                        <div class="text-lg font-bold text-red-500">{{ allTermStructures.contango_count || 0 }}</div>
-                                    </div>
-                                    <div class="stat-card" style="border-color: #67c23a; padding: 6px;">
-                                        <div class="text-xs text-gray-600 mb-0.5">Backwardation (做多)</div>
-                                        <div class="text-lg font-bold text-green-600">{{ allTermStructures.backwardation_count || 0 }}</div>
-                                    </div>
-                                </div>
-
                                 <!-- 分Tab显示 -->
                                 <el-tabs v-model="termStructureSubTab" type="border-card">
                                     <!-- 推荐品种Tab -->
@@ -1251,86 +1414,105 @@
                                         </div>
                                     </el-tab-pane>
 
-                                    <!-- Phase 3 增强分析 Tab -->
-                                    <el-tab-pane label="⚡ 增强分析 (Phase 3)" name="enhanced">
-                                        <div class="glass-card" style="padding: 16px;">
-                                            <div class="mb-4">
-                                                <h3 class="text-base font-bold text-gray-800 mb-3">📊 选择品种查看增强分析</h3>
-                                                <div style="display: flex; gap: 12px; align-items: center;">
-                                                    <el-input
-                                                        v-model="termEnhancedSelectedComm"
-                                                        placeholder="输入品种代码 (如: CU, V, RB)"
-                                                        style="max-width: 300px;"
-                                                        @keyup.enter="loadTermEnhancedData">
-                                                    </el-input>
-                                                    <el-button type="primary" @click="loadTermEnhancedData" :loading="termEnhancedLoading">
-                                                        加载增强分析
-                                                    </el-button>
-                                                </div>
-                                            </div>
+                                    <!-- 结构变化 Tab -->
+                                    <el-tab-pane name="changes">
+                                        <template #label>
+                                            <span class="text-sm">🔄 结构变化 ({{ structureChanges.changed_count || 0 }}个)</span>
+                                        </template>
 
-                                            <!-- Phase 3 增强数据展示 -->
-                                            <div v-if="termEnhancedData">
-                                                <!-- 结构转换信号 -->
-                                                <h4 class="text-sm font-semibold text-gray-700 mb-3">1. 结构转换信号</h4>
-                                                <div class="grid grid-cols-4 gap-3 mb-4">
-                                                    <div class="bg-blue-50 p-3 rounded">
-                                                        <div class="text-xs text-gray-600">当前结构</div>
-                                                        <div class="text-lg font-bold text-blue-600">{{ termEnhancedData.conversion.current_structure }}</div>
+                                        <!-- 对比天数设置 -->
+                                        <div class="mb-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                                            <span class="text-sm text-gray-600">对比周期:</span>
+                                            <el-input-number
+                                                v-model="structureLookbackDays"
+                                                :min="1"
+                                                :max="30"
+                                                size="small"
+                                                style="width: 100px;"
+                                            />
+                                            <span class="text-sm text-gray-500">天前</span>
+                                            <el-button type="primary" size="small" @click="loadStructureChanges(structureLookbackDays)">
+                                                查询
+                                            </el-button>
+                                            <span class="text-xs text-gray-400 ml-2">默认对比一周前的数据</span>
+                                        </div>
+
+                                        <!-- 加载中 -->
+                                        <div v-if="structureChangesLoading" class="text-center py-6">
+                                            <div class="loading-spinner mx-auto"></div>
+                                            <p class="text-gray-500 mt-2 text-xs">加载结构变化数据...</p>
+                                        </div>
+
+                                        <!-- 有变化的品种 -->
+                                        <div v-else-if="structureChanges.changed_varieties && structureChanges.changed_varieties.length > 0">
+                                            <div class="mb-3 text-sm text-gray-600">
+                                                最近{{ structureChanges.lookback_days || 7 }}天内有结构转换的品种:
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div v-for="variety in structureChanges.changed_varieties" :key="'change_' + variety.variety_code"
+                                                     class="glass-card border-2"
+                                                     :class="{
+                                                         'border-red-400': variety.conversion_type.includes('多转空'),
+                                                         'border-green-400': variety.conversion_type.includes('空转多'),
+                                                         'border-yellow-400': !variety.conversion_type.includes('多转空') && !variety.conversion_type.includes('空转多')
+                                                     }"
+                                                     style="padding: 12px;">
+                                                    <div class="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <span class="variety-badge" style="font-size: 11px; padding: 2px 8px;">{{ variety.variety_code }}</span>
+                                                            <span class="text-sm font-semibold ml-2">{{ variety.variety_name }}</span>
+                                                        </div>
+                                                        <el-tag :type="variety.conversion_strength === '强' ? 'danger' : (variety.conversion_strength === '中' ? 'warning' : 'info')"
+                                                                size="small" style="font-size: 10px;">
+                                                            {{ variety.conversion_strength }}信号
+                                                        </el-tag>
                                                     </div>
-                                                    <div class="bg-purple-50 p-3 rounded" v-if="termEnhancedData.conversion.has_conversion">
-                                                        <div class="text-xs text-gray-600">转换类型</div>
-                                                        <div class="text-lg font-bold text-purple-600">{{ termEnhancedData.conversion.conversion_type }}</div>
-                                                    </div>
-                                                    <div class="bg-orange-50 p-3 rounded" v-if="termEnhancedData.conversion.has_conversion">
-                                                        <div class="text-xs text-gray-600">转换强度</div>
-                                                        <div class="text-lg font-bold text-orange-600">{{ termEnhancedData.conversion.conversion_strength }}</div>
-                                                    </div>
-                                                    <div class="bg-gray-50 p-3 rounded">
-                                                        <div class="text-xs text-gray-600">综合得分</div>
-                                                        <div class="text-lg font-bold" :style="{color: termEnhancedData.score > 0 ? '#22c55e' : '#ef4444'}">
-                                                            {{ termEnhancedData.score > 0 ? '+' : '' }}{{ termEnhancedData.score }}分
+
+                                                    <div class="mb-2">
+                                                        <div class="flex items-center gap-2 text-sm">
+                                                            <span class="text-gray-500">结构转换:</span>
+                                                            <span :class="{
+                                                                'text-red-600 font-bold': variety.conversion_type.includes('多转空'),
+                                                                'text-green-600 font-bold': variety.conversion_type.includes('空转多'),
+                                                                'text-yellow-600 font-bold': !variety.conversion_type.includes('多转空') && !variety.conversion_type.includes('空转多')
+                                                            }">
+                                                                {{ variety.conversion_type }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2 text-sm mt-1">
+                                                            <span class="text-gray-500">当前结构:</span>
+                                                            <el-tag :type="variety.current_structure === 'Backwardation' ? 'success' : 'danger'" size="small">
+                                                                {{ variety.current_structure === 'Backwardation' ? '反向市场(做多)' : '正向市场(做空)' }}
+                                                            </el-tag>
+                                                        </div>
+                                                        <div class="flex items-center gap-2 text-sm mt-1" v-if="variety.days_since_conversion > 0">
+                                                            <span class="text-gray-500">持续天数:</span>
+                                                            <span class="font-semibold">{{ variety.days_since_conversion }}天</span>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="info-section mb-4">
-                                                    {{ termEnhancedData.conversion.signal_description }}
-                                                </div>
 
-                                                <!-- 价差分析 -->
-                                                <h4 class="text-sm font-semibold text-gray-700 mb-3 mt-4">2. 价差历史分析</h4>
-                                                <div class="grid grid-cols-4 gap-3 mb-4">
-                                                    <div class="bg-green-50 p-3 rounded">
-                                                        <div class="text-xs text-gray-600">当前价差</div>
-                                                        <div class="text-lg font-bold text-green-600">{{ termEnhancedData.spread_analysis.current_spread }}元</div>
+                                                    <div class="info-section text-xs"
+                                                         :style="{
+                                                             'border-left-color': variety.conversion_type.includes('多转空') ? '#ef4444' :
+                                                                                  (variety.conversion_type.includes('空转多') ? '#22c55e' : '#f59e0b')
+                                                         }">
+                                                        {{ variety.signal_description }}
                                                     </div>
-                                                    <div class="bg-yellow-50 p-3 rounded">
-                                                        <div class="text-xs text-gray-600">价差状态</div>
-                                                        <div class="text-lg font-bold text-yellow-600">{{ termEnhancedData.spread_analysis.spread_status }}</div>
-                                                    </div>
-                                                    <div class="bg-indigo-50 p-3 rounded">
-                                                        <div class="text-xs text-gray-600">30日百分位</div>
-                                                        <div class="text-lg font-bold text-indigo-600">{{ termEnhancedData.spread_analysis.spread_percentile_30d.toFixed(1) }}%</div>
-                                                    </div>
-                                                    <div class="bg-pink-50 p-3 rounded">
-                                                        <div class="text-xs text-gray-600">Z-Score</div>
-                                                        <div class="text-lg font-bold text-pink-600">{{ termEnhancedData.spread_analysis.spread_zscore }}</div>
-                                                    </div>
-                                                </div>
 
-                                                <!-- 交易建议 -->
-                                                <h4 class="text-sm font-semibold text-gray-700 mb-3 mt-4">3. 交易建议</h4>
-                                                <div v-for="reason in termEnhancedData.reasons" :key="reason" class="info-section mb-2" style="border-left-color: #22c55e;">
-                                                    {{ reason }}
+                                                    <div class="mt-2 text-xs text-gray-500" v-if="variety.spread_change_pct">
+                                                        价差变化: <span :class="variety.spread_change_pct > 0 ? 'text-red-500' : 'text-green-500'">
+                                                            {{ variety.spread_change_pct > 0 ? '+' : '' }}{{ variety.spread_change_pct }}%
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <!-- 空状态 -->
-                                            <div v-else-if="!termEnhancedLoading" class="text-center py-12">
-                                                <div style="font-size: 60px; margin-bottom: 16px; opacity: 0.3;">📊</div>
-                                                <div style="font-size: 16px; color: #666; margin-bottom: 8px;">请输入品种代码查看增强分析</div>
-                                                <div style="font-size: 14px; color: #999;">例如: CU(沪铜), V(聚氯乙烯), RB(螺纹钢)</div>
-                                            </div>
+                                        <!-- 无变化 -->
+                                        <div v-else class="text-center py-12">
+                                            <div style="font-size: 60px; margin-bottom: 16px; opacity: 0.3;">✅</div>
+                                            <div style="font-size: 16px; color: #666; margin-bottom: 8px;">最近{{ structureChanges.lookback_days || 7 }}天内无结构转换</div>
+                                            <div style="font-size: 14px; color: #999;">所有品种的期限结构保持稳定</div>
                                         </div>
                                     </el-tab-pane>
                                 </el-tabs>
@@ -1349,8 +1531,18 @@
             setup() {
                 const activeTab = ref('overview');
                 const searchQuery = ref('');
-                const selectedDate = ref(new Date().toISOString().split('T')[0]); // YYYY-MM-DD format
+                // 使用本地日期格式，避免toISOString的UTC转换导致日期偏移
+                const now = new Date();
+                const initialDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const selectedDate = ref(initialDate); // YYYY-MM-DD format
                 const loading = ref(false);
+
+                // 禁用未来日期的函数
+                const disableFutureDate = (date) => {
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999); // 设置为今天结束时间
+                    return date > today;
+                };
 
                 // Data refs
                 const zhihuiData = ref([]);
@@ -1537,6 +1729,166 @@
                 const termEnhancedData = ref(null);
                 const termEnhancedLoading = ref(false);
 
+                // 结构变化数据
+                const structureChanges = ref({
+                    changed_varieties: [],
+                    changed_count: 0,
+                    lookback_days: 7
+                });
+                const structureChangesLoading = ref(false);
+                const structureLookbackDays = ref(7);  // 自定义对比天数，默认7天
+
+                // 持仓分析数据 refs
+                const positionVarietyName = ref('螺纹钢');
+                const positionContractCode = ref('rb2603');
+                const positionLoading = ref(false);
+                const positionData = ref(null);
+                const positionFullData = ref(null);
+
+                // 持仓季节性分析数据 refs
+                const seasonalVariety = ref('');
+                const seasonalContract = ref('');
+                const seasonalData = ref(null);
+                const seasonalLoading = ref(false);
+                const seasonalCommonVarieties = ref([
+                    { code: 'rb', name: '螺纹钢' },
+                    { code: 'hc', name: '热轧卷板' },
+                    { code: 'i', name: '铁矿石' },
+                    { code: 'j', name: '焦炭' },
+                    { code: 'jm', name: '焦煤' },
+                    { code: 'cu', name: '铜' },
+                    { code: 'al', name: '铝' },
+                    { code: 'zn', name: '锌' },
+                    { code: 'au', name: '黄金' },
+                    { code: 'ag', name: '白银' }
+                ]);
+
+                // 价格季节性分析数据 refs
+                const seasonalPriceData = ref([]);
+                const seasonalPriceLoading = ref(false);
+                let seasonalPriceChartInstance = null;
+
+                // 席位分析数据 refs
+                const seatSelectedVariety = ref('');  // 选中的品种代码
+                const seatVarietyName = ref('');  // 品种中文名称
+                const seatContractCode = ref('');  // 选中的合约代码
+                const seatLoading = ref(false);
+                const institutionData = ref(null);
+                const institutionTrendData = ref(null);
+                const showSeatConfig = ref(false);
+                const seatPositionDetails = ref([]); // 席位持仓明细列表
+
+                // 席位分析品种列表 (支持交易可查的品种)
+                const seatVarietyList = ref([
+                    { code: 'rb', name: '螺纹钢' },
+                    { code: 'hc', name: '热卷' },
+                    { code: 'i', name: '铁矿石' },
+                    { code: 'j', name: '焦炭' },
+                    { code: 'jm', name: '焦煤' },
+                    { code: 'FG', name: '玻璃' },
+                    { code: 'SA', name: '纯碱' },
+                    { code: 'cu', name: '沪铜' },
+                    { code: 'al', name: '沪铝' },
+                    { code: 'zn', name: '沪锌' },
+                    { code: 'ni', name: '沪镍' },
+                    { code: 'sn', name: '沪锡' },
+                    { code: 'pb', name: '沪铅' },
+                    { code: 'ss', name: '不锈钢' },
+                    { code: 'au', name: '沪金' },
+                    { code: 'ag', name: '沪银' },
+                    { code: 'sc', name: '原油' },
+                    { code: 'fu', name: '燃油' },
+                    { code: 'bu', name: '沥青' },
+                    { code: 'ru', name: '橡胶' },
+                    { code: 'sp', name: '纸浆' },
+                    { code: 'nr', name: '20号胶' },
+                    { code: 'm', name: '豆粕' },
+                    { code: 'y', name: '豆油' },
+                    { code: 'p', name: '棕榈油' },
+                    { code: 'c', name: '玉米' },
+                    { code: 'cs', name: '淀粉' },
+                    { code: 'a', name: '豆一' },
+                    { code: 'b', name: '豆二' },
+                    { code: 'jd', name: '鸡蛋' },
+                    { code: 'lh', name: '生猪' },
+                    { code: 'pp', name: 'PP' },
+                    { code: 'l', name: '塑料' },
+                    { code: 'v', name: 'PVC' },
+                    { code: 'eb', name: '苯乙烯' },
+                    { code: 'eg', name: '乙二醇' },
+                    { code: 'pg', name: 'LPG' },
+                    { code: 'TA', name: 'PTA' },
+                    { code: 'MA', name: '甲醇' },
+                    { code: 'CF', name: '棉花' },
+                    { code: 'SR', name: '白糖' },
+                    { code: 'OI', name: '菜油' },
+                    { code: 'RM', name: '菜粕' },
+                    { code: 'AP', name: '苹果' },
+                    { code: 'CJ', name: '红枣' },
+                    { code: 'PK', name: '花生' },
+                    { code: 'UR', name: '尿素' },
+                    { code: 'SF', name: '硅铁' },
+                    { code: 'SM', name: '锰硅' },
+                    { code: 'ZC', name: '动力煤' },
+                    { code: 'IF', name: '沪深300' },
+                    { code: 'IC', name: '中证500' },
+                    { code: 'IH', name: '上证50' },
+                    { code: 'IM', name: '中证1000' },
+                ]);
+
+                // 席位分析合约列表 (根据品种动态生成)
+                const seatContractList = ref([]);
+
+                // 机构散户方向相反扫描相关
+                const divergentVarieties = ref([]);  // 方向相反的品种列表
+                const divergentScanning = ref(false);  // 是否正在扫描
+                const divergentScanCompleted = ref(false);  // 是否扫描完成
+                const divergentScanProgress = ref(0);  // 扫描进度百分比
+                const divergentScanCurrent = ref(0);  // 当前扫描第几个
+                const divergentScanTotal = ref(0);  // 总共要扫描多少个
+                const divergentScanCurrentName = ref('');  // 当前扫描的品种名
+                const divergentLastUpdate = ref('');  // 最后更新时间
+                const divergentLoading = ref(false);  // 加载后端数据中
+
+                // 计算属性：做多的品种（按净持仓绝对值从高到低排序）
+                const divergentLongVarieties = Vue.computed(() => {
+                    return divergentVarieties.value
+                        .filter(v => v.institutionDirection === 'long')
+                        .sort((a, b) => Math.abs(b.institutionNet || 0) - Math.abs(a.institutionNet || 0));
+                });
+
+                // 计算属性：做空的品种（按净持仓绝对值从高到低排序）
+                const divergentShortVarieties = Vue.computed(() => {
+                    return divergentVarieties.value
+                        .filter(v => v.institutionDirection === 'short')
+                        .sort((a, b) => Math.abs(b.institutionNet || 0) - Math.abs(a.institutionNet || 0));
+                });
+
+                // 预设的机构席位列表（国内大型期货公司）
+                const presetInstitutionSeats = ref([
+                    '中信期货', '永安期货', '国泰君安', '海通期货', '银河期货',
+                    '华泰期货', '申万期货', '东证期货', '广发期货', '南华期货',
+                    '中金期货', '招商期货', '光大期货', '方正中期', '中粮期货',
+                    '新湖期货', '瑞达期货', '五矿期货', '格林大华', '兴证期货',
+                    '国信期货', '中银期货', '浙商期货', '鲁证期货', '国投安信',
+                    '东海期货', '建信期货', '宏源期货', '徽商期货', '中信建投'
+                ]);
+
+                // 预设的散户席位列表（中小型期货公司）
+                const presetRetailSeats = ref([
+                    '东方财富', '先锋期货', '长安期货', '金瑞期货', '渤海期货',
+                    '大越期货', '华鑫期货', '金元期货', '前海期货', '东兴期货',
+                    '红塔期货', '中辉期货', '神华期货', '国贸期货', '一德期货',
+                    '天风期货', '金石期货', '大有期货', '中钢期货', '华安期货'
+                ]);
+
+                // 用户配置的机构席位和散户席位
+                const selectedInstitutionSeats = ref([]);
+                const selectedRetailSeats = ref([]);
+
+                // 从数据中获取的所有席位列表
+                const allBrokersList = ref([]);
+
                 // API Base URL - 自动检测环境
                 // 本地开发使用 localhost:8001, 生产环境使用当前域名
                 const API_BASE = window.location.hostname === 'localhost' ||
@@ -1554,12 +1906,35 @@
 
                 // 获取最近的交易日
                 const getLatestTradingDate = async () => {
+                    // 格式化日期为本地 YYYY-MM-DD (避免时区问题)
+                    const formatLocalDate = (d) => {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    };
+
+                    // 将日期调整到最近的交易日(周一到周五)
+                    const adjustToTradingDay = (dateStr) => {
+                        const d = new Date(dateStr + 'T00:00:00');
+                        const dayOfWeek = d.getDay();
+                        // 周六(6)回退1天到周五, 周日(0)回退2天到周五
+                        if (dayOfWeek === 0) { // 周日
+                            d.setDate(d.getDate() - 2);
+                        } else if (dayOfWeek === 6) { // 周六
+                            d.setDate(d.getDate() - 1);
+                        }
+                        // 使用本地时间格式化，避免toISOString的UTC转换导致日期偏移
+                        return formatLocalDate(d);
+                    };
+
                     try {
                         // 尝试从智汇数据库获取最新交易日
                         const res = await fetch(`${API_BASE}/fundamental/zhihui/latest-date`);
                         if (res.ok) {
                             const data = await res.json();
-                            return data.latest_date; // YYYY-MM-DD格式
+                            // 确保返回的日期是交易日
+                            return adjustToTradingDay(data.latest_date);
                         }
                     } catch (e) {
                         console.error('Failed to fetch latest trading date:', e);
@@ -1567,21 +1942,8 @@
 
                     // 如果API调用失败,回退到本地逻辑
                     const today = new Date();
-                    const dayOfWeek = today.getDay();
-
-                    // 周六(6)回退1天到周五, 周日(0)回退2天到周五
-                    let daysToSubtract = 0;
-                    if (dayOfWeek === 0) { // 周日
-                        daysToSubtract = 2;
-                    } else if (dayOfWeek === 6) { // 周六
-                        daysToSubtract = 1;
-                    }
-
-                    if (daysToSubtract > 0) {
-                        today.setDate(today.getDate() - daysToSubtract);
-                    }
-
-                    return today.toISOString().split('T')[0];
+                    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    return adjustToTradingDay(todayStr);
                 };
 
                 // Convert date format YYYY-MM-DD to YYYYMMDD
@@ -1653,7 +2015,118 @@
 
                 // Get variety name by code
                 const getVarietyName = (code) => {
-                    return varietyMap.value[code] || code;
+                    if (!code) return '';
+
+                    // 静态映射表 - 处理期权代码和常见品种
+                    const staticMap = {
+                        'pd_o': '钯', 'PD_O': '钯', 'PD': '钯',
+                        'pt_o': '铂', 'PT_O': '铂', 'PT': '铂',
+                        'au_o': '黄金期权', 'AU_O': '黄金期权', 'AU': '黄金',
+                        'ag_o': '白银期权', 'AG_O': '白银期权', 'AG': '白银',
+                        'cu_o': '铜期权', 'CU_O': '铜期权', 'CU': '沪铜',
+                        'al_o': '铝期权', 'AL_O': '铝期权', 'AL': '沪铝',
+                        'zn_o': '锌期权', 'ZN_O': '锌期权', 'ZN': '沪锌',
+                        'sc_o': '原油期权', 'SC_O': '原油期权', 'SC': '原油',
+                        'ru_o': '橡胶期权', 'RU_O': '橡胶期权', 'RU': '橡胶',
+                        'm_o': '豆粕期权', 'M_O': '豆粕期权', 'M': '豆粕',
+                        'c_o': '玉米期权', 'C_O': '玉米期权', 'C': '玉米',
+                        'i_o': '铁矿期权', 'I_O': '铁矿期权', 'I': '铁矿石',
+                        'p_o': '棕榈油期权', 'P_O': '棕榈油期权', 'P': '棕榈油',
+                        'cf_o': '棉花期权', 'CF_O': '棉花期权', 'CF': '棉花',
+                        'sr_o': '白糖期权', 'SR_O': '白糖期权', 'SR': '白糖',
+                        'ta_o': 'PTA期权', 'TA_O': 'PTA期权', 'TA': 'PTA',
+                        'ma_o': '甲醇期权', 'MA_O': '甲醇期权', 'MA': '甲醇',
+                        'pp_o': 'PP期权', 'PP_O': 'PP期权', 'PP': 'PP',
+                        'l_o': '塑料期权', 'L_O': '塑料期权', 'L': '塑料',
+                        'v_o': 'PVC期权', 'V_O': 'PVC期权', 'V': 'PVC',
+                        'eg_o': '乙二醇期权', 'EG_O': '乙二醇期权', 'EG': '乙二醇',
+                        'eb_o': '苯乙烯期权', 'EB_O': '苯乙烯期权', 'EB': '苯乙烯',
+                        'pg_o': 'LPG期权', 'PG_O': 'LPG期权', 'PG': 'LPG',
+                        'rb_o': '螺纹期权', 'RB_O': '螺纹期权', 'RB': '螺纹钢',
+                        'hc_o': '热卷期权', 'HC_O': '热卷期权', 'HC': '热卷',
+                        'j_o': '焦炭期权', 'J_O': '焦炭期权', 'J': '焦炭',
+                        'jm_o': '焦煤期权', 'JM_O': '焦煤期权', 'JM': '焦煤',
+                        'ZC': '动力煤', 'zc': '动力煤',
+                        'FG': '玻璃', 'fg': '玻璃',
+                        'SA': '纯碱', 'sa': '纯碱',
+                        'UR': '尿素', 'ur': '尿素',
+                        'AP': '苹果', 'ap': '苹果',
+                        'CJ': '红枣', 'cj': '红枣',
+                        'PK': '花生', 'pk': '花生',
+                        'LH': '生猪', 'lh': '生猪',
+                        'JD': '鸡蛋', 'jd': '鸡蛋',
+                        'NI': '沪镍', 'ni': '沪镍',
+                        'SN': '沪锡', 'sn': '沪锡',
+                        'PB': '沪铅', 'pb': '沪铅',
+                        'SS': '不锈钢', 'ss': '不锈钢',
+                        'SP': '纸浆', 'sp': '纸浆',
+                        'FU': '燃油', 'fu': '燃油',
+                        'BU': '沥青', 'bu': '沥青',
+                        'NR': '20号胶', 'nr': '20号胶',
+                        'Y': '豆油', 'y': '豆油',
+                        'A': '豆一', 'a': '豆一',
+                        'B': '豆二', 'b': '豆二',
+                        'OI': '菜油', 'oi': '菜油',
+                        'RM': '菜粕', 'rm': '菜粕',
+                        'RS': '菜籽', 'rs': '菜籽',
+                        'SF': '硅铁', 'sf': '硅铁',
+                        'SM': '锰硅', 'sm': '锰硅',
+                        'WH': '强麦', 'wh': '强麦',
+                        'PM': '普麦', 'pm': '普麦',
+                        'RI': '早稻', 'ri': '早稻',
+                        'JR': '粳稻', 'jr': '粳稻',
+                        'LR': '晚稻', 'lr': '晚稻',
+                        'RR': '粳米', 'rr': '粳米',
+                        'CY': '棉纱', 'cy': '棉纱',
+                        'SI': '工硅', 'si': '工硅',
+                        'LC': '碳酸锂', 'lc': '碳酸锂',
+                        'AO': '氧化铝', 'ao': '氧化铝',
+                        'BR': '丁二烯橡胶', 'br': '丁二烯橡胶',
+                        'EC': '集运欧线', 'ec': '集运欧线'
+                    };
+
+                    // 1. 先检查静态映射
+                    if (staticMap[code]) return staticMap[code];
+
+                    // 2. 检查动态varietyMap
+                    if (varietyMap.value[code]) return varietyMap.value[code];
+
+                    // 3. 尝试大写
+                    const upperCode = code.toUpperCase();
+                    if (varietyMap.value[upperCode]) return varietyMap.value[upperCode];
+                    if (staticMap[upperCode]) return staticMap[upperCode];
+
+                    // 4. 尝试去掉_o/_O后缀
+                    const codeWithoutO = code.replace(/_[oO]$/, '');
+                    if (varietyMap.value[codeWithoutO]) return varietyMap.value[codeWithoutO];
+                    if (varietyMap.value[codeWithoutO.toUpperCase()]) return varietyMap.value[codeWithoutO.toUpperCase()];
+                    if (staticMap[codeWithoutO]) return staticMap[codeWithoutO];
+                    if (staticMap[codeWithoutO.toUpperCase()]) return staticMap[codeWithoutO.toUpperCase()];
+
+                    // 5. 都找不到,返回原代码
+                    return code;
+                };
+
+                // Get VR data by variety code
+                const getVRInfo = (code) => {
+                    if (!vrList.value || vrList.value.length === 0) return null;
+                    // 尝试多种匹配方式
+                    const codeUpper = code.toUpperCase().replace(/_[oO]$/, '');
+                    return vrList.value.find(v => {
+                        const vrCode = (v.comm_code || '').toUpperCase();
+                        return vrCode === code.toUpperCase() ||
+                               vrCode === codeUpper ||
+                               code.toUpperCase() === vrCode;
+                    });
+                };
+
+                // Get divergent info by variety code
+                const getDivergentInfo = (code) => {
+                    if (!divergentVarieties.value || divergentVarieties.value.length === 0) return null;
+                    return divergentVarieties.value.find(v =>
+                        v.code.toUpperCase() === code.toUpperCase() ||
+                        v.code.toLowerCase() === code.toLowerCase()
+                    );
                 };
 
                 // Go to variety detail
@@ -2059,13 +2532,18 @@
                     try {
                         v2Loading.value = true;
 
+                        // 获取当前选择的日期 (使用本地日期格式)
+                        const _now = new Date();
+                        const fallbackDate = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
+                        const queryDate = selectedDate.value || fallbackDate;
+
                         // 优先尝试V3 API (优化版本)
                         try {
                             const v3ApiUrl = (window.location.hostname === 'localhost' ||
                                              window.location.hostname === '127.0.0.1' ||
                                              window.location.hostname === '0.0.0.0')
-                                ? 'http://localhost:8001/api/v3/analysis/overview'
-                                : `http://${window.location.hostname}:8001/api/v3/analysis/overview`;
+                                ? `http://localhost:8001/api/v3/analysis/overview?query_date=${queryDate}`
+                                : `http://${window.location.hostname}:8001/api/v3/analysis/overview?query_date=${queryDate}`;
                             const v3Response = await fetch(v3ApiUrl);
                             const v3Result = await v3Response.json();
 
@@ -2077,14 +2555,15 @@
                                 console.log('✓ 使用V3优化数据', {
                                     total: v3Result.data.stats.total,
                                     update_time: v3Result.data.update_time,
-                                    data_source: v3Result.data.data_source
+                                    data_source: v3Result.data.data_source,
+                                    query_date: queryDate
                                 });
 
                                 // 同时加载机会雷达数据并整合
                                 await loadOpportunitiesForOverview();
 
                                 handleV2FilterChange();
-                                ElMessage.success(`V3数据加载成功 (${v3Result.data.data_source})`);
+                                ElMessage.success(`V3数据加载成功 (${queryDate})`);
                                 return;
                             }
                         } catch (v3Error) {
@@ -2092,7 +2571,7 @@
                         }
 
                         // 回退到V2 API
-                        const response = await fetch(`${API_BASE}/analysis-v2/overview`);
+                        const response = await fetch(`${API_BASE}/analysis-v2/overview?query_date=${queryDate}`);
                         const result = await response.json();
 
                         if (result.success) {
@@ -2190,7 +2669,8 @@
                 const refreshOverviewData = async () => {
                     await Promise.all([
                         refreshV2Data(),
-                        loadOpportunitiesForOverview()
+                        loadOpportunitiesForOverview(),
+                        loadDivergentFromServer()  // 加载席位分析数据
                     ]);
                     handleV2FilterChange();
                 };
@@ -2900,7 +3380,11 @@
                 // 加载所有品种的期限结构
                 const loadAllTermStructures = async () => {
                     try {
-                        const res = await fetch(`${TERM_STRUCTURE_BASE}/all-structures`);
+                        // 传递当前选择的日期 (使用本地日期格式)
+                        const _now2 = new Date();
+                        const fallbackDate2 = `${_now2.getFullYear()}-${String(_now2.getMonth() + 1).padStart(2, '0')}-${String(_now2.getDate()).padStart(2, '0')}`;
+                        const queryDate = selectedDate.value || fallbackDate2;
+                        const res = await fetch(`${TERM_STRUCTURE_BASE}/all-structures?query_date=${queryDate}`);
                         if (res.ok) {
                             const data = await res.json();
                             if (data.success) {
@@ -3161,6 +3645,11 @@
                                         renderSingleTermChart(variety.variety_code, variety.contracts);
                                     }, 100 * (index + 1));
                                 });
+                            } else if (newSubTab === 'changes') {
+                                // 切换到结构变化tab时加载数据
+                                if (!structureChanges.value.changed_varieties || structureChanges.value.changed_varieties.length === 0) {
+                                    loadStructureChanges(structureLookbackDays.value);
+                                }
                             }
                         }, 600);  // 增加延迟确保Tab切换动画完成
                     });
@@ -3197,13 +3686,1069 @@
                     }
                 };
 
+                // 加载结构变化数据
+                const loadStructureChanges = async (lookbackDays = 7) => {
+                    structureChangesLoading.value = true;
+                    try {
+                        const response = await fetch(
+                            `${TERM_STRUCTURE_BASE}/structure-changes?lookback_days=${lookbackDays}`
+                        );
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                structureChanges.value = data;
+                                console.log(`加载结构变化数据成功: ${data.changed_count}个品种有变化`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载结构变化数据失败:', error);
+                    } finally {
+                        structureChangesLoading.value = false;
+                    }
+                };
+
                 // Handle tab click
-                const handleTabClick = (tab) => {
+                const handleTabClick = async (tab) => {
                     // 切换到资金面标签时加载数据
                     if (tab.props.name === 'capital') {
                         fetchCapitalPositions();
+                        // 先加载机构散户数据（如果没有的话）
+                        if (divergentVarieties.value.length === 0 && !divergentScanning.value) {
+                            await loadDivergentFromServer();
+                        }
+                        // 设置默认品种为机构做多的第一个
+                        setDefaultPositionFromDivergent();
+                        // 如果还没有加载过持仓数据，自动加载
+                        if (!positionData.value && positionVarietyName.value && positionContractCode.value) {
+                            loadPositionData();
+                        }
+                    }
+                    // 切换到席位分析标签时加载扫描结果
+                    if (tab.props.name === 'seat-analysis') {
+                        if (divergentVarieties.value.length === 0 && !divergentScanning.value) {
+                            loadDivergentFromServer();
+                        }
                     }
                 };
+
+                // 从机构做多列表设置持仓分析的默认品种
+                const setDefaultPositionFromDivergent = () => {
+                    // 获取机构做多的品种列表
+                    const longVarieties = divergentVarieties.value.filter(v => v.institutionDirection === 'long');
+                    if (longVarieties.length > 0) {
+                        const firstLong = longVarieties[0];
+                        // 查找品种中文名
+                        const varietyInfo = seatVarietyList.value.find(v => v.code.toLowerCase() === firstLong.code.toLowerCase());
+                        if (varietyInfo) {
+                            positionVarietyName.value = varietyInfo.name;
+                            positionContractCode.value = firstLong.contract;
+                        }
+                    }
+                };
+
+                // ==================== 持仓分析功能 ====================
+                let positionTrendChart = null;
+                let positionComparisonChart = null;
+                let netPositionChartInstance = null;
+                let seasonalChartInstance = null;
+                let institutionTrendChartInstance = null;
+
+                const loadPositionData = async () => {
+                    positionLoading.value = true;
+                    try {
+                        // 加载基本持仓数据
+                        const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(positionVarietyName.value)}/${positionContractCode.value}`;
+                        const posResponse = await fetch(posUrl);
+
+                        if (!posResponse.ok) {
+                            throw new Error(`HTTP ${posResponse.status}: ${posResponse.statusText}`);
+                        }
+
+                        const posResult = await posResponse.json();
+
+                        if (posResult.success) {
+                            positionData.value = posResult;
+                            ElMessage.success('持仓数据加载成功');
+
+                            // 更新所有期货公司列表
+                            const allBrokers = new Set();
+                            if (posResult.long_positions) {
+                                posResult.long_positions.forEach(p => allBrokers.add(p.broker));
+                            }
+                            if (posResult.short_positions) {
+                                posResult.short_positions.forEach(p => allBrokers.add(p.broker));
+                            }
+                            allBrokersList.value = [...allBrokers];
+                        } else {
+                            throw new Error(posResult.error || '获取持仓数据失败');
+                        }
+
+                        // 加载完整数据(包含趋势)
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(positionVarietyName.value)}/${positionContractCode.value}/full`;
+                        const fullResponse = await fetch(fullUrl);
+
+                        if (fullResponse.ok) {
+                            const fullResult = await fullResponse.json();
+
+                            if (fullResult.success) {
+                                positionFullData.value = fullResult.data;
+                                ElMessage.success('趋势数据加载成功');
+
+                                // 渲染图表
+                                await Vue.nextTick();
+                                setTimeout(() => {
+                                    renderPositionCharts();
+                                }, 200);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('加载失败:', err);
+                        ElMessage.error('加载失败: ' + err.message);
+                    } finally {
+                        positionLoading.value = false;
+                    }
+
+                    // 自动加载价格季节性分析
+                    loadSeasonalPriceData();
+                };
+
+                const renderPositionCharts = () => {
+                    if (!positionFullData.value) return;
+
+                    const data = positionFullData.value;
+
+                    // 持仓趋势图
+                    const trendEl = document.getElementById('positionTrendChart');
+                    if (trendEl) {
+                        if (!positionTrendChart) {
+                            positionTrendChart = echarts.init(trendEl);
+                        }
+
+                        positionTrendChart.setOption({
+                            tooltip: { trigger: 'axis' },
+                            legend: { data: ['多头总持仓', '空头总持仓'] },
+                            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                            xAxis: {
+                                type: 'category',
+                                data: data.dates,
+                                axisLabel: { rotate: 45 }
+                            },
+                            yAxis: { type: 'value' },
+                            series: [
+                                {
+                                    name: '多头总持仓',
+                                    type: 'line',
+                                    data: data.total_buy,
+                                    itemStyle: { color: '#f56c6c' },
+                                    smooth: true
+                                },
+                                {
+                                    name: '空头总持仓',
+                                    type: 'line',
+                                    data: data.total_ss,
+                                    itemStyle: { color: '#67c23a' },
+                                    smooth: true
+                                }
+                            ]
+                        });
+                    }
+
+                    // 多空对比图
+                    const compEl = document.getElementById('positionComparisonChart');
+                    if (compEl) {
+                        if (!positionComparisonChart) {
+                            positionComparisonChart = echarts.init(compEl);
+                        }
+
+                        positionComparisonChart.setOption({
+                            tooltip: { trigger: 'axis' },
+                            legend: { data: ['多头净增', '空头净增'] },
+                            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                            xAxis: {
+                                type: 'category',
+                                data: data.dates,
+                                axisLabel: { rotate: 45 }
+                            },
+                            yAxis: { type: 'value' },
+                            series: [
+                                {
+                                    name: '多头净增',
+                                    type: 'bar',
+                                    data: data.net_buy,
+                                    itemStyle: { color: '#f56c6c' }
+                                },
+                                {
+                                    name: '空头净增',
+                                    type: 'bar',
+                                    data: data.net_ss,
+                                    itemStyle: { color: '#67c23a' }
+                                }
+                            ]
+                        });
+                    }
+
+                    // 净持仓趋势图
+                    const netEl = document.getElementById('netPositionChart');
+                    if (netEl) {
+                        if (!netPositionChartInstance) {
+                            netPositionChartInstance = echarts.init(netEl);
+                        }
+
+                        const netPosition = data.total_buy.map((buy, idx) => buy - data.total_ss[idx]);
+
+                        netPositionChartInstance.setOption({
+                            tooltip: { trigger: 'axis' },
+                            legend: { data: ['净持仓'] },
+                            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                            xAxis: {
+                                type: 'category',
+                                data: data.dates,
+                                axisLabel: { rotate: 45 }
+                            },
+                            yAxis: { type: 'value' },
+                            series: [
+                                {
+                                    name: '净持仓',
+                                    type: 'line',
+                                    data: netPosition,
+                                    itemStyle: { color: '#667eea' },
+                                    areaStyle: {
+                                        color: {
+                                            type: 'linear',
+                                            x: 0, y: 0, x2: 0, y2: 1,
+                                            colorStops: [
+                                                { offset: 0, color: 'rgba(102, 126, 234, 0.3)' },
+                                                { offset: 1, color: 'rgba(102, 126, 234, 0.1)' }
+                                            ]
+                                        }
+                                    },
+                                    smooth: true
+                                }
+                            ]
+                        });
+                    }
+                };
+
+                // 季节性分析
+                const loadSeasonalData = async () => {
+                    if (!seasonalVariety.value || !seasonalContract.value) {
+                        ElMessage.warning('请选择品种和合约');
+                        return;
+                    }
+
+                    seasonalLoading.value = true;
+                    try {
+                        const variety = seasonalCommonVarieties.value.find(v => v.code === seasonalVariety.value);
+                        if (!variety) {
+                            throw new Error('品种不存在');
+                        }
+
+                        const contractCode = `${seasonalVariety.value}${seasonalContract.value}`;
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(variety.name)}/${contractCode}/full`;
+                        const response = await fetch(fullUrl);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+
+                        const result = await response.json();
+
+                        if (result.success && result.data) {
+                            seasonalData.value = result.data;
+                            ElMessage.success('季节性数据加载成功');
+
+                            await Vue.nextTick();
+                            setTimeout(() => {
+                                renderSeasonalChart();
+                            }, 200);
+                        } else {
+                            throw new Error(result.error || '获取季节性数据失败');
+                        }
+                    } catch (err) {
+                        console.error('加载季节性数据失败:', err);
+                        ElMessage.error('加载失败: ' + err.message);
+                    } finally {
+                        seasonalLoading.value = false;
+                    }
+                };
+
+                const renderSeasonalChart = () => {
+                    if (!seasonalData.value) return;
+
+                    const data = seasonalData.value;
+                    const chartEl = document.getElementById('seasonalChart');
+                    if (!chartEl) return;
+
+                    if (!seasonalChartInstance) {
+                        seasonalChartInstance = echarts.init(chartEl);
+                    }
+
+                    const netPosition = data.total_buy.map((buy, idx) => buy - data.total_ss[idx]);
+
+                    seasonalChartInstance.setOption({
+                        title: {
+                            text: `${seasonalVariety.value}${seasonalContract.value} 持仓季节性分析`,
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                let result = params[0].name + '<br/>';
+                                params.forEach(item => {
+                                    result += item.marker + item.seriesName + ': ' + item.value.toLocaleString() + '<br/>';
+                                });
+                                return result;
+                            }
+                        },
+                        legend: { data: ['多头持仓', '空头持仓', '净持仓'], top: 30 },
+                        grid: { left: '3%', right: '4%', bottom: '3%', top: 80, containLabel: true },
+                        xAxis: {
+                            type: 'category',
+                            data: data.dates,
+                            axisLabel: { rotate: 45, fontSize: 10 }
+                        },
+                        yAxis: [
+                            { type: 'value', name: '持仓量', position: 'left' },
+                            { type: 'value', name: '净持仓', position: 'right' }
+                        ],
+                        series: [
+                            {
+                                name: '多头持仓',
+                                type: 'line',
+                                data: data.total_buy,
+                                itemStyle: { color: '#f56c6c' },
+                                smooth: true,
+                                yAxisIndex: 0
+                            },
+                            {
+                                name: '空头持仓',
+                                type: 'line',
+                                data: data.total_ss,
+                                itemStyle: { color: '#67c23a' },
+                                smooth: true,
+                                yAxisIndex: 0
+                            },
+                            {
+                                name: '净持仓',
+                                type: 'bar',
+                                data: netPosition,
+                                itemStyle: {
+                                    color: function(params) {
+                                        return params.data >= 0 ? '#f56c6c' : '#67c23a';
+                                    }
+                                },
+                                yAxisIndex: 1
+                            }
+                        ]
+                    });
+                };
+
+                // ==================== 价格季节性分析功能 ====================
+
+                // 加载价格季节性数据 (5年同月合约对比)
+                const loadSeasonalPriceData = async () => {
+                    if (!positionContractCode.value) return;
+
+                    seasonalPriceLoading.value = true;
+                    seasonalPriceData.value = [];
+
+                    try {
+                        // 解析合约代码，例如 rb2603 -> 品种:rb, 年份:26, 月份:03
+                        const contractCode = positionContractCode.value.toLowerCase();
+                        const match = contractCode.match(/^([a-z]+)(\d{2})(\d{2})$/);
+                        if (!match) {
+                            console.warn('合约代码格式不正确:', contractCode);
+                            return;
+                        }
+
+                        const [, variety, yearStr, monthStr] = match;
+                        const currentYear = 2000 + parseInt(yearStr);
+                        const month = monthStr;
+
+                        // 生成5年的合约代码
+                        const contracts = [];
+                        for (let i = 0; i < 5; i++) {
+                            const year = currentYear - i;
+                            const yearCode = (year % 100).toString().padStart(2, '0');
+                            const contractName = `${variety}${yearCode}${month}`;
+                            contracts.push({
+                                code: contractName,
+                                year: year,
+                                label: `${year}年${parseInt(month)}月`
+                            });
+                        }
+
+                        // 获取价格数据
+                        const response = await fetch(`${API_BASE}/capital/seasonal-price`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                variety: variety,
+                                contracts: contracts.map(c => c.code)
+                            })
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.success && result.data) {
+                                seasonalPriceData.value = result.data;
+                                await Vue.nextTick();
+                                setTimeout(() => {
+                                    renderSeasonalPriceChart(contracts);
+                                }, 200);
+                            }
+                        } else {
+                            console.warn('获取价格季节性数据失败');
+                        }
+                    } catch (err) {
+                        console.error('加载价格季节性数据失败:', err);
+                    } finally {
+                        seasonalPriceLoading.value = false;
+                    }
+                };
+
+                // 渲染价格季节性图表
+                const renderSeasonalPriceChart = (contracts) => {
+                    if (!seasonalPriceData.value || seasonalPriceData.value.length === 0) return;
+
+                    const chartEl = document.getElementById('seasonalPriceChart');
+                    if (!chartEl) return;
+
+                    if (!seasonalPriceChartInstance) {
+                        seasonalPriceChartInstance = echarts.init(chartEl);
+                    }
+
+                    const colors = ['#f56c6c', '#e6a23c', '#409eff', '#67c23a', '#909399'];
+                    const series = [];
+                    const legendData = [];
+
+                    seasonalPriceData.value.forEach((contractData, idx) => {
+                        const contract = contracts[idx];
+                        if (contractData && contractData.prices && contractData.prices.length > 0) {
+                            legendData.push(contract.label);
+                            series.push({
+                                name: contract.label,
+                                type: 'line',
+                                data: contractData.prices,
+                                itemStyle: { color: colors[idx % colors.length] },
+                                smooth: true,
+                                symbol: 'none'
+                            });
+                        }
+                    });
+
+                    // 使用交易日作为X轴 (统一显示为交易日序号)
+                    const maxDays = Math.max(...seasonalPriceData.value.map(d => d?.prices?.length || 0));
+                    const xAxisData = Array.from({ length: maxDays }, (_, i) => `T+${i + 1}`);
+
+                    seasonalPriceChartInstance.setOption({
+                        title: {
+                            text: `${positionContractCode.value.toUpperCase()} 价格季节性对比`,
+                            subtext: '同月合约价格走势对比 (按交易日对齐)',
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                let result = params[0].name + '<br/>';
+                                params.forEach(item => {
+                                    result += item.marker + item.seriesName + ': ' + (item.value ? item.value.toLocaleString() : '-') + '<br/>';
+                                });
+                                return result;
+                            }
+                        },
+                        legend: { data: legendData, top: 50 },
+                        grid: { left: '3%', right: '4%', bottom: '3%', top: 100, containLabel: true },
+                        xAxis: {
+                            type: 'category',
+                            data: xAxisData,
+                            axisLabel: { rotate: 0, fontSize: 10 }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '价格',
+                            axisLabel: {
+                                formatter: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        series: series
+                    });
+                };
+
+                // ==================== 席位分析功能 ====================
+
+                // 品种选择变化时，生成合约列表
+                const onSeatVarietyChange = (varietyCode) => {
+                    // 清空之前的合约选择
+                    seatContractCode.value = '';
+                    institutionData.value = null;
+                    institutionTrendData.value = null;
+                    seatPositionDetails.value = [];
+
+                    // 根据品种代码生成合约列表
+                    const variety = seatVarietyList.value.find(v => v.code === varietyCode);
+                    if (variety) {
+                        seatVarietyName.value = variety.name;
+
+                        // 生成合约列表 (当前月份及未来几个月的主力合约)
+                        const contracts = [];
+                        const now = new Date();
+                        const currentYear = now.getFullYear();
+                        const currentMonth = now.getMonth() + 1;
+
+                        // 生成未来12个月的合约
+                        for (let i = 0; i < 12; i++) {
+                            let month = currentMonth + i;
+                            let year = currentYear;
+                            if (month > 12) {
+                                month -= 12;
+                                year += 1;
+                            }
+                            // 格式: rb2603 (年份后两位 + 月份两位)
+                            const yearStr = String(year).slice(-2);
+                            const monthStr = String(month).padStart(2, '0');
+                            contracts.push(`${varietyCode}${yearStr}${monthStr}`);
+                        }
+
+                        seatContractList.value = contracts;
+
+                        // 默认选择第一个合约 (通常是主力合约附近)
+                        // 尝试选择03、05、09、01月份的合约作为默认
+                        const preferredMonths = ['03', '05', '09', '01', '10', '11', '12'];
+                        let defaultContract = contracts[0];
+                        for (const pm of preferredMonths) {
+                            const found = contracts.find(c => c.endsWith(pm));
+                            if (found) {
+                                defaultContract = found;
+                                break;
+                            }
+                        }
+                        seatContractCode.value = defaultContract;
+                    }
+                };
+
+                // 扫描所有品种，找出机构散户方向相反的
+                const scanDivergentVarieties = async () => {
+                    divergentScanning.value = true;
+                    divergentScanCompleted.value = false;
+                    divergentVarieties.value = [];
+
+                    // 初始化席位配置
+                    initSeatConfig();
+
+                    const varieties = seatVarietyList.value;
+                    divergentScanTotal.value = varieties.length;
+                    divergentScanCurrent.value = 0;
+
+                    const results = [];
+
+                    for (const variety of varieties) {
+                        divergentScanCurrent.value++;
+                        divergentScanCurrentName.value = variety.name;
+                        divergentScanProgress.value = Math.round((divergentScanCurrent.value / divergentScanTotal.value) * 100);
+
+                        try {
+                            // 生成主力合约代码
+                            const now = new Date();
+                            const currentYear = now.getFullYear();
+                            const currentMonth = now.getMonth() + 1;
+
+                            // 尝试几个月份的合约
+                            const monthsToTry = [];
+                            for (let i = 1; i <= 6; i++) {
+                                let month = currentMonth + i;
+                                let year = currentYear;
+                                if (month > 12) {
+                                    month -= 12;
+                                    year += 1;
+                                }
+                                const yearStr = String(year).slice(-2);
+                                const monthStr = String(month).padStart(2, '0');
+                                monthsToTry.push(`${variety.code}${yearStr}${monthStr}`);
+                            }
+
+                            // 尝试获取数据
+                            let posResult = null;
+                            let successContract = null;
+                            for (const contract of monthsToTry) {
+                                try {
+                                    const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(variety.name)}/${contract}`;
+                                    const posResponse = await fetch(posUrl);
+                                    if (posResponse.ok) {
+                                        const result = await posResponse.json();
+                                        if (result.success && result.long_positions && result.long_positions.length > 0) {
+                                            posResult = result;
+                                            successContract = contract;
+                                            break;
+                                        }
+                                    }
+                                } catch (e) {
+                                    // 继续尝试下一个合约
+                                }
+                            }
+
+                            if (posResult) {
+                                // 计算机构和散户持仓
+                                const institutionList = selectedInstitutionSeats.value.length > 0
+                                    ? selectedInstitutionSeats.value
+                                    : presetInstitutionSeats.value;
+
+                                let institutionLong = 0, institutionShort = 0;
+                                let retailLong = 0, retailShort = 0;
+
+                                // 处理多头
+                                (posResult.long_positions || []).forEach(pos => {
+                                    const isInstitution = institutionList.some(inst =>
+                                        pos.broker === inst || pos.broker.includes(inst) || inst.includes(pos.broker)
+                                    );
+                                    if (isInstitution) {
+                                        institutionLong += pos.volume || 0;
+                                    } else {
+                                        retailLong += pos.volume || 0;
+                                    }
+                                });
+
+                                // 处理空头
+                                (posResult.short_positions || []).forEach(pos => {
+                                    const isInstitution = institutionList.some(inst =>
+                                        pos.broker === inst || pos.broker.includes(inst) || inst.includes(pos.broker)
+                                    );
+                                    if (isInstitution) {
+                                        institutionShort += pos.volume || 0;
+                                    } else {
+                                        retailShort += pos.volume || 0;
+                                    }
+                                });
+
+                                const institutionNet = institutionLong - institutionShort;
+                                const retailNet = retailLong - retailShort;
+
+                                // 判断是否方向相反
+                                if (institutionNet * retailNet < 0) {
+                                    results.push({
+                                        code: variety.code,
+                                        name: variety.name,
+                                        contract: successContract,
+                                        institutionNet,
+                                        retailNet,
+                                        institutionDirection: institutionNet > 0 ? 'long' : 'short',
+                                        retailDirection: retailNet > 0 ? 'long' : 'short'
+                                    });
+                                }
+                            }
+
+                            // 避免请求过快
+                            await new Promise(resolve => setTimeout(resolve, 300));
+
+                        } catch (err) {
+                            console.error(`扫描 ${variety.name} 失败:`, err);
+                        }
+                    }
+
+                    divergentVarieties.value = results;
+                    divergentScanning.value = false;
+                    divergentScanCompleted.value = true;
+                    divergentScanCurrentName.value = '';
+                    divergentLastUpdate.value = new Date().toLocaleString('zh-CN');
+
+                    // 保存结果到后端
+                    try {
+                        await fetch(`${API_BASE}/capital/divergent-scan/save`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ varieties: results, update_time: divergentLastUpdate.value })
+                        });
+                    } catch (e) {
+                        console.error('保存扫描结果失败:', e);
+                    }
+
+                    if (results.length > 0) {
+                        ElMessage.success(`扫描完成，发现 ${results.length} 个方向相反的品种`);
+                        // 自动选择第一个品种并加载详情
+                        selectDivergentVariety(results[0]);
+                    } else {
+                        ElMessage.info('扫描完成，未发现方向相反的品种');
+                    }
+                };
+
+                // 从后端加载扫描结果
+                const loadDivergentFromServer = async () => {
+                    divergentLoading.value = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/capital/divergent-scan/latest`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.varieties && data.varieties.length > 0) {
+                                divergentVarieties.value = data.varieties;
+                                divergentLastUpdate.value = data.update_time || '';
+                                divergentScanCompleted.value = true;
+                                // 自动选择第一个品种
+                                selectDivergentVariety(data.varieties[0]);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('加载扫描结果失败:', err);
+                    } finally {
+                        divergentLoading.value = false;
+                    }
+                };
+
+                // 点击方向相反的品种卡片，自动选择并查询
+                const selectDivergentVariety = (item) => {
+                    seatSelectedVariety.value = item.code;
+                    onSeatVarietyChange(item.code);
+                    seatContractCode.value = item.contract;
+                    // 自动查询
+                    loadSeatAnalysisData();
+                };
+
+                const loadSeatAnalysisData = async () => {
+                    if (!seatSelectedVariety.value || !seatContractCode.value) {
+                        ElMessage.warning('请先选择品种和合约');
+                        return;
+                    }
+
+                    seatLoading.value = true;
+                    try {
+                        // 初始化席位配置（如果没有配置过）
+                        initSeatConfig();
+
+                        // 先加载持仓数据
+                        const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(seatVarietyName.value)}/${seatContractCode.value}`;
+                        const posResponse = await fetch(posUrl);
+
+                        if (!posResponse.ok) {
+                            throw new Error(`HTTP ${posResponse.status}: ${posResponse.statusText}`);
+                        }
+
+                        const posResult = await posResponse.json();
+
+                        if (posResult.success) {
+                            // 更新所有期货公司列表（合并预设列表和API返回的列表）
+                            const allBrokers = new Set([...presetInstitutionSeats.value, ...presetRetailSeats.value]);
+                            if (posResult.long_positions) {
+                                posResult.long_positions.forEach(p => allBrokers.add(p.broker));
+                            }
+                            if (posResult.short_positions) {
+                                posResult.short_positions.forEach(p => allBrokers.add(p.broker));
+                            }
+                            allBrokersList.value = [...allBrokers].sort();
+
+                            // 计算机构vs散户数据
+                            calculateInstitutionData(posResult);
+
+                            // 生成席位持仓明细列表
+                            generateSeatPositionDetails(posResult);
+
+                            ElMessage.success('席位数据加载成功');
+                        } else {
+                            throw new Error(posResult.error || '获取席位数据失败');
+                        }
+
+                        // 加载趋势数据
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(seatVarietyName.value)}/${seatContractCode.value}/full`;
+                        const fullResponse = await fetch(fullUrl);
+
+                        if (fullResponse.ok) {
+                            const fullResult = await fullResponse.json();
+                            if (fullResult.success) {
+                                institutionTrendData.value = fullResult.data;
+                                await Vue.nextTick();
+                                setTimeout(() => {
+                                    renderInstitutionTrendChart();
+                                }, 200);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('加载席位分析失败:', err);
+                        ElMessage.error('加载失败: ' + err.message);
+                    } finally {
+                        seatLoading.value = false;
+                    }
+                };
+
+                // 初始化席位配置
+                const initSeatConfig = () => {
+                    // 从localStorage加载配置
+                    const savedInst = localStorage.getItem('institutionSeats');
+                    const savedRetail = localStorage.getItem('retailSeats');
+
+                    if (savedInst) {
+                        try {
+                            selectedInstitutionSeats.value = JSON.parse(savedInst);
+                        } catch (e) {
+                            selectedInstitutionSeats.value = [];
+                        }
+                    }
+
+                    if (savedRetail) {
+                        try {
+                            selectedRetailSeats.value = JSON.parse(savedRetail);
+                        } catch (e) {
+                            selectedRetailSeats.value = [];
+                        }
+                    }
+
+                    // 如果没有配置，使用预设值
+                    if (selectedInstitutionSeats.value.length === 0) {
+                        selectedInstitutionSeats.value = [...presetInstitutionSeats.value];
+                    }
+                    if (selectedRetailSeats.value.length === 0) {
+                        selectedRetailSeats.value = [...presetRetailSeats.value];
+                    }
+                };
+
+                const calculateInstitutionData = (posResult) => {
+                    // 获取配置的机构席位列表
+                    let institutionList = selectedInstitutionSeats.value;
+
+                    // 如果没有配置，使用预设的机构席位
+                    if (!institutionList || institutionList.length === 0) {
+                        institutionList = presetInstitutionSeats.value;
+                    }
+
+                    console.log('使用的机构席位列表:', institutionList);
+                    console.log('持仓数据:', posResult);
+
+                    // 计算机构和散户持仓
+                    let institutionLong = 0, institutionShort = 0;
+                    let retailLong = 0, retailShort = 0;
+
+                    (posResult.long_positions || []).forEach(pos => {
+                        // 判断是否为机构席位（精确匹配或包含匹配）
+                        const isInstitution = institutionList.some(inst =>
+                            pos.broker === inst || pos.broker.includes(inst) || inst.includes(pos.broker)
+                        );
+                        if (isInstitution) {
+                            institutionLong += pos.volume || 0;
+                        } else {
+                            retailLong += pos.volume || 0;
+                        }
+                    });
+
+                    (posResult.short_positions || []).forEach(pos => {
+                        const isInstitution = institutionList.some(inst =>
+                            pos.broker === inst || pos.broker.includes(inst) || inst.includes(pos.broker)
+                        );
+                        if (isInstitution) {
+                            institutionShort += pos.volume || 0;
+                        } else {
+                            retailShort += pos.volume || 0;
+                        }
+                    });
+
+                    const institutionNet = institutionLong - institutionShort;
+                    const retailNet = retailLong - retailShort;
+
+                    console.log('机构多头:', institutionLong, '机构空头:', institutionShort, '机构净持仓:', institutionNet);
+                    console.log('散户多头:', retailLong, '散户空头:', retailShort, '散户净持仓:', retailNet);
+
+                    institutionData.value = {
+                        institution: {
+                            long_position: institutionLong,
+                            short_position: institutionShort,
+                            net_position: institutionNet,
+                            direction: institutionNet >= 0 ? 'long' : 'short'
+                        },
+                        retail: {
+                            long_position: retailLong,
+                            short_position: retailShort,
+                            net_position: retailNet,
+                            direction: retailNet >= 0 ? 'long' : 'short'
+                        },
+                        divergence: institutionNet * retailNet < 0
+                    };
+                };
+
+                // 生成席位持仓明细列表
+                const generateSeatPositionDetails = (posResult) => {
+                    const institutionList = selectedInstitutionSeats.value.length > 0
+                        ? selectedInstitutionSeats.value
+                        : presetInstitutionSeats.value;
+
+                    const details = [];
+
+                    // 处理多头席位
+                    (posResult.long_positions || []).forEach(pos => {
+                        const isInstitution = institutionList.some(inst =>
+                            pos.broker === inst || pos.broker.includes(inst) || inst.includes(pos.broker)
+                        );
+
+                        details.push({
+                            broker: pos.broker,
+                            type: isInstitution ? '机构' : '散户',
+                            longVolume: pos.volume || 0,
+                            shortVolume: 0,
+                            longChange: pos.change || 0,
+                            shortChange: 0,
+                            netPosition: pos.volume || 0,
+                            direction: '多头'
+                        });
+                    });
+
+                    // 处理空头席位
+                    (posResult.short_positions || []).forEach(pos => {
+                        const existing = details.find(d => d.broker === pos.broker);
+                        if (existing) {
+                            existing.shortVolume = pos.volume || 0;
+                            existing.shortChange = pos.change || 0;
+                            existing.netPosition = existing.longVolume - existing.shortVolume;
+                            existing.direction = existing.netPosition >= 0 ? '多头' : '空头';
+                        } else {
+                            const isInstitution = institutionList.some(inst =>
+                                pos.broker === inst || pos.broker.includes(inst) || inst.includes(pos.broker)
+                            );
+
+                            details.push({
+                                broker: pos.broker,
+                                type: isInstitution ? '机构' : '散户',
+                                longVolume: 0,
+                                shortVolume: pos.volume || 0,
+                                longChange: 0,
+                                shortChange: pos.change || 0,
+                                netPosition: -(pos.volume || 0),
+                                direction: '空头'
+                            });
+                        }
+                    });
+
+                    // 按净持仓绝对值排序
+                    details.sort((a, b) => Math.abs(b.netPosition) - Math.abs(a.netPosition));
+
+                    seatPositionDetails.value = details;
+                };
+
+                const renderInstitutionTrendChart = () => {
+                    console.log('renderInstitutionTrendChart called, data:', institutionTrendData.value);
+
+                    if (!institutionTrendData.value) {
+                        console.log('No trend data available');
+                        return;
+                    }
+
+                    const chartEl = document.getElementById('institutionTrendChart');
+                    console.log('Chart element:', chartEl);
+
+                    if (!chartEl) {
+                        console.log('Chart element not found, retrying...');
+                        setTimeout(renderInstitutionTrendChart, 300);
+                        return;
+                    }
+
+                    try {
+                        if (!institutionTrendChartInstance) {
+                            institutionTrendChartInstance = echarts.init(chartEl);
+                        }
+
+                        const data = institutionTrendData.value;
+
+                        // 检查数据是否有效
+                        if (!data.total_buy || !data.total_ss || !data.dates) {
+                            console.error('Invalid trend data structure:', data);
+                            return;
+                        }
+
+                        const netPosition = data.total_buy.map((buy, idx) => buy - (data.total_ss[idx] || 0));
+
+                        console.log('Rendering chart with dates:', data.dates.length, 'points');
+
+                        institutionTrendChartInstance.setOption({
+                            title: { text: '持仓趋势分析', left: 'center' },
+                            tooltip: {
+                                trigger: 'axis',
+                                formatter: function(params) {
+                                    let result = params[0].name + '<br/>';
+                                    params.forEach(item => {
+                                        result += item.marker + item.seriesName + ': ' + (item.value || 0).toLocaleString() + '<br/>';
+                                    });
+                                    return result;
+                                }
+                            },
+                            legend: { data: ['多头持仓', '空头持仓', '净持仓'], top: 30 },
+                            grid: { left: '3%', right: '4%', bottom: '15%', top: 80, containLabel: true },
+                            xAxis: {
+                                type: 'category',
+                                data: data.dates,
+                                axisLabel: { rotate: 45, fontSize: 10 }
+                            },
+                            yAxis: [
+                                { type: 'value', name: '持仓量', position: 'left' },
+                                { type: 'value', name: '净持仓', position: 'right' }
+                            ],
+                            series: [
+                                {
+                                    name: '多头持仓',
+                                    type: 'line',
+                                    data: data.total_buy,
+                                    itemStyle: { color: '#f56c6c' },
+                                    smooth: true,
+                                    yAxisIndex: 0
+                                },
+                                {
+                                    name: '空头持仓',
+                                    type: 'line',
+                                    data: data.total_ss,
+                                    itemStyle: { color: '#67c23a' },
+                                    smooth: true,
+                                    yAxisIndex: 0
+                                },
+                                {
+                                    name: '净持仓',
+                                    type: 'bar',
+                                    data: netPosition,
+                                    itemStyle: {
+                                        color: function(params) {
+                                            return params.data >= 0 ? '#f56c6c' : '#67c23a';
+                                        }
+                                    },
+                                    yAxisIndex: 1
+                                }
+                            ]
+                        });
+
+                        console.log('Chart rendered successfully');
+                    } catch (err) {
+                        console.error('Error rendering chart:', err);
+                    }
+                };
+
+                const saveSeatConfig = () => {
+                    try {
+                        localStorage.setItem('institutionSeats', JSON.stringify(selectedInstitutionSeats.value));
+                        localStorage.setItem('retailSeats', JSON.stringify(selectedRetailSeats.value));
+                        ElMessage.success('席位配置已保存');
+                        showSeatConfig.value = false;
+
+                        // 重新加载数据以更新计算结果
+                        loadSeatAnalysisData();
+                    } catch (err) {
+                        console.error('保存配置失败:', err);
+                        ElMessage.error('保存失败');
+                    }
+                };
+
+                const removeInstitutionSeat = (seat) => {
+                    const index = selectedInstitutionSeats.value.indexOf(seat);
+                    if (index > -1) {
+                        selectedInstitutionSeats.value.splice(index, 1);
+                    }
+                };
+
+                const removeRetailSeat = (seat) => {
+                    const index = selectedRetailSeats.value.indexOf(seat);
+                    if (index > -1) {
+                        selectedRetailSeats.value.splice(index, 1);
+                    }
+                };
+
+                const resetSeatConfig = () => {
+                    selectedInstitutionSeats.value = [...presetInstitutionSeats.value];
+                    selectedRetailSeats.value = [...presetRetailSeats.value];
+                    ElMessage.success('已重置为默认配置');
+                };
+                // ==================== 持仓分析功能结束 ====================
 
                 // Open opportunity radar page
                 const openOpportunityRadar = () => {
@@ -3214,12 +4759,35 @@
                     // 更新图片刷新键，强制重新加载蓝图图片
                     imageRefreshKey.value++;
 
-                    // Fetch all data when date changes
+                    // 日期变更时重新加载所有数据
+                    console.log('日期变更为:', selectedDate.value, '重新加载所有数据...');
+
+                    // 基本面数据
                     fetchZhihuiStats();
                     fetchZhihuiData();
                     fetchCapitalData();
                     fetchJYKStrategies();
+
+                    // 虚实比数据
                     loadVRData();
+
+                    // V2综合分析数据（总览表格）
+                    loadV2Data();
+
+                    // 期限结构数据（强制重新加载）
+                    allTermStructures.value = null;
+                    loadAllTermStructures();
+
+                    // 结构变化数据
+                    structureChanges.value = { changed_varieties: [], changed_count: 0, lookback_days: structureLookbackDays.value };
+                    if (termStructureSubTab.value === 'changes') {
+                        loadStructureChanges(structureLookbackDays.value);
+                    }
+
+                    // 席位分析数据
+                    loadDivergentFromServer();
+
+                    ElMessage.success('正在加载 ' + selectedDate.value + ' 的数据...');
                 };
 
                 // Watch activeTab to fetch data when switching tabs
@@ -3267,6 +4835,11 @@
                     } else if (newTab === 'term-analysis') {
                         // Load virtual-real ratio data
                         if (!vrList.value.length) loadVRData();
+                    } else if (newTab === 'term-structure') {
+                        // Load term structure data
+                        if (!allTermStructures.value) loadAllTermStructures();
+                    } else if (newTab === 'seat-analysis') {
+                        // 席位分析标签 - 初次加载时不自动查询，等待用户手动查询
                     }
                 });
 
@@ -3304,7 +4877,9 @@
                     fetchZhihuiData();
                     fetchJYKStrategies();  // 加载交易蓝图数据
                     loadV2Data();  // 加载V2分析数据
+                    loadVRData();  // 加载虚实比数据（用于总览页显示）
                     loadOpportunities();  // 加载机会雷达数据 (Phase 5)
+                    loadDivergentFromServer();  // 加载席位分析数据
                 });
 
                 return {
@@ -3312,6 +4887,7 @@
                     searchQuery,
                     selectedDate,
                     loading,
+                    disableFutureDate,
                     zhihuiData,
                     zhihuiStats,
                     sentimentFilter,
@@ -3355,6 +4931,8 @@
                     onDateChange,
                     fetchZhihuiData,
                     getVarietyName,
+                    getDivergentInfo,
+                    getVRInfo,
                     goToVarietyDetail,
                     handleImageError,
                     openResearchDetail,
@@ -3391,6 +4969,11 @@
                     termEnhancedData,
                     termEnhancedLoading,
                     loadTermEnhancedData,
+                    // 结构变化
+                    structureChanges,
+                    structureChangesLoading,
+                    structureLookbackDays,
+                    loadStructureChanges,
                     // V2 Analysis
                     v2AllData,
                     v2FilteredData,
@@ -3431,7 +5014,62 @@
                     opportunityMinGrade,
                     opportunitySearchKeyword,
                     filterOpportunities,
-                    handleOpportunitySubTabChange
+                    handleOpportunitySubTabChange,
+                    // 持仓分析
+                    positionVarietyName,
+                    positionContractCode,
+                    positionLoading,
+                    positionData,
+                    positionFullData,
+                    loadPositionData,
+                    // 季节性分析
+                    seasonalVariety,
+                    seasonalContract,
+                    seasonalData,
+                    seasonalLoading,
+                    seasonalCommonVarieties,
+                    loadSeasonalData,
+                    // 价格季节性分析
+                    seasonalPriceData,
+                    seasonalPriceLoading,
+                    loadSeasonalPriceData,
+                    // 席位分析
+                    seatSelectedVariety,
+                    seatVarietyName,
+                    seatContractCode,
+                    seatVarietyList,
+                    seatContractList,
+                    seatLoading,
+                    institutionData,
+                    institutionTrendData,
+                    showSeatConfig,
+                    selectedInstitutionSeats,
+                    selectedRetailSeats,
+                    presetInstitutionSeats,
+                    presetRetailSeats,
+                    allBrokersList,
+                    seatPositionDetails,
+                    onSeatVarietyChange,
+                    loadSeatAnalysisData,
+                    saveSeatConfig,
+                    removeInstitutionSeat,
+                    removeRetailSeat,
+                    resetSeatConfig,
+                    // 机构散户方向相反扫描
+                    divergentVarieties,
+                    divergentLongVarieties,
+                    divergentShortVarieties,
+                    divergentScanning,
+                    divergentScanCompleted,
+                    divergentScanProgress,
+                    divergentScanCurrent,
+                    divergentScanTotal,
+                    divergentScanCurrentName,
+                    divergentLastUpdate,
+                    divergentLoading,
+                    scanDivergentVarieties,
+                    selectDivergentVariety,
+                    loadDivergentFromServer
                 };
             }
         });
