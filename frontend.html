@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OptionAlpha - 期权交易策略系统</title>
     <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
     <!-- Element Plus -->
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
-    <script src="https://unpkg.com/element-plus"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
+    <!-- Element Plus Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
     <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <!-- Tailwind CSS -->
@@ -178,6 +180,30 @@
                             format="YYYY-MM-DD"
                             value-format="YYYY-MM-DD">
                         </el-date-picker>
+                        <!-- 系统通知栏 -->
+                        <el-popover placement="bottom" :width="400" trigger="click">
+                            <template #reference>
+                                <el-badge :value="1" class="item">
+                                    <el-button circle>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                        </svg>
+                                    </el-button>
+                                </el-badge>
+                            </template>
+                            <div>
+                                <div class="font-bold text-gray-800 mb-3 pb-2 border-b">系统通知</div>
+                                <div class="space-y-2">
+                                    <div class="p-3 bg-blue-50 rounded cursor-pointer hover:bg-blue-100 transition-all" @click="activeTab = 'daily-report'">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="font-semibold text-sm text-blue-900">📊 每日早报</span>
+                                            <span class="text-xs text-gray-500">{{ selectedDate }}</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600">点击查看今日市场分析早报</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-popover>
                     </div>
                 </div>
             </div>
@@ -185,58 +211,144 @@
 
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- 主导航 -->
-            <el-tabs v-model="activeTab" type="card" class="mb-6">
+            <el-tabs v-model="activeTab" type="card" class="mb-6" @tab-click="handleTabClick">
                 <el-tab-pane label="📊 总览" name="overview"></el-tab-pane>
-                <el-tab-pane label="🔍 品种详情" name="variety-detail"></el-tab-pane>
                 <el-tab-pane label="📰 基本面" name="fundamental"></el-tab-pane>
-                <el-tab-pane label="💰 资金面" name="capital"></el-tab-pane>
-                <el-tab-pane label="📈 期限分析" name="term-analysis"></el-tab-pane>
+                <el-tab-pane label="💼 持仓分析" name="capital"></el-tab-pane>
+                <el-tab-pane label="⚖️ 虚实比" name="virtual-real-ratio"></el-tab-pane>
+                <el-tab-pane label="📈 期限结构" name="term-structure"></el-tab-pane>
                 <el-tab-pane label="📉 技术面" name="technical"></el-tab-pane>
             </el-tabs>
 
-            <!-- 总览页 - V2分析总览 -->
+            <!-- 总览页 - V2分析总览 + 机会雷达 + 品种详情 -->
             <div v-if="activeTab === 'overview'" class="space-y-6">
-                <!-- 统计卡片 -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="stat-card">
-                        <div class="text-sm text-gray-600 mb-1">总品种数</div>
-                        <div class="text-3xl font-bold">{{ v2Stats.total || 0 }}</div>
-                    </div>
-                    <div class="stat-card" style="border-color: #10b981;">
-                        <div class="text-sm text-gray-600 mb-1">多头品种</div>
-                        <div class="text-3xl font-bold" style="color: #10b981;">{{ v2Stats.long || 0 }}</div>
-                    </div>
-                    <div class="stat-card" style="border-color: #ef4444;">
-                        <div class="text-sm text-gray-600 mb-1">空头品种</div>
-                        <div class="text-3xl font-bold" style="color: #ef4444;">{{ v2Stats.short || 0 }}</div>
-                    </div>
-                    <div class="stat-card" style="border-color: #6b7280;">
-                        <div class="text-sm text-gray-600 mb-1">中性品种</div>
-                        <div class="text-3xl font-bold" style="color: #6b7280;">{{ v2Stats.neutral || 0 }}</div>
+                <!-- 机会雷达统计卡片 -->
+                <div class="glass-card">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 市场总览 - 交易机会雷达</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 多头机会 - 红色 -->
+                        <div class="stat-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%); border: 2px solid #ef4444;">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <div class="text-sm text-red-900 font-semibold mb-1">📈 多头机会</div>
+                                    <div class="text-4xl font-bold text-red-700">{{ bullOpportunityCount }}</div>
+                                    <div class="text-sm text-red-800 mt-2">
+                                        A级及以上: <span class="font-bold text-lg">{{ getBullAAndAbove() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 显示多头A级品种 -->
+                            <div class="mt-4 pt-3 border-t border-red-300" v-if="getBullAList().length > 0">
+                                <div class="text-xs text-red-900 font-semibold mb-2">A级品种:</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <div v-for="opp in getBullAList()" :key="opp.comm_code"
+                                        class="inline-flex items-center bg-white bg-opacity-60 rounded px-2 py-1 text-xs cursor-pointer hover:bg-opacity-80 transition-all"
+                                        @click="handleRowClick({品种: opp.comm_code})">
+                                        <span class="font-bold text-red-700">{{ opp.comm_code }}</span>
+                                        <span class="text-gray-600 mx-1">{{ getVarietyName(opp.comm_code) }}</span>
+                                        <el-tag :type="opp.grade === 'S' ? 'danger' : 'warning'" size="small" effect="plain" style="height: 18px; padding: 0 4px; margin: 0 3px;">
+                                            {{ opp.grade }}
+                                        </el-tag>
+                                        <span class="text-gray-500">{{ opp.confidence }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 空头机会 - 绿色 -->
+                        <div class="stat-card" style="background: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%); border: 2px solid #10b981;">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <div class="text-sm text-green-900 font-semibold mb-1">📉 空头机会</div>
+                                    <div class="text-4xl font-bold text-green-700">{{ bearOpportunityCount }}</div>
+                                    <div class="text-sm text-green-800 mt-2">
+                                        A级及以上: <span class="font-bold text-lg">{{ getBearAAndAbove() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 显示空头A级品种 -->
+                            <div class="mt-4 pt-3 border-t border-green-300" v-if="getBearAList().length > 0">
+                                <div class="text-xs text-green-900 font-semibold mb-2">A级品种:</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <div v-for="opp in getBearAList()" :key="opp.comm_code"
+                                        class="inline-flex items-center bg-white bg-opacity-60 rounded px-2 py-1 text-xs cursor-pointer hover:bg-opacity-80 transition-all"
+                                        @click="handleRowClick({品种: opp.comm_code})">
+                                        <span class="font-bold text-green-700">{{ opp.comm_code }}</span>
+                                        <span class="text-gray-600 mx-1">{{ getVarietyName(opp.comm_code) }}</span>
+                                        <el-tag :type="opp.grade === 'S' ? 'danger' : 'warning'" size="small" effect="plain" style="height: 18px; padding: 0 4px; margin: 0 3px;">
+                                            {{ opp.grade }}
+                                        </el-tag>
+                                        <span class="text-gray-500">{{ opp.confidence }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 筛选按钮 -->
                 <div class="glass-card">
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center flex-wrap gap-3">
                         <el-radio-group v-model="v2FilterDirection" @change="handleV2FilterChange">
                             <el-radio-button label="all">全部</el-radio-button>
                             <el-radio-button label="多头">多头</el-radio-button>
                             <el-radio-button label="空头">空头</el-radio-button>
                             <el-radio-button label="中性">中性</el-radio-button>
                         </el-radio-group>
-                        <el-button type="primary" @click="refreshV2Data" :loading="v2Loading">
-                            <span v-if="!v2Loading">刷新数据</span>
-                            <span v-else>分析中...</span>
-                        </el-button>
+
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <el-select v-model="overviewMinGrade" @change="handleV2FilterChange" placeholder="等级筛选" style="width: 140px;" size="small">
+                                <el-option label="全部等级" value=""></el-option>
+                                <el-option label="S级以上" value="S"></el-option>
+                                <el-option label="A级以上" value="A"></el-option>
+                                <el-option label="B级以上" value="B"></el-option>
+                            </el-select>
+
+                            <el-input
+                                v-model="overviewSearchKeyword"
+                                placeholder="搜索品种..."
+                                @input="handleV2FilterChange"
+                                clearable
+                                style="width: 200px;"
+                                size="small">
+                                <template #prefix>🔍</template>
+                            </el-input>
+
+                            <el-button type="primary" @click="refreshOverviewData" :loading="v2Loading || opportunitiesLoading" size="small">
+                                刷新数据
+                            </el-button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- V2分析数据表格 -->
+                <!-- 综合分析数据表格(增强版) - 点击查看品种详情 -->
                 <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 5维度综合分析</h2>
-                    <el-table :data="v2FilteredData" stripe style="width: 100%" v-loading="v2Loading" max-height="600">
-                        <el-table-column prop="品种" label="品种" width="100" fixed />
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">📊 品种分析列表 <span class="text-sm text-gray-500 font-normal">(点击行查看详情)</span></h2>
+                    <el-table :data="v2FilteredData" stripe style="width: 100%" v-loading="v2Loading || opportunitiesLoading" max-height="650" :scroll-bar-always-on="true"
+                        @row-click="handleRowClick" :row-style="{cursor: 'pointer'}">
+                        <el-table-column label="品种" width="150" fixed>
+                            <template #default="scope">
+                                <div>
+                                    <div class="font-bold text-base">{{ scope.row.品种 }}</div>
+                                    <div class="text-xs text-gray-500">{{ getVarietyName(scope.row.品种) }}</div>
+                                </div>
+                            </template>
+                        </el-table-column>
+
+                        <!-- 机会雷达等级 -->
+                        <el-table-column label="等级" width="80" sortable :sort-method="(a, b) => sortByGrade(a, b)">
+                            <template #default="scope">
+                                <el-tag v-if="scope.row.机会等级"
+                                    :type="scope.row.机会等级 === 'S' ? 'danger' : scope.row.机会等级 === 'A' ? 'warning' : 'info'"
+                                    size="small">
+                                    {{ scope.row.机会等级 }}
+                                </el-tag>
+                                <span v-else class="text-gray-400 text-xs">-</span>
+                            </template>
+                        </el-table-column>
+
                         <el-table-column label="综合方向" width="120">
                             <template #default="scope">
                                 <span :class="{
@@ -248,8 +360,30 @@
                                 </span>
                             </template>
                         </el-table-column>
+
+                        <!-- 置信度 -->
+                        <el-table-column label="置信度" width="100" sortable prop="置信度">
+                            <template #default="scope">
+                                <span v-if="scope.row.置信度" class="font-semibold" :style="{color: scope.row.置信度 >= 80 ? '#10b981' : scope.row.置信度 >= 60 ? '#f59e0b' : '#6b7280'}">
+                                    {{ scope.row.置信度 }}%
+                                </span>
+                                <span v-else class="text-gray-400 text-xs">-</span>
+                            </template>
+                        </el-table-column>
+
                         <el-table-column prop="综合星级" label="综合强度" width="100" />
-                        <el-table-column prop="净得分" label="净得分" width="100" sortable />
+
+                        <!-- 综合得分 -->
+                        <el-table-column label="综合得分" width="120" sortable prop="综合得分">
+                            <template #default="scope">
+                                <span v-if="scope.row.综合得分 !== undefined" class="font-bold text-lg"
+                                    :style="{color: scope.row.综合得分 > 0 ? '#10b981' : scope.row.综合得分 < 0 ? '#ef4444' : '#6b7280'}">
+                                    {{ scope.row.综合得分 > 0 ? '+' : '' }}{{ scope.row.综合得分.toFixed(2) }}
+                                </span>
+                                <span v-else-if="scope.row.净得分" class="font-semibold">{{ scope.row.净得分 }}</span>
+                                <span v-else class="text-gray-400 text-xs">-</span>
+                            </template>
+                        </el-table-column>
 
                         <el-table-column label="研报" width="120">
                             <template #default="scope">
@@ -281,75 +415,34 @@
                             </template>
                         </el-table-column>
 
-                        <el-table-column label="操作" width="100" fixed="right">
+                        <!-- 交易理由 -->
+                        <el-table-column label="交易理由" min-width="300">
                             <template #default="scope">
-                                <el-button type="primary" size="small" @click="viewV2Detail(scope.row.品种)">
-                                    详情
-                                </el-button>
+                                <div v-if="scope.row.交易理由 && scope.row.交易理由.length > 0" style="font-size: 12px; color: #666;">
+                                    <div v-for="(reason, idx) in scope.row.交易理由" :key="idx" style="margin-bottom: 2px;">
+                                        • {{ reason }}
+                                    </div>
+                                </div>
+                                <span v-else class="text-gray-400 text-xs">无</span>
                             </template>
                         </el-table-column>
                     </el-table>
                 </div>
 
-                <!-- V2详情对话框 -->
-                <el-dialog v-model="v2DetailDialogVisible" :title="`${v2SelectedVariety} - 品种详情`" width="80%">
-                    <div v-if="v2SelectedVariety">
-                        <h3 class="text-lg font-bold mb-3">分析信号</h3>
-                        <el-table :data="v2VarietySignals" style="margin-bottom: 20px;">
-                            <el-table-column prop="分析维度" label="分析维度" width="150" />
-                            <el-table-column prop="方向" label="方向" width="100" />
-                            <el-table-column prop="星级" label="强度" width="100" />
-                            <el-table-column prop="理由" label="理由" />
-                        </el-table>
-
-                        <h3 class="text-lg font-bold mb-3 mt-6">期限结构</h3>
-                        <el-table :data="v2VarietyTermStructure">
-                            <el-table-column prop="交割月份" label="交割月份" width="120" />
-                            <el-table-column prop="合约总数" label="合约总数" width="120" />
-                            <el-table-column prop="看涨数量" label="看涨数量" width="120" />
-                            <el-table-column prop="看跌数量" label="看跌数量" width="120" />
-                            <el-table-column prop="PCR" label="PCR" width="100" />
-                            <el-table-column label="行权价范围" width="200">
-                                <template #default="scope">
-                                    {{ scope.row.最低行权价 }} - {{ scope.row.最高行权价 }}
-                                </template>
-                            </el-table-column>
-                        </el-table>
+                <!-- 品种详情展示区域 -->
+                <div v-if="selectedVarietyInOverview" class="glass-card">
+                    <div class="mb-6 pb-4 border-b border-gray-200">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            <span class="variety-badge">{{ selectedVarietyInOverview.code }}</span>
+                            {{ selectedVarietyInOverview.name }}
+                        </h3>
                     </div>
-                </el-dialog>
-            </div>
-
-            <!-- 品种详情页 -->
-            <div v-if="activeTab === 'variety-detail'" class="space-y-6">
-                <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-6 text-gray-800">🔍 品种详情查询</h2>
-
-                    <!-- 搜索框 -->
-                    <div class="flex items-center space-x-4 mb-6">
-                        <el-input
-                            v-model="searchQuery"
-                            placeholder="搜索品种 (支持代码如 C 或名称如 玉米)"
-                            prefix-icon="Search"
-                            @keyup.enter="handleSearchVariety"
-                            class="flex-1">
-                        </el-input>
-                        <el-button type="primary" @click="handleSearchVariety">搜索</el-button>
-                    </div>
-
-                    <!-- 品种详情展示 -->
-                    <div v-if="selectedVariety">
-                        <div class="mb-6 pb-4 border-b border-gray-200">
-                            <h3 class="text-2xl font-bold text-gray-800">
-                                <span class="variety-badge">{{ selectedVariety.code }}</span>
-                                {{ selectedVariety.name }}
-                            </h3>
-                        </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- 智汇期讯情绪 -->
                             <div class="info-section">
                                 <h4 class="text-base font-bold mb-3 text-gray-800">📈 研报机构情绪</h4>
-                                <div v-if="selectedVariety.zhihui">
+                                <div v-if="selectedVariety.zhihui && selectedVariety.zhihui.more_rate !== null">
                                     <div class="mb-3">
                                         <span class="font-bold text-gray-700">主流观点: </span>
                                         <span :class="selectedVariety.zhihui.main_sentiment === 'bull' ? 'bull-tag' :
@@ -423,10 +516,65 @@
                                 <div v-else class="text-gray-500 text-sm">暂无蓝图策略</div>
                             </div>
 
-                            <!-- 方期看盘 -->
+                            <!-- 虚实比PCR -->
                             <div class="info-section">
-                                <h4 class="text-base font-bold mb-3 text-gray-800">📉 方期看盘</h4>
-                                <div class="text-gray-500 text-sm">数据整合中...</div>
+                                <h4 class="text-base font-bold mb-3 text-gray-800">⚖️ 虚实比PCR</h4>
+                                <div v-if="selectedVariety.vr">
+                                    <div class="mb-2">
+                                        <span class="font-bold text-gray-700">虚实比: </span>
+                                        <span class="font-bold text-lg" :class="selectedVariety.vr.virtual_real_ratio > 1 ? 'text-orange-500' : 'text-blue-500'">
+                                            {{ selectedVariety.vr.virtual_real_ratio.toFixed(2) }}
+                                        </span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-1">
+                                        <span class="font-semibold">风险等级: </span>
+                                        <span :class="{
+                                            'text-red-600 font-bold': selectedVariety.vr.squeeze_risk === '高',
+                                            'text-orange-500': selectedVariety.vr.squeeze_risk === '中',
+                                            'text-green-600': selectedVariety.vr.squeeze_risk === '低'
+                                        }">
+                                            {{ selectedVariety.vr.squeeze_risk || '无' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        {{ selectedVariety.vr.impact_analysis || '' }}
+                                    </div>
+                                </div>
+                                <div v-else class="text-gray-500 text-sm">暂无虚实比数据</div>
+                            </div>
+
+                            <!-- 技术面指标 -->
+                            <div class="info-section">
+                                <h4 class="text-base font-bold mb-3 text-gray-800">📉 技术面指标</h4>
+                                <div v-if="selectedVariety.technical">
+                                    <div class="mb-2">
+                                        <span class="font-bold text-gray-700">IV Rank: </span>
+                                        <span class="font-bold text-lg text-purple-600">
+                                            {{ selectedVariety.technical.iv_rank ? selectedVariety.technical.iv_rank.toFixed(1) + '%' : 'N/A' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-1">
+                                        <span class="font-semibold">期限结构: </span>
+                                        <span class="text-gray-800">
+                                            {{ selectedVariety.technical.term_structure || 'N/A' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <span class="font-semibold">PCR比率: </span>
+                                        <span class="text-gray-800">
+                                            {{ selectedVariety.technical.pcr_ratio ? selectedVariety.technical.pcr_ratio.toFixed(2) : 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-else class="text-gray-500 text-sm">暂无技术面数据</div>
+                            </div>
+                        </div>
+
+                        <!-- 期限结构图表 -->
+                        <div v-if="selectedVariety.termStructureChart" class="mt-6">
+                            <div class="glass-card">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">📈 期限结构曲线</h3>
+                                <div id="varietyTermStructureChart" style="width: 100%; height: 400px;"></div>
                             </div>
                         </div>
 
@@ -441,6 +589,44 @@
                                                 {{ report.institution_name }}: {{ report.view_port }}
                                             </el-tag>
                                         </span>
+                                    </div>
+                                </div>
+
+                                <!-- Phase 2: 研报增强分析 (整合在研报汇总内) -->
+                                <div v-if="varietyResearchEnhanced" class="mb-4">
+                                    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center">
+                                        <span class="text-lg mr-2">⚡</span>
+                                        <span>研报增强分析</span>
+                                    </h4>
+
+                                    <!-- 评级一致性 -->
+                                    <div class="mb-4">
+                                        <div class="grid grid-cols-4 gap-3">
+                                            <div class="bg-blue-50 p-3 rounded">
+                                                <div class="text-xs text-gray-600">一致性得分</div>
+                                                <div class="text-xl font-bold text-blue-600">{{ varietyResearchEnhanced.consistency.consistency_score.toFixed(1) }}%</div>
+                                            </div>
+                                            <div class="bg-purple-50 p-3 rounded">
+                                                <div class="text-xs text-gray-600">主流观点</div>
+                                                <div class="text-xl font-bold text-purple-600">{{ varietyResearchEnhanced.consistency.dominant_view }}</div>
+                                            </div>
+                                            <div class="bg-orange-50 p-3 rounded">
+                                                <div class="text-xs text-gray-600">分歧水平</div>
+                                                <div class="text-xl font-bold text-orange-600">{{ varietyResearchEnhanced.consistency.divergence_level }}</div>
+                                            </div>
+                                            <div class="bg-gray-50 p-3 rounded">
+                                                <div class="text-xs text-gray-600">BB指数</div>
+                                                <div class="text-xl font-bold" :style="{color: varietyResearchEnhanced.bb_index.bb_index > 0 ? '#ef4444' : '#22c55e'}">
+                                                    {{ varietyResearchEnhanced.bb_index.bb_index.toFixed(1) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 观点变化 -->
+                                    <div v-if="varietyResearchEnhanced.change_signals.has_change" class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded mb-4">
+                                        <div class="font-semibold text-yellow-800">{{ varietyResearchEnhanced.change_signals.change_type }}</div>
+                                        <div class="text-sm text-yellow-700">{{ varietyResearchEnhanced.change_signals.signal_description }}</div>
                                     </div>
                                 </div>
 
@@ -489,7 +675,6 @@
                         </el-empty>
                     </div>
                 </div>
-            </div>
 
             <!-- 基本面页 -->
             <div v-if="activeTab === 'fundamental'" class="space-y-6">
@@ -505,27 +690,27 @@
                             <div class="stat-card">
                                 <div class="text-sm text-gray-600 mb-1">看多品种</div>
                                 <div class="text-3xl font-bold text-red-500">
-                                    {{ zhihuiStats.sentiment_distribution?.bull?.count || 0 }}
+                                    {{ bullCount }}
                                     <span class="text-lg ml-2 text-gray-500">
-                                        ({{ zhihuiStats.sentiment_distribution?.bull?.ratio || 0 }}%)
+                                        ({{ bullRatio }}%)
                                     </span>
                                 </div>
                             </div>
                             <div class="stat-card">
                                 <div class="text-sm text-gray-600 mb-1">看空品种</div>
                                 <div class="text-3xl font-bold text-green-600">
-                                    {{ zhihuiStats.sentiment_distribution?.bear?.count || 0 }}
+                                    {{ bearCount }}
                                     <span class="text-lg ml-2 text-gray-500">
-                                        ({{ zhihuiStats.sentiment_distribution?.bear?.ratio || 0 }}%)
+                                        ({{ bearRatio }}%)
                                     </span>
                                 </div>
                             </div>
                             <div class="stat-card">
                                 <div class="text-sm text-gray-600 mb-1">中性品种</div>
                                 <div class="text-3xl font-bold text-gray-600">
-                                    {{ zhihuiStats.sentiment_distribution?.neutral?.count || 0 }}
+                                    {{ neutralCount }}
                                     <span class="text-lg ml-2 text-gray-500">
-                                        ({{ zhihuiStats.sentiment_distribution?.neutral?.ratio || 0 }}%)
+                                        ({{ neutralRatio }}%)
                                     </span>
                                 </div>
                             </div>
@@ -576,12 +761,13 @@
                                 </el-table-column>
                                 <el-table-column prop="more_rate" label="主流占比" width="90" sortable>
                                     <template #default="scope">
-                                        <span class="font-bold text-gray-800">{{ scope.row.more_rate.toFixed(1) }}%</span>
+                                        <span v-if="scope.row.more_rate !== null" class="font-bold text-gray-800">{{ scope.row.more_rate.toFixed(1) }}%</span>
+                                        <span v-else class="text-gray-400 text-xs">无数据</span>
                                     </template>
                                 </el-table-column>
                                 <el-table-column label="情绪分布" min-width="280">
                                     <template #default="scope">
-                                        <div class="sentiment-bar">
+                                        <div v-if="scope.row.excessive_ratio !== null" class="sentiment-bar">
                                             <div class="sentiment-bar-bull"
                                                  :style="{width: scope.row.excessive_ratio + '%'}"
                                                  :title="'看多: ' + scope.row.excessive_ratio.toFixed(1) + '%'">
@@ -595,11 +781,12 @@
                                                  :title="'看空: ' + scope.row.empty_ratio.toFixed(1) + '%'">
                                             </div>
                                         </div>
-                                        <div class="text-xs text-gray-500 mt-1">
+                                        <div v-if="scope.row.excessive_ratio !== null" class="text-xs text-gray-500 mt-1">
                                             看多: {{ scope.row.excessive_num }}家 ({{ scope.row.excessive_ratio.toFixed(1) }}%) |
                                             中性: {{ scope.row.neutral_num }}家 ({{ scope.row.neutral_ratio.toFixed(1) }}%) |
                                             看空: {{ scope.row.empty_num }}家 ({{ scope.row.empty_ratio.toFixed(1) }}%)
                                         </div>
+                                        <span v-else class="text-gray-400 text-xs">无数据</span>
                                     </template>
                                 </el-table-column>
                                 <el-table-column prop="sum" label="总机构数" width="90" sortable></el-table-column>
@@ -633,28 +820,12 @@
             </div>
 
             <!-- 资金面页 -->
-            <div v-if="activeTab === 'capital'" class="space-y-6">
-                <div class="glass-card">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800">💰 期权资金流向</h2>
-                    <el-empty v-if="!capitalData.length" description="暂无资金流向数据" :image-size="100"></el-empty>
-                    <el-table v-else :data="capitalData" style="width: 100%">
-                        <el-table-column label="品种" min-width="200">
-                            <template #default="scope">
-                                <span class="variety-badge">{{ scope.row.comm_code }}</span>
-                                <span class="font-bold text-gray-800">{{ getVarietyName(scope.row.comm_code) }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="净流入(万)" min-width="160">
-                            <template #default="scope">
-                                <span :class="scope.row.total_net_flow > 0 ? 'text-red-500 font-bold' : 'text-green-600 font-bold'">
-                                    {{ scope.row.total_net_flow > 0 ? '+' : '' }}{{ scope.row.total_net_flow.toFixed(2) }}
-                                </span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="total_volume" label="成交量(万)" min-width="160"></el-table-column>
-                        <el-table-column prop="count" label="记录数" min-width="120"></el-table-column>
-                    </el-table>
-                </div>
+            <div v-if="activeTab === 'capital'" style="width: 100%; height: calc(100vh - 120px);">
+                <iframe
+                    src="position_analysis.html"
+                    style="width: 100%; height: 100%; border: none; border-radius: 8px;"
+                    frameborder="0">
+                </iframe>
             </div>
 
             <!-- 技术面页 -->
@@ -744,10 +915,8 @@
             </div>
 
             <!-- 期限分析页 -->
-            <div v-if="activeTab === 'term-analysis'" class="space-y-6">
-                <el-tabs v-model="termAnalysisSubTab" type="border-card">
-                    <!-- 虚实比子标签 -->
-                    <el-tab-pane label="📊 虚实比" name="virtual-real-ratio">
+            <!-- 虚实比页 -->
+            <div v-if="activeTab === 'virtual-real-ratio'" class="space-y-6">
                         <!-- 统计概览 -->
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                             <div class="stat-card">
@@ -774,24 +943,11 @@
                                 <span class="text-2xl mr-2">🚨</span>
                                 高风险品种预警
                             </h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-wrap gap-3">
                                 <div v-for="variety in vrSummary.high_risk_varieties" :key="variety.comm_code"
-                                    class="p-4 bg-red-50 border-l-4 border-red-500 rounded hover:shadow-md transition-all cursor-pointer">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <div>
-                                            <h3 class="text-lg font-bold text-gray-800">
-                                                {{ variety.variety_name }} ({{ variety.comm_code }})
-                                            </h3>
-                                            <span class="inline-block bg-red-100 text-red-600 px-3 py-1 rounded text-sm font-semibold">高风险</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-2xl font-bold text-red-500">
-                                                {{ variety.virtual_real_ratio }}
-                                            </div>
-                                            <div class="text-sm text-gray-500">虚实比</div>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 mt-2">{{ variety.impact }}</p>
+                                    class="inline-flex items-center px-4 py-2 bg-red-50 border-l-4 border-red-500 rounded hover:shadow-md transition-all cursor-pointer">
+                                    <span class="font-bold text-gray-800 text-lg mr-2">{{ variety.variety_name }}</span>
+                                    <span class="text-2xl font-bold text-red-500">{{ variety.virtual_real_ratio }}</span>
                                 </div>
                             </div>
                         </div>
@@ -821,10 +977,11 @@
                                 </el-table-column>
                                 <el-table-column prop="virtual_real_ratio" label="虚实比" width="120" sortable>
                                     <template #default="scope">
-                                        <span class="text-lg font-bold"
+                                        <span v-if="scope.row.virtual_real_ratio !== null" class="text-lg font-bold"
                                             :class="scope.row.virtual_real_ratio > 100 ? 'text-red-500' : 'text-gray-800'">
                                             {{ scope.row.virtual_real_ratio.toFixed(2) }}
                                         </span>
+                                        <span v-else class="text-gray-400 text-xs">无数据</span>
                                     </template>
                                 </el-table-column>
                                 <el-table-column label="较上期" width="110" sortable>
@@ -877,11 +1034,44 @@
                                         </div>
                                     </template>
                                 </el-table-column>
-                                <el-table-column prop="price_pressure" label="价格压力" width="100">
+                                <el-table-column label="历史分位数" width="140">
                                     <template #default="scope">
-                                        <el-tag :type="getVRPressureType(scope.row.price_pressure)" size="small">
-                                            {{ scope.row.price_pressure }}
-                                        </el-tag>
+                                        <div v-if="scope.row.percentile_30d !== null && scope.row.percentile_30d !== undefined">
+                                            <div class="text-sm">
+                                                <span class="text-gray-600">30日: </span>
+                                                <span class="font-bold" :class="scope.row.percentile_30d >= 80 ? 'text-red-500' : scope.row.percentile_30d <= 20 ? 'text-green-500' : 'text-gray-800'">
+                                                    {{ scope.row.percentile_30d }}%
+                                                </span>
+                                            </div>
+                                            <div class="text-sm" v-if="scope.row.percentile_90d !== null && scope.row.percentile_90d !== undefined">
+                                                <span class="text-gray-600">90日: </span>
+                                                <span class="font-bold" :class="scope.row.percentile_90d >= 80 ? 'text-red-500' : scope.row.percentile_90d <= 20 ? 'text-green-500' : 'text-gray-800'">
+                                                    {{ scope.row.percentile_90d }}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <span v-else class="text-gray-400 text-xs">-</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="Z-Score" width="100">
+                                    <template #default="scope">
+                                        <div v-if="scope.row.zscore !== null && scope.row.zscore !== undefined">
+                                            <span class="font-bold text-sm" :class="Math.abs(scope.row.zscore) >= 2 ? 'text-red-500' : Math.abs(scope.row.zscore) >= 1 ? 'text-orange-500' : 'text-gray-800'">
+                                                {{ scope.row.zscore.toFixed(2) }}
+                                            </span>
+                                        </div>
+                                        <span v-else class="text-gray-400 text-xs">-</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="信号类型" width="140">
+                                    <template #default="scope">
+                                        <div v-if="scope.row.signal_type && scope.row.signal_type !== '无明显信号'">
+                                            <el-tag size="small" :type="scope.row.signal_score >= 50 ? 'warning' : 'info'">
+                                                {{ scope.row.signal_type }}
+                                            </el-tag>
+                                            <div class="text-xs text-gray-500 mt-1">得分: {{ scope.row.signal_score }}</div>
+                                        </div>
+                                        <span v-else class="text-gray-400 text-xs">无明显信号</span>
                                     </template>
                                 </el-table-column>
                                 <el-table-column prop="impact_analysis" label="影响分析" min-width="280">
@@ -938,11 +1128,6 @@
                                     <el-descriptions-item label="合约单位">
                                         {{ vrDetailData.contract_unit }} 千克/手
                                     </el-descriptions-item>
-                                    <el-descriptions-item label="价格压力" span="2">
-                                        <el-tag :type="getVRPressureType(vrDetailData.price_pressure)">
-                                            {{ vrDetailData.price_pressure }}
-                                        </el-tag>
-                                    </el-descriptions-item>
                                     <el-descriptions-item label="影响分析" span="2">
                                         {{ vrDetailData.impact_analysis }}
                                     </el-descriptions-item>
@@ -955,10 +1140,10 @@
                                 </div>
                             </div>
                         </el-dialog>
-                    </el-tab-pane>
+            </div>
 
-                    <!-- 期限结构子标签 -->
-                    <el-tab-pane label="📈 期限结构" name="term-structure">
+            <!-- 期限结构页 -->
+            <div v-if="activeTab === 'term-structure'" class="space-y-6">
                         <div class="glass-card" style="padding: 16px;">
                             <div class="flex justify-between items-center mb-3">
                                 <h2 class="text-base font-bold text-gray-800">📈 期限结构分析</h2>
@@ -1065,25 +1250,99 @@
                                             </div>
                                         </div>
                                     </el-tab-pane>
+
+                                    <!-- Phase 3 增强分析 Tab -->
+                                    <el-tab-pane label="⚡ 增强分析 (Phase 3)" name="enhanced">
+                                        <div class="glass-card" style="padding: 16px;">
+                                            <div class="mb-4">
+                                                <h3 class="text-base font-bold text-gray-800 mb-3">📊 选择品种查看增强分析</h3>
+                                                <div style="display: flex; gap: 12px; align-items: center;">
+                                                    <el-input
+                                                        v-model="termEnhancedSelectedComm"
+                                                        placeholder="输入品种代码 (如: CU, V, RB)"
+                                                        style="max-width: 300px;"
+                                                        @keyup.enter="loadTermEnhancedData">
+                                                    </el-input>
+                                                    <el-button type="primary" @click="loadTermEnhancedData" :loading="termEnhancedLoading">
+                                                        加载增强分析
+                                                    </el-button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Phase 3 增强数据展示 -->
+                                            <div v-if="termEnhancedData">
+                                                <!-- 结构转换信号 -->
+                                                <h4 class="text-sm font-semibold text-gray-700 mb-3">1. 结构转换信号</h4>
+                                                <div class="grid grid-cols-4 gap-3 mb-4">
+                                                    <div class="bg-blue-50 p-3 rounded">
+                                                        <div class="text-xs text-gray-600">当前结构</div>
+                                                        <div class="text-lg font-bold text-blue-600">{{ termEnhancedData.conversion.current_structure }}</div>
+                                                    </div>
+                                                    <div class="bg-purple-50 p-3 rounded" v-if="termEnhancedData.conversion.has_conversion">
+                                                        <div class="text-xs text-gray-600">转换类型</div>
+                                                        <div class="text-lg font-bold text-purple-600">{{ termEnhancedData.conversion.conversion_type }}</div>
+                                                    </div>
+                                                    <div class="bg-orange-50 p-3 rounded" v-if="termEnhancedData.conversion.has_conversion">
+                                                        <div class="text-xs text-gray-600">转换强度</div>
+                                                        <div class="text-lg font-bold text-orange-600">{{ termEnhancedData.conversion.conversion_strength }}</div>
+                                                    </div>
+                                                    <div class="bg-gray-50 p-3 rounded">
+                                                        <div class="text-xs text-gray-600">综合得分</div>
+                                                        <div class="text-lg font-bold" :style="{color: termEnhancedData.score > 0 ? '#22c55e' : '#ef4444'}">
+                                                            {{ termEnhancedData.score > 0 ? '+' : '' }}{{ termEnhancedData.score }}分
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="info-section mb-4">
+                                                    {{ termEnhancedData.conversion.signal_description }}
+                                                </div>
+
+                                                <!-- 价差分析 -->
+                                                <h4 class="text-sm font-semibold text-gray-700 mb-3 mt-4">2. 价差历史分析</h4>
+                                                <div class="grid grid-cols-4 gap-3 mb-4">
+                                                    <div class="bg-green-50 p-3 rounded">
+                                                        <div class="text-xs text-gray-600">当前价差</div>
+                                                        <div class="text-lg font-bold text-green-600">{{ termEnhancedData.spread_analysis.current_spread }}元</div>
+                                                    </div>
+                                                    <div class="bg-yellow-50 p-3 rounded">
+                                                        <div class="text-xs text-gray-600">价差状态</div>
+                                                        <div class="text-lg font-bold text-yellow-600">{{ termEnhancedData.spread_analysis.spread_status }}</div>
+                                                    </div>
+                                                    <div class="bg-indigo-50 p-3 rounded">
+                                                        <div class="text-xs text-gray-600">30日百分位</div>
+                                                        <div class="text-lg font-bold text-indigo-600">{{ termEnhancedData.spread_analysis.spread_percentile_30d.toFixed(1) }}%</div>
+                                                    </div>
+                                                    <div class="bg-pink-50 p-3 rounded">
+                                                        <div class="text-xs text-gray-600">Z-Score</div>
+                                                        <div class="text-lg font-bold text-pink-600">{{ termEnhancedData.spread_analysis.spread_zscore }}</div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- 交易建议 -->
+                                                <h4 class="text-sm font-semibold text-gray-700 mb-3 mt-4">3. 交易建议</h4>
+                                                <div v-for="reason in termEnhancedData.reasons" :key="reason" class="info-section mb-2" style="border-left-color: #22c55e;">
+                                                    {{ reason }}
+                                                </div>
+                                            </div>
+
+                                            <!-- 空状态 -->
+                                            <div v-else-if="!termEnhancedLoading" class="text-center py-12">
+                                                <div style="font-size: 60px; margin-bottom: 16px; opacity: 0.3;">📊</div>
+                                                <div style="font-size: 16px; color: #666; margin-bottom: 8px;">请输入品种代码查看增强分析</div>
+                                                <div style="font-size: 14px; color: #999;">例如: CU(沪铜), V(聚氯乙烯), RB(螺纹钢)</div>
+                                            </div>
+                                        </div>
+                                    </el-tab-pane>
                                 </el-tabs>
                             </div>
                         </div>
-                    </el-tab-pane>
-                </el-tabs>
-            </div>
+                    </div>
 
-            <!-- 消息面页 -->
-            <div v-if="activeTab === 'news'" class="space-y-6">
-                <div class="glass-card" style="height: 800px;">
-                    <h2 class="text-lg font-bold mb-4 text-gray-800">📰 实时快讯 (金十数据)</h2>
-                    <iframe src="https://www.jin10.com/" width="100%" height="95%" frameborder="0"></iframe>
-                </div>
-            </div>
         </main>
     </div>
 
     <script>
-        const { createApp, ref, onMounted, watch } = Vue;
+        const { createApp, ref, onMounted, watch, nextTick, computed } = Vue;
         const { ElMessage } = ElementPlus;
 
         const app = createApp({
@@ -1098,15 +1357,114 @@
                 const zhihuiStats = ref({});
                 const sentimentFilter = ref('');
                 const capitalData = ref([]);
+
+                // Computed properties for safe data access
+                const bullCount = computed(() => {
+                    if (zhihuiStats.value && zhihuiStats.value.sentiment_distribution && zhihuiStats.value.sentiment_distribution.bull) {
+                        return zhihuiStats.value.sentiment_distribution.bull.count || 0;
+                    }
+                    return 0;
+                });
+
+                const bullRatio = computed(() => {
+                    if (zhihuiStats.value && zhihuiStats.value.sentiment_distribution && zhihuiStats.value.sentiment_distribution.bull) {
+                        return zhihuiStats.value.sentiment_distribution.bull.ratio || 0;
+                    }
+                    return 0;
+                });
+
+                const bearCount = computed(() => {
+                    if (zhihuiStats.value && zhihuiStats.value.sentiment_distribution && zhihuiStats.value.sentiment_distribution.bear) {
+                        return zhihuiStats.value.sentiment_distribution.bear.count || 0;
+                    }
+                    return 0;
+                });
+
+                const bearRatio = computed(() => {
+                    if (zhihuiStats.value && zhihuiStats.value.sentiment_distribution && zhihuiStats.value.sentiment_distribution.bear) {
+                        return zhihuiStats.value.sentiment_distribution.bear.ratio || 0;
+                    }
+                    return 0;
+                });
+
+                const neutralCount = computed(() => {
+                    if (zhihuiStats.value && zhihuiStats.value.sentiment_distribution && zhihuiStats.value.sentiment_distribution.neutral) {
+                        return zhihuiStats.value.sentiment_distribution.neutral.count || 0;
+                    }
+                    return 0;
+                });
+
+                const neutralRatio = computed(() => {
+                    if (zhihuiStats.value && zhihuiStats.value.sentiment_distribution && zhihuiStats.value.sentiment_distribution.neutral) {
+                        return zhihuiStats.value.sentiment_distribution.neutral.ratio || 0;
+                    }
+                    return 0;
+                });
+
+                const bullOpportunityCount = computed(() => {
+                    if (opportunityStats.value && opportunityStats.value.direction_distribution) {
+                        return opportunityStats.value.direction_distribution['多头'] || 0;
+                    }
+                    return 0;
+                });
+
+                const bearOpportunityCount = computed(() => {
+                    if (opportunityStats.value && opportunityStats.value.direction_distribution) {
+                        return opportunityStats.value.direction_distribution['空头'] || 0;
+                    }
+                    return 0;
+                });
+
+                // 资金面 - 优矿席位持仓数据
+                const selectedCapitalVariety = ref('CU');
+                const capitalLongBrokers = ref([]);
+                const capitalShortBrokers = ref([]);
+                const capitalLoading = ref(false);
+                const capitalTrendData = ref({
+                    dates: [],
+                    long_positions: [],
+                    short_positions: [],
+                    net_positions: []
+                });
+                const mainVarieties = ref([
+                    { code: 'CU', name: '沪铜' },
+                    { code: 'AG', name: '沪银' },
+                    { code: 'AU', name: '沪金' },
+                    { code: 'AL', name: '沪铝' },
+                    { code: 'ZN', name: '沪锌' },
+                    { code: 'RB', name: '螺纹钢' },
+                    { code: 'HC', name: '热卷' },
+                    { code: 'I', name: '铁矿石' },
+                    { code: 'J', name: '焦炭' },
+                    { code: 'JM', name: '焦煤' },
+                    { code: 'M', name: '豆粕' },
+                    { code: 'Y', name: '豆油' },
+                    { code: 'P', name: '棕榈油' }
+                ]);
+
+                // 虚实比分析数据
+                const vrrSummary = ref({
+                    total_varieties: 0,
+                    high_risk_count: 0,
+                    medium_risk_count: 0,
+                    low_risk_count: 0,
+                    high_risk_varieties: []
+                });
+                const vrrList = ref([]);
+                const vrrFilterRisk = ref('');
+                const vrrLoading = ref(false);
+
                 const jykStrategies = ref({ long: [], short: [] });
                 const blueprintData = ref({});
                 const threeStarOpportunities = ref([]); // 3星强烈想法
                 const twoStarOpportunities = ref([]); // 2星中等想法
                 const oneStarOpportunities = ref([]); // 1星保守想法
                 const selectedVariety = ref(null);
+                const selectedVarietyInOverview = ref(null); // 总览页面选中的品种
                 const varietyMap = ref({}); // Code -> Name mapping
                 const imageRefreshKey = ref(0); // 用于强制刷新图片
                 const varietyResearchSummary = ref(null); // 品种详情页面的研报汇总
+                const varietyResearchEnhanced = ref(null); // Phase 2 研报增强分析
 
                 // V2分析数据 refs
                 const v2AllData = ref([]);
@@ -1123,6 +1481,36 @@
                 const fundamentalSubTab = ref('reports');  // 基本面子标签
                 const technicalSubTab = ref('trading-strategy');  // 技术面子标签
                 const termAnalysisSubTab = ref('virtual-real-ratio');  // 期限分析子标签
+
+                // Comprehensive opportunities (Phase 5) data refs
+                const comprehensiveStats = ref({
+                    total_varieties: 0,
+                    grade_distribution: {},
+                    direction_distribution: {},
+                    avg_score: 0,
+                    avg_confidence: 0
+                });
+                const opportunitiesList = ref([]);
+                const opportunitiesLoading = ref(false);
+                const opportunitySubTab = ref('all');
+
+                // 机会雷达相关的新变量
+                const opportunityStats = ref({
+                    total_varieties: 0,
+                    grade_distribution: {},
+                    direction_distribution: {},
+                    avg_score: 0,
+                    avg_confidence: 0
+                });
+                const allOpportunities = ref([]);
+                const filteredOpportunities = ref([]);
+                const opportunityMinGrade = ref('B');
+                const opportunitySearchKeyword = ref('');
+
+                // 总览页的筛选变量
+                const overviewMinGrade = ref('');
+                const overviewSearchKeyword = ref('');
+                const opportunitiesMap = ref({}); // 品种代码 -> 机会数据的映射
 
                 // Virtual-Real Ratio data refs
                 const vrSummary = ref({
@@ -1141,14 +1529,28 @@
                 const termStructureVariety = ref('');
                 const termStructureData = ref(null);
                 const allTermStructures = ref(null);  // 所有品种的期限结构数据
-                const recommendedVarieties = ref([]);  // 推荐品种（S/A级）
+                const recommendedVarieties = ref([]);  // 推荐品种(S/A级)
                 const termStructureSubTab = ref('recommended');  // 期限结构子Tab,默认显示推荐
 
-                // API Base URL - 固定使用 Render 部署地址
-                const API_BASE = 'https://option-tracker-xqxk.onrender.com/api/v1';
+                // Phase 3 Term Structure Enhancement data refs
+                const termEnhancedSelectedComm = ref('CU');  // 默认查询CU
+                const termEnhancedData = ref(null);
+                const termEnhancedLoading = ref(false);
+
+                // API Base URL - 自动检测环境
+                // 本地开发使用 localhost:8001, 生产环境使用当前域名
+                const API_BASE = window.location.hostname === 'localhost' ||
+                                 window.location.hostname === '127.0.0.1' ||
+                                 window.location.hostname === '0.0.0.0'
+                    ? 'http://localhost:8001/api/v1'
+                    : `http://${window.location.hostname}:8001/api/v1`;
 
                 // 期限结构API使用独立路径
-                const TERM_STRUCTURE_BASE = 'https://option-tracker-xqxk.onrender.com/api/term-structure';
+                const TERM_STRUCTURE_BASE = window.location.hostname === 'localhost' ||
+                                           window.location.hostname === '127.0.0.1' ||
+                                           window.location.hostname === '0.0.0.0'
+                    ? 'http://localhost:8001/api/term-structure'
+                    : `http://${window.location.hostname}:8001/api/term-structure`;
 
                 // 获取最近的交易日
                 const getLatestTradingDate = async () => {
@@ -1235,11 +1637,13 @@
                         if (res.ok) {
                             zhihuiStats.value = await res.json();
                             // Render charts after getting stats (only when in reports tab)
-                            if (activeTab.value === 'reports') {
-                                setTimeout(() => {
-                                    renderSentimentPieChart();
-                                    renderSentimentBarChart();
-                                }, 100);
+                            if (activeTab.value === 'fundamental' && fundamentalSubTab.value === 'reports') {
+                                Vue.nextTick(() => {
+                                    setTimeout(() => {
+                                        renderSentimentPieChart();
+                                        renderSentimentBarChart();
+                                    }, 200);
+                                });
                             }
                         }
                     } catch (e) {
@@ -1262,13 +1666,33 @@
                 };
 
                 // Handle search variety
+                // 处理表格行点击 - 加载品种详情
+                const handleRowClick = async (row) => {
+                    console.log('点击行:', row);
+                    searchQuery.value = row.品种;
+                    await handleSearchVariety();
+                    // 将搜索到的品种设置为总览页选中品种
+                    selectedVarietyInOverview.value = selectedVariety.value;
+                    // 滚动到品种详情区域
+                    setTimeout(() => {
+                        const detailElement = document.querySelector('.glass-card:has(.variety-badge)');
+                        if (detailElement) {
+                            detailElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 300);
+                };
+
                 const handleSearchVariety = async () => {
+                    console.log('🔍 开始搜索品种:', searchQuery.value);
+
                     if (!searchQuery.value) {
                         ElMessage.warning('请输入品种代码或名称');
                         return;
                     }
 
                     const query = searchQuery.value.trim().toUpperCase();
+                    console.log('🔍 转换后的查询:', query);
+                    console.log('🔍 当前 zhihuiData 数量:', zhihuiData.value.length);
 
                     // Search in zhihuiData
                     let variety = zhihuiData.value.find(v =>
@@ -1278,8 +1702,11 @@
                         v.variety_name.includes(searchQuery.value.trim())
                     );
 
+                    console.log('🔍 第一次查找结果:', variety ? variety.variety_code : '未找到');
+
                     if (!variety) {
                         // If not found in loaded data, fetch all data
+                        console.log('🔍 未找到,开始加载所有数据...');
                         await fetchZhihuiData();
                         variety = zhihuiData.value.find(v =>
                             v.variety_code === query ||
@@ -1298,13 +1725,58 @@
                         const jykShort = jykStrategies.value.short.find(s => s.variety === variety.variety_code);
                         const jykStrategy = jykLong || jykShort;
 
+                        // Fetch VR data
+                        let vrData = null;
+                        try {
+                            const vrRes = await fetch(`${API_BASE}/virtual-real-ratio/list?comm_code=${variety.variety_code}&query_date=${selectedDate.value}`);
+                            if (vrRes.ok) {
+                                const vrList = await vrRes.json();
+                                vrData = vrList && vrList.length > 0 ? vrList[0] : null;
+                            }
+                        } catch (e) {
+                            console.error('Failed to fetch VR data:', e);
+                        }
+
+                        // Fetch technical indicators
+                        let technicalData = null;
+                        try {
+                            const techRes = await fetch(`${API_BASE}/technical/${variety.variety_code}/indicators`);
+                            if (techRes.ok) {
+                                const techJson = await techRes.json();
+                                technicalData = techJson.indicators;
+                            }
+                        } catch (e) {
+                            console.error('Failed to fetch technical data:', e);
+                        }
+
+                        // Fetch term structure data for chart
+                        let termStructureData = null;
+                        try {
+                            const termRes = await fetch(`${API_BASE}/term-structure/structure/${variety.variety_code}?query_date=${selectedDate.value}`);
+                            if (termRes.ok) {
+                                termStructureData = await termRes.json();
+                            }
+                        } catch (e) {
+                            console.error('Failed to fetch term structure data:', e);
+                        }
+
                         selectedVariety.value = {
                             code: variety.variety_code,
                             name: variety.variety_name,
                             zhihui: variety,
                             capital: capitalItem,
-                            jykStrategy: jykStrategy
+                            jykStrategy: jykStrategy,
+                            vr: vrData,
+                            technical: technicalData,
+                            termStructureChart: termStructureData
                         };
+
+                        // Render term structure chart after data is loaded
+                        if (termStructureData) {
+                            setTimeout(() => {
+                                renderVarietyTermStructureChart(termStructureData);
+                            }, 100);
+                        }
 
                         ElMessage.success(`找到品种: ${variety.variety_name} (${variety.variety_code})`);
                     } else {
@@ -1329,6 +1801,8 @@
                             const data = await response.json();
                             if (data.success) {
                                 varietyResearchSummary.value = data;
+                                // 同时加载Phase 2增强分析
+                                await loadVarietyResearchEnhanced(varietyCode);
                             } else {
                                 varietyResearchSummary.value = null;
                             }
@@ -1336,6 +1810,26 @@
                     } catch (error) {
                         console.error('加载研报汇总失败:', error);
                         varietyResearchSummary.value = null;
+                    }
+                };
+
+                // Load Phase 2 research enhancement for variety detail page
+                const loadVarietyResearchEnhanced = async (varietyCode) => {
+                    try {
+                        const response = await fetch(
+                            `${API_BASE}/zhihui/enhanced-analysis/${varietyCode}`
+                        );
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                varietyResearchEnhanced.value = data;
+                            } else {
+                                varietyResearchEnhanced.value = null;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载研报增强分析失败:', error);
+                        varietyResearchEnhanced.value = null;
                     }
                 };
 
@@ -1463,38 +1957,292 @@
                     myChart.setOption(option);
                 };
 
-                // V2分析数据加载函数
+                // Render variety term structure chart
+                const renderVarietyTermStructureChart = (data) => {
+                    const chartDom = document.getElementById('varietyTermStructureChart');
+                    if (!chartDom || !data || !data.contracts || data.contracts.length === 0) return;
+
+                    const myChart = echarts.init(chartDom);
+
+                    // Extract data from contracts array
+                    const months = data.contracts.map(c => c.month);
+                    const prices = data.contracts.map(c => c.price);
+
+                    const option = {
+                        title: {
+                            text: `${data.variety_code} 期限结构`,
+                            left: 'center',
+                            textStyle: {
+                                color: '#2c3e50',
+                                fontSize: 16,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                const param = params[0];
+                                return `${param.name}<br/>价格: ${param.value}`;
+                            }
+                        },
+                        grid: {
+                            left: '10%',
+                            right: '10%',
+                            bottom: '15%',
+                            top: '15%'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: months,
+                            name: '交割月份',
+                            nameLocation: 'middle',
+                            nameGap: 35,
+                            axisLabel: {
+                                rotate: 45,
+                                fontSize: 11
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '价格',
+                            nameLocation: 'middle',
+                            nameGap: 50
+                        },
+                        series: [
+                            {
+                                data: prices,
+                                type: 'line',
+                                smooth: true,
+                                lineStyle: {
+                                    color: '#667eea',
+                                    width: 3
+                                },
+                                itemStyle: {
+                                    color: '#667eea'
+                                },
+                                areaStyle: {
+                                    color: {
+                                        type: 'linear',
+                                        x: 0,
+                                        y: 0,
+                                        x2: 0,
+                                        y2: 1,
+                                        colorStops: [{
+                                            offset: 0,
+                                            color: 'rgba(102, 126, 234, 0.3)'
+                                        }, {
+                                            offset: 1,
+                                            color: 'rgba(102, 126, 234, 0.05)'
+                                        }]
+                                    }
+                                },
+                                markPoint: {
+                                    data: [
+                                        {type: 'max', name: '最高'},
+                                        {type: 'min', name: '最低'}
+                                    ]
+                                },
+                                markLine: {
+                                    data: [{type: 'average', name: '平均'}],
+                                    lineStyle: {
+                                        type: 'dashed'
+                                    }
+                                }
+                            }
+                        ]
+                    };
+                    myChart.setOption(option);
+                };
+
+                // V2分析数据加载函数(整合机会雷达数据)
                 const loadV2Data = async () => {
                     try {
                         v2Loading.value = true;
+
+                        // 优先尝试V3 API (优化版本)
+                        try {
+                            const v3ApiUrl = (window.location.hostname === 'localhost' ||
+                                             window.location.hostname === '127.0.0.1' ||
+                                             window.location.hostname === '0.0.0.0')
+                                ? 'http://localhost:8001/api/v3/analysis/overview'
+                                : `http://${window.location.hostname}:8001/api/v3/analysis/overview`;
+                            const v3Response = await fetch(v3ApiUrl);
+                            const v3Result = await v3Response.json();
+
+                            if (v3Result.status === 'success' && v3Result.data) {
+                                // 使用V3数据
+                                v2AllData.value = v3Result.data.overview;
+                                v2Stats.value = v3Result.data.stats;
+
+                                console.log('✓ 使用V3优化数据', {
+                                    total: v3Result.data.stats.total,
+                                    update_time: v3Result.data.update_time,
+                                    data_source: v3Result.data.data_source
+                                });
+
+                                // 同时加载机会雷达数据并整合
+                                await loadOpportunitiesForOverview();
+
+                                handleV2FilterChange();
+                                ElMessage.success(`V3数据加载成功 (${v3Result.data.data_source})`);
+                                return;
+                            }
+                        } catch (v3Error) {
+                            console.warn('V3 API不可用,回退到V2:', v3Error.message);
+                        }
+
+                        // 回退到V2 API
                         const response = await fetch(`${API_BASE}/analysis-v2/overview`);
                         const result = await response.json();
 
                         if (result.success) {
                             v2AllData.value = result.data;
                             v2Stats.value = result.stats;
+
+                            // 同时加载机会雷达数据并整合
+                            await loadOpportunitiesForOverview();
+
                             handleV2FilterChange();
-                            ElMessage.success('V2分析数据加载成功');
+                            ElMessage.success('V2数据加载成功');
                         } else {
-                            ElMessage.error('V2数据加载失败');
+                            ElMessage.error('数据加载失败');
                         }
                     } catch (error) {
-                        console.error('加载V2数据失败:', error);
+                        console.error('加载数据失败:', error);
                         ElMessage.error('请求失败: ' + error.message);
                     } finally {
                         v2Loading.value = false;
                     }
                 };
 
-                // V2筛选处理
+                // 为总览页加载机会雷达数据
+                const loadOpportunitiesForOverview = async () => {
+                    try {
+                        // 加载统计数据
+                        const statsResponse = await fetch(`${API_BASE}/comprehensive/stats`);
+                        const statsResult = await statsResponse.json();
+                        if (statsResult.success) {
+                            opportunityStats.value = statsResult.stats;
+                        }
+
+                        // 加载机会列表
+                        const oppsResponse = await fetch(`${API_BASE}/comprehensive/opportunities?min_grade=B`);
+                        const oppsResult = await oppsResponse.json();
+                        if (oppsResult.success) {
+                            allOpportunities.value = oppsResult.opportunities || [];
+
+                            // 创建映射表: 品种代码 -> 机会数据
+                            opportunitiesMap.value = {};
+                            allOpportunities.value.forEach(opp => {
+                                opportunitiesMap.value[opp.comm_code] = {
+                                    机会等级: opp.grade,
+                                    置信度: opp.confidence,
+                                    综合得分: opp.total_score,
+                                    交易理由: opp.reasons || []
+                                };
+                            });
+                        }
+                    } catch (error) {
+                        console.error('加载机会雷达数据失败:', error);
+                    }
+                };
+
+                // V2筛选处理(增强版,整合机会雷达数据)
                 const handleV2FilterChange = () => {
-                    if (v2FilterDirection.value === 'all') {
-                        v2FilteredData.value = v2AllData.value;
-                    } else {
-                        v2FilteredData.value = v2AllData.value.filter(
-                            item => item.综合方向 === v2FilterDirection.value
+                    let filtered = v2AllData.value;
+
+                    // 方向筛选
+                    if (v2FilterDirection.value !== 'all') {
+                        filtered = filtered.filter(item => item.综合方向 === v2FilterDirection.value);
+                    }
+
+                    // 等级筛选
+                    if (overviewMinGrade.value) {
+                        const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3 };
+                        const minGradeValue = gradeOrder[overviewMinGrade.value];
+                        filtered = filtered.filter(item => {
+                            const oppData = opportunitiesMap.value[item.品种];
+                            if (!oppData) return false;
+                            const itemGradeValue = gradeOrder[oppData.机会等级];
+                            return itemGradeValue !== undefined && itemGradeValue <= minGradeValue;
+                        });
+                    }
+
+                    // 搜索关键词筛选
+                    if (overviewSearchKeyword.value) {
+                        const keyword = overviewSearchKeyword.value.toLowerCase();
+                        filtered = filtered.filter(item =>
+                            item.品种.toLowerCase().includes(keyword)
                         );
                     }
+
+                    // 整合机会雷达数据到表格行
+                    v2FilteredData.value = filtered.map(item => {
+                        const oppData = opportunitiesMap.value[item.品种] || {};
+                        return {
+                            ...item,
+                            ...oppData
+                        };
+                    });
+                };
+
+                // 刷新总览页数据
+                const refreshOverviewData = async () => {
+                    await Promise.all([
+                        refreshV2Data(),
+                        loadOpportunitiesForOverview()
+                    ]);
+                    handleV2FilterChange();
+                };
+
+                // 等级排序函数
+                const sortByGrade = (a, b) => {
+                    const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, undefined: 999, null: 999 };
+                    const aGrade = gradeOrder[a.机会等级] ?? 999;
+                    const bGrade = gradeOrder[b.机会等级] ?? 999;
+                    return aGrade - bGrade;
+                };
+
+                // 计算多头A级及以上机会数
+                const getBullAAndAbove = () => {
+                    if (!allOpportunities.value || allOpportunities.value.length === 0) return 0;
+                    return allOpportunities.value.filter(opp =>
+                        opp.direction === '多头' && (opp.grade === 'S' || opp.grade === 'A')
+                    ).length;
+                };
+
+                // 计算空头A级及以上机会数
+                const getBearAAndAbove = () => {
+                    if (!allOpportunities.value || allOpportunities.value.length === 0) return 0;
+                    return allOpportunities.value.filter(opp =>
+                        opp.direction === '空头' && (opp.grade === 'S' || opp.grade === 'A')
+                    ).length;
+                };
+
+                // 获取多头A级及以上品种列表
+                const getBullAList = () => {
+                    if (!allOpportunities.value || allOpportunities.value.length === 0) return [];
+                    return allOpportunities.value
+                        .filter(opp => opp.direction === '多头' && (opp.grade === 'S' || opp.grade === 'A'))
+                        .sort((a, b) => {
+                            // S级优先,然后按置信度排序
+                            if (a.grade === 'S' && b.grade !== 'S') return -1;
+                            if (a.grade !== 'S' && b.grade === 'S') return 1;
+                            return b.confidence - a.confidence;
+                        });
+                };
+
+                // 获取空头A级及以上品种列表
+                const getBearAList = () => {
+                    if (!allOpportunities.value || allOpportunities.value.length === 0) return [];
+                    return allOpportunities.value
+                        .filter(opp => opp.direction === '空头' && (opp.grade === 'S' || opp.grade === 'A'))
+                        .sort((a, b) => {
+                            // S级优先,然后按置信度排序
+                            if (a.grade === 'S' && b.grade !== 'S') return -1;
+                            if (a.grade !== 'S' && b.grade === 'S') return 1;
+                            return b.confidence - a.confidence;
+                        });
                 };
 
                 // 查看V2品种详情
@@ -1547,6 +2295,108 @@
                     }
                 };
 
+                // Phase 5: 机会雷达数据加载函数
+                const loadComprehensiveStats = async () => {
+                    try {
+                        const response = await fetch(`${API_BASE}/comprehensive/stats`);
+                        const result = await response.json();
+                        if (result.success) {
+                            comprehensiveStats.value = result.stats;
+                            opportunityStats.value = result.stats; // 同时更新新的统计变量
+                        }
+                    } catch (error) {
+                        console.error('加载综合统计失败:', error);
+                    }
+                };
+
+                const loadOpportunities = async (filter = 'all') => {
+                    opportunitiesLoading.value = true;
+                    try {
+                        let url = `${API_BASE}/comprehensive/opportunities?min_grade=${opportunityMinGrade.value || 'B'}`;
+
+                        if (filter === 'top') {
+                            url = `${API_BASE}/comprehensive/opportunities/top?limit=10`;
+                        } else if (filter === 'bull') {
+                            url = `${API_BASE}/comprehensive/opportunities/top?direction=多头&limit=20`;
+                        } else if (filter === 'bear') {
+                            url = `${API_BASE}/comprehensive/opportunities/top?direction=空头&limit=20`;
+                        }
+
+                        const response = await fetch(url);
+                        const result = await response.json();
+
+                        if (result.success) {
+                            opportunitiesList.value = result.opportunities || [];
+                            allOpportunities.value = result.opportunities || [];
+                            await loadComprehensiveStats();
+                            filterOpportunities(); // 应用筛选
+                            ElMessage.success(`发现 ${allOpportunities.value.length} 个交易机会`);
+                        }
+                    } catch (error) {
+                        console.error('加载机会列表失败:', error);
+                        ElMessage.error('加载失败,请重试');
+                    } finally {
+                        opportunitiesLoading.value = false;
+                    }
+                };
+
+                // 筛选机会列表
+                const filterOpportunities = () => {
+                    let filtered = allOpportunities.value;
+
+                    // 等级筛选
+                    if (opportunityMinGrade.value) {
+                        const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3 };
+                        const minGradeValue = gradeOrder[opportunityMinGrade.value];
+                        filtered = filtered.filter(opp => {
+                            const oppGradeValue = gradeOrder[opp.grade];
+                            return oppGradeValue !== undefined && oppGradeValue <= minGradeValue;
+                        });
+                    }
+
+                    // 搜索关键词过滤
+                    if (opportunitySearchKeyword.value) {
+                        const keyword = opportunitySearchKeyword.value.toLowerCase();
+                        filtered = filtered.filter(opp =>
+                            opp.comm_code.toLowerCase().includes(keyword) ||
+                            (opp.variety_name && opp.variety_name.includes(opportunitySearchKeyword.value))
+                        );
+                    }
+
+                    filteredOpportunities.value = filtered;
+                };
+
+                // 处理子标签切换
+                const handleOpportunitySubTabChange = (tab) => {
+                    const filterMap = {
+                        'all': 'all',
+                        'top': 'top',
+                        'bull': 'bull',
+                        'bear': 'bear'
+                    };
+                    loadOpportunities(filterMap[tab] || 'all');
+                };
+
+                const handleOpportunityTabChange = (tab) => {
+                    const filterMap = {
+                        'all': 'all',
+                        'top': 'top',
+                        'bull': 'bull',
+                        'bear': 'bear'
+                    };
+                    loadOpportunities(filterMap[tab.name] || 'all');
+                };
+
+                const getGradeType = (grade) => {
+                    const typeMap = {
+                        'S': 'danger',
+                        'A': 'warning',
+                        'B': 'success',
+                        'C': 'info'
+                    };
+                    return typeMap[grade] || 'info';
+                };
+
                 const fetchCapitalData = async () => {
                     try {
                         const res = await fetch(`${API_BASE}/capital/option-flow/all?hours=24`);
@@ -1554,6 +2404,163 @@
                         capitalData.value = data.varieties || [];
                     } catch (e) {
                         console.error('Failed to fetch capital data:', e);
+                    }
+                };
+
+                // 获取优矿席位持仓数据
+                const fetchCapitalPositions = async () => {
+                    capitalLoading.value = true;
+                    try {
+                        const variety = selectedCapitalVariety.value;  // 不转换大小写，保持原样
+
+                        // 获取席位龙虎榜数据
+                        const res = await fetch(`${API_BASE}/capital/${variety}/top-brokers?limit=15`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            capitalLongBrokers.value = data.top_long || [];
+                            capitalShortBrokers.value = data.top_short || [];
+                        } else {
+                            ElMessage.warning('暂无该品种的席位数据');
+                            capitalLongBrokers.value = [];
+                            capitalShortBrokers.value = [];
+                        }
+
+                        // 获取多空持仓走势数据
+                        const trendRes = await fetch(`${API_BASE}/capital/${variety}/position-trend?days=30`);
+                        if (trendRes.ok) {
+                            const trendData = await trendRes.json();
+                            capitalTrendData.value = trendData;
+
+                            // 渲染走势图
+                            nextTick(() => {
+                                renderCapitalTrendChart();
+                            });
+                        } else {
+                            capitalTrendData.value = {
+                                dates: [],
+                                long_positions: [],
+                                short_positions: [],
+                                net_positions: []
+                            };
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch capital positions:', e);
+                        ElMessage.error('获取席位数据失败');
+                    } finally {
+                        capitalLoading.value = false;
+                    }
+                };
+
+                // 渲染资金面走势图
+                const renderCapitalTrendChart = () => {
+                    const chartDom = document.getElementById('capitalTrendChart');
+                    if (!chartDom) return;
+
+                    const myChart = echarts.init(chartDom);
+                    const option = {
+                        title: {
+                            text: `${selectedCapitalVariety.value} 多空持仓走势`,
+                            left: 'center',
+                            textStyle: {
+                                fontSize: 16,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross'
+                            }
+                        },
+                        legend: {
+                            data: ['多头总持仓', '空头总持仓', '净持仓'],
+                            top: 30
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: capitalTrendData.value.dates
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '持仓量'
+                        },
+                        series: [
+                            {
+                                name: '多头总持仓',
+                                type: 'line',
+                                data: capitalTrendData.value.long_positions,
+                                smooth: true,
+                                itemStyle: {
+                                    color: '#ef4444'
+                                },
+                                areaStyle: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                        { offset: 0, color: 'rgba(239, 68, 68, 0.3)' },
+                                        { offset: 1, color: 'rgba(239, 68, 68, 0.1)' }
+                                    ])
+                                }
+                            },
+                            {
+                                name: '空头总持仓',
+                                type: 'line',
+                                data: capitalTrendData.value.short_positions,
+                                smooth: true,
+                                itemStyle: {
+                                    color: '#10b981'
+                                },
+                                areaStyle: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                        { offset: 0, color: 'rgba(16, 185, 129, 0.3)' },
+                                        { offset: 1, color: 'rgba(16, 185, 129, 0.1)' }
+                                    ])
+                                }
+                            },
+                            {
+                                name: '净持仓',
+                                type: 'line',
+                                data: capitalTrendData.value.net_positions,
+                                smooth: true,
+                                itemStyle: {
+                                    color: '#6366f1'
+                                }
+                            }
+                        ]
+                    };
+
+                    myChart.setOption(option);
+                };
+
+                // 加载虚实比分析数据
+                const loadVirtualRealRatioData = async () => {
+                    vrrLoading.value = true;
+                    try {
+                        // 加载汇总数据
+                        const summaryRes = await fetch(`${API_BASE}/virtual-real-ratio/summary?query_date=${selectedDate.value}`);
+                        if (summaryRes.ok) {
+                            vrrSummary.value = await summaryRes.json();
+                        }
+
+                        // 加载列表数据
+                        let listUrl = `${API_BASE}/virtual-real-ratio/list?query_date=${selectedDate.value}`;
+                        if (vrrFilterRisk.value) {
+                            listUrl += `&risk_level=${vrrFilterRisk.value}`;
+                        }
+                        const listRes = await fetch(listUrl);
+                        if (listRes.ok) {
+                            vrrList.value = await listRes.json();
+                        }
+                    } catch (error) {
+                        console.error('加载虚实比数据失败:', error);
+                        ElMessage.error('加载虚实比数据失败');
+                    } finally {
+                        vrrLoading.value = false;
                     }
                 };
 
@@ -1638,15 +2645,6 @@
                         '无': 'success'
                     };
                     return map[risk] || 'info';
-                };
-
-                const getVRPressureType = (pressure) => {
-                    const map = {
-                        '上涨': 'danger',
-                        '下跌': 'success',
-                        '中性': 'info'
-                    };
-                    return map[pressure] || 'info';
                 };
 
                 const formatNumber = (num) => {
@@ -2168,6 +3166,50 @@
                     });
                 });
 
+                // Phase 3: Load term structure enhanced analysis
+                const loadTermEnhancedData = async () => {
+                    if (!termEnhancedSelectedComm.value) {
+                        ElMessage.warning('请输入品种代码');
+                        return;
+                    }
+
+                    termEnhancedLoading.value = true;
+                    try {
+                        const response = await fetch(
+                            `${TERM_STRUCTURE_BASE}/enhanced-analysis/${termEnhancedSelectedComm.value.toUpperCase()}`
+                        );
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                termEnhancedData.value = data;
+                                ElMessage.success('增强分析加载成功');
+                            } else {
+                                termEnhancedData.value = null;
+                                ElMessage.warning(data.message || '未找到该品种的增强数据');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载期限结构增强分析失败:', error);
+                        ElMessage.error('加载失败: ' + error.message);
+                        termEnhancedData.value = null;
+                    } finally {
+                        termEnhancedLoading.value = false;
+                    }
+                };
+
+                // Handle tab click
+                const handleTabClick = (tab) => {
+                    // 切换到资金面标签时加载数据
+                    if (tab.props.name === 'capital') {
+                        fetchCapitalPositions();
+                    }
+                };
+
+                // Open opportunity radar page
+                const openOpportunityRadar = () => {
+                    window.open('opportunity_radar.html', '_blank');
+                };
+
                 const onDateChange = () => {
                     // 更新图片刷新键，强制重新加载蓝图图片
                     imageRefreshKey.value++;
@@ -2185,16 +3227,27 @@
                     if (newTab === 'overview') {
                         // Load V2 analysis data for overview tab
                         if (!v2AllData.value.length) loadV2Data();
+                    } else if (newTab === 'opportunities') {
+                        // Load opportunity radar data
+                        if (!opportunitiesList.value.length) loadOpportunities();
                     } else if (newTab === 'fundamental') {
                         // Load zhihui data for fundamental tab
                         if (!zhihuiData.value.length) fetchZhihuiData();
+                        if (!zhihuiStats.value.total_varieties) fetchZhihuiStats();
                         // Render charts when entering fundamental/reports sub-tab
-                        setTimeout(() => {
-                            renderSentimentPieChart();
-                            renderSentimentBarChart();
-                        }, 200);
+                        if (fundamentalSubTab.value === 'reports') {
+                            Vue.nextTick(() => {
+                                setTimeout(() => {
+                                    renderSentimentPieChart();
+                                    renderSentimentBarChart();
+                                }, 300);
+                            });
+                        }
                     } else if (newTab === 'capital') {
-                        if (!capitalData.value.length) fetchCapitalData();
+                        if (!capitalLongBrokers.value.length) fetchCapitalPositions();
+                    } else if (newTab === 'virtual-real-ratio') {
+                        // Load virtual-real ratio data
+                        if (!vrrList.value.length) loadVirtualRealRatioData();
                     } else if (newTab === 'technical') {
                         // Load JYK strategies when entering technical tab
                         if (!jykStrategies.value.long.length && !blueprintData.value.date) fetchJYKStrategies();
@@ -2203,6 +3256,14 @@
                         if (!zhihuiData.value.length) fetchZhihuiData();
                         if (!capitalData.value.length) fetchCapitalData();
                         if (!jykStrategies.value.long.length) fetchJYKStrategies();
+
+                        // 默认展示沪银(AG)
+                        if (!selectedVariety.value) {
+                            searchQuery.value = 'AG';
+                            setTimeout(() => {
+                                handleSearchVariety();
+                            }, 500);
+                        }
                     } else if (newTab === 'term-analysis') {
                         // Load virtual-real ratio data
                         if (!vrList.value.length) loadVRData();
@@ -2216,6 +3277,22 @@
                     }
                 });
 
+                // Watch fundamentalSubTab to render charts when switching to reports
+                watch(fundamentalSubTab, (newSubTab) => {
+                    if (newSubTab === 'reports' && activeTab.value === 'fundamental') {
+                        if (!zhihuiStats.value.total_varieties) {
+                            fetchZhihuiStats();
+                        } else {
+                            Vue.nextTick(() => {
+                                setTimeout(() => {
+                                    renderSentimentPieChart();
+                                    renderSentimentBarChart();
+                                }, 300);
+                            });
+                        }
+                    }
+                });
+
                 onMounted(async () => {
                     // 首先获取最近的交易日期并设置为默认日期
                     const latestTradingDate = await getLatestTradingDate();
@@ -2225,7 +3302,9 @@
                     fetchCommodityMapping();  // 先获取品种映射
                     fetchZhihuiStats();
                     fetchZhihuiData();
+                    fetchJYKStrategies();  // 加载交易蓝图数据
                     loadV2Data();  // 加载V2分析数据
+                    loadOpportunities();  // 加载机会雷达数据 (Phase 5)
                 });
 
                 return {
@@ -2237,15 +3316,42 @@
                     zhihuiStats,
                     sentimentFilter,
                     capitalData,
+                    // Computed properties
+                    bullCount,
+                    bullRatio,
+                    bearCount,
+                    bearRatio,
+                    neutralCount,
+                    neutralRatio,
+                    bullOpportunityCount,
+                    bearOpportunityCount,
+                    // 资金面 - 优矿席位持仓
+                    selectedCapitalVariety,
+                    capitalLongBrokers,
+                    capitalShortBrokers,
+                    capitalLoading,
+                    capitalTrendData,
+                    mainVarieties,
+                    fetchCapitalPositions,
+                    renderCapitalTrendChart,
+                    // 虚实比分析
+                    vrrSummary,
+                    vrrList,
+                    vrrFilterRisk,
+                    vrrLoading,
+                    loadVirtualRealRatioData,
                     jykStrategies,
                     blueprintData,
                     threeStarOpportunities,
                     twoStarOpportunities,
                     oneStarOpportunities,
                     selectedVariety,
+                    selectedVarietyInOverview,
                     imageRefreshKey,
                     varietyResearchSummary,
+                    varietyResearchEnhanced,
                     handleSearchVariety,
+                    handleRowClick,
                     onDateChange,
                     fetchZhihuiData,
                     getVarietyName,
@@ -2254,6 +3360,8 @@
                     openResearchDetail,
                     loadVarietyResearchSummary,
                     getSentimentType,
+                    handleTabClick,
+                    openOpportunityRadar,
                     // Sub-tabs
                     fundamentalSubTab,
                     technicalSubTab,
@@ -2266,7 +3374,6 @@
                     vrDetailData,
                     loadVRData,
                     getVRRiskType,
-                    getVRPressureType,
                     formatNumber,
                     viewVRDetail,
                     // Term Structure
@@ -2279,6 +3386,11 @@
                     loadAllTermStructures,
                     renderTermStructureChart,
                     renderAllTermStructureCharts,
+                    // Phase 3 Term Structure Enhancement
+                    termEnhancedSelectedComm,
+                    termEnhancedData,
+                    termEnhancedLoading,
+                    loadTermEnhancedData,
                     // V2 Analysis
                     v2AllData,
                     v2FilteredData,
@@ -2292,13 +3404,61 @@
                     loadV2Data,
                     handleV2FilterChange,
                     viewV2Detail,
-                    refreshV2Data
+                    refreshV2Data,
+                    // 总览页增强
+                    overviewMinGrade,
+                    overviewSearchKeyword,
+                    opportunitiesMap,
+                    loadOpportunitiesForOverview,
+                    refreshOverviewData,
+                    sortByGrade,
+                    getBullAAndAbove,
+                    getBearAAndAbove,
+                    getBullAList,
+                    getBearAList,
+                    // Comprehensive Opportunities (Phase 5)
+                    comprehensiveStats,
+                    opportunitiesList,
+                    opportunitiesLoading,
+                    opportunitySubTab,
+                    loadOpportunities,
+                    handleOpportunityTabChange,
+                    getGradeType,
+                    // 机会雷达新增
+                    opportunityStats,
+                    allOpportunities,
+                    filteredOpportunities,
+                    opportunityMinGrade,
+                    opportunitySearchKeyword,
+                    filterOpportunities,
+                    handleOpportunitySubTabChange
                 };
             }
         });
 
-        app.use(ElementPlus);
-        app.mount('#app');
+        // 检查依赖是否加载成功
+        if (typeof Vue === 'undefined') {
+            console.error('Vue 加载失败!');
+            document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;">错误: Vue 库加载失败，请检查网络连接</div>';
+        } else if (typeof ElementPlus === 'undefined') {
+            console.error('Element Plus 加载失败!');
+            document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;">错误: Element Plus 库加载失败，请检查网络连接</div>';
+        } else {
+            try {
+                app.use(ElementPlus);
+                // 注册 Element Plus 图标
+                if (typeof ElementPlusIconsVue !== 'undefined') {
+                    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+                        app.component(key, component);
+                    }
+                }
+                app.mount('#app');
+                console.log('Vue 应用初始化成功');
+            } catch (e) {
+                console.error('Vue 应用初始化失败:', e);
+                document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;">错误: Vue 应用初始化失败 - ' + e.message + '</div>';
+            }
+        }
     </script>
 </body>
 
