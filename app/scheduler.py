@@ -16,11 +16,12 @@ from datetime import datetime, date
 import logging
 import asyncio
 
-from app.crawlers.jiaoyikecha_spider import JiaoyiKechaSpider
+from app.crawlers.jiaoyikecha_spider_playwright import JiaoyiKechaSpider as JiaoyikechaSpiderPlaywright
 from app.crawlers.zhihui_spider import ZhihuiQixunSpider
 from app.crawlers.fangqi_spider import FangqiSpider
 from app.crawlers.openvlab_spider import OpenvlabSpider
 from app.crawlers.rongda_spider import RongdaSpider
+from app.crawlers.capital_spider_uqer import CapitalSpiderUqer
 from app.services.blueprint_parser import BlueprintParser
 from app.services.data_collector import DataCollector
 import json
@@ -112,10 +113,15 @@ async def crawl_zhihui_data():
 
         # 2. 获取研报淘金数据
         logger.info("[智汇期讯] 开始获取研报淘金数据...")
+        from datetime import timedelta
+        # 修改为查询最近7天的研报,避免因网站未更新导致采集失败
+        end_date = date.today()
+        start_date = end_date - timedelta(days=7)
+
         reports_data = spider.fetch_research_reports(
             variety_code=None,  # 获取所有品种
-            start_date=date.today(),
-            end_date=date.today(),
+            start_date=start_date,
+            end_date=end_date,
             limit=100  # 每次最多100条
         )
 
@@ -258,7 +264,7 @@ async def crawl_jiaoyikecha():
     logger.info("[交易可查] 开始执行数据爬取任务")
     logger.info("=" * 50)
 
-    spider = JiaoyiKechaSpider()
+    spider = JiaoyikechaSpiderPlaywright()
     await spider.init_browser(headless=True)
 
     try:
@@ -309,7 +315,7 @@ async def crawl_jiaoyikecha():
         await spider.close()
 
 
-async def _crawl_jyk_positions(spider: JiaoyiKechaSpider):
+async def _crawl_jyk_positions(spider: JiaoyikechaSpiderPlaywright):
     """爬取席位持仓数据"""
     try:
         logger.info("[交易可查] 开始爬取席位持仓数据...")
@@ -358,6 +364,58 @@ async def _crawl_jyk_positions(spider: JiaoyiKechaSpider):
 
     except Exception as e:
         logger.error(f"[交易可查] 席位数据爬取失败: {e}")
+
+
+# ========================================
+# 优矿席位持仓数据爬取 - 每天 16:00
+# (替代交易可查席位数据,数据更权威可靠)
+# ========================================
+@DataCollector(
+    source_name="优矿-席位持仓",
+    max_retries=3,
+    retry_delay=600,  # 10分钟重试
+    timeout=600,
+    enable_alert=True
+)
+def crawl_capital_positions_uqer():
+    """优矿席位持仓数据爬取 - 每天16:00"""
+    logger.info("=" * 50)
+    logger.info("[优矿-席位持仓] 开始执行数据爬取任务")
+    logger.info("=" * 50)
+
+    try:
+        spider = CapitalSpiderUqer()
+
+        # 1. 更新市场总持仓数据 (MktFutOiRatioGet)
+        logger.info("[优矿-席位持仓] 步骤1: 获取市场总持仓数据...")
+        result1 = spider.update_all_positions(top_n=20)
+        logger.info(f"  市场总持仓: 成功 {result1['success_count']}, 失败 {result1['fail_count']}")
+
+        # 2. 更新详细席位排名数据 (MktFutMLRGet + MktFutMSRGet)
+        logger.info("[优矿-席位持仓] 步骤2: 获取详细席位排名数据...")
+        result2 = spider.update_all_broker_positions(top_n=20)
+        logger.info(f"  详细席位: 成功 {result2['success_count']}, 失败 {result2['fail_count']}")
+
+        total_success = result1['success_count'] + result2['success_count']
+        total_fail = result1['fail_count'] + result2['fail_count']
+        total_records = result1['total_records'] + result2['total_records']
+
+        logger.info(f"[优矿-席位持仓] 完成数据采集:")
+        logger.info(f"  成功品种: {total_success}")
+        logger.info(f"  失败品种: {total_fail}")
+        logger.info(f"  总记录数: {total_records}")
+
+        return {
+            'success_count': total_success,
+            'fail_count': total_fail,
+            'total_records': total_records
+        }
+
+    except Exception as e:
+        logger.error(f"[优矿-席位持仓] 数据爬取失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 # ========================================
@@ -538,6 +596,15 @@ def init_scheduler():
         replace_existing=True
     )
 
+    # 4.1 优矿席位持仓数据 - 每天 16:00 (替代交易可查席位数据)
+    scheduler.add_job(
+        crawl_capital_positions_uqer,
+        CronTrigger(hour=16, minute=0),
+        id='crawl_capital_positions_uqer',
+        name='优矿-席位持仓-16:00',
+        replace_existing=True
+    )
+
     # 5. Openvlab - 交易时段每分钟监控
     #    9:00-11:30, 13:00-15:00
     scheduler.add_job(
@@ -632,12 +699,189 @@ def init_scheduler():
         replace_existing=True
     )
 
-    # 9. 数据库备份任务
+    # 9. 机构散户方向相反扫描 - 每天18:00
+    from app.crawlers.jiaoyikecha_spider import JiaoyikechaSpider
+
+    async def scan_divergent_varieties():
+        """扫描所有品种，找出机构散户方向相反的"""
+        logger.info("=" * 60)
+        logger.info("开始执行机构散户方向相反扫描...")
+
+        # 品种列表
+        varieties = [
+            {'code': 'rb', 'name': '螺纹钢'}, {'code': 'hc', 'name': '热卷'},
+            {'code': 'i', 'name': '铁矿石'}, {'code': 'j', 'name': '焦炭'},
+            {'code': 'jm', 'name': '焦煤'}, {'code': 'FG', 'name': '玻璃'},
+            {'code': 'SA', 'name': '纯碱'}, {'code': 'cu', 'name': '沪铜'},
+            {'code': 'al', 'name': '沪铝'}, {'code': 'zn', 'name': '沪锌'},
+            {'code': 'ni', 'name': '沪镍'}, {'code': 'au', 'name': '沪金'},
+            {'code': 'ag', 'name': '沪银'}, {'code': 'sc', 'name': '原油'},
+            {'code': 'fu', 'name': '燃油'}, {'code': 'ru', 'name': '橡胶'},
+            {'code': 'm', 'name': '豆粕'}, {'code': 'y', 'name': '豆油'},
+            {'code': 'p', 'name': '棕榈油'}, {'code': 'c', 'name': '玉米'},
+            {'code': 'jd', 'name': '鸡蛋'}, {'code': 'lh', 'name': '生猪'},
+            {'code': 'pp', 'name': 'PP'}, {'code': 'l', 'name': '塑料'},
+            {'code': 'v', 'name': 'PVC'}, {'code': 'eb', 'name': '苯乙烯'},
+            {'code': 'eg', 'name': '乙二醇'}, {'code': 'TA', 'name': 'PTA'},
+            {'code': 'MA', 'name': '甲醇'}, {'code': 'CF', 'name': '棉花'},
+            {'code': 'SR', 'name': '白糖'}, {'code': 'AP', 'name': '苹果'},
+            {'code': 'UR', 'name': '尿素'}, {'code': 'SF', 'name': '硅铁'},
+            {'code': 'SM', 'name': '锰硅'},
+        ]
+
+        # 机构席位列表
+        institution_list = [
+            '中信期货', '永安期货', '国泰君安', '海通期货', '银河期货',
+            '华泰期货', '申万期货', '东证期货', '广发期货', '南华期货',
+            '中金期货', '招商期货', '光大期货', '方正中期', '中粮期货',
+            '新湖期货', '瑞达期货', '五矿期货', '格林大华', '兴证期货',
+            '国信期货', '中银期货', '浙商期货', '鲁证期货', '国投安信',
+            '东海期货', '建信期货', '宏源期货', '徽商期货', '中信建投'
+        ]
+
+        results = []
+        spider = JiaoyikechaSpider()
+
+        for variety in varieties:
+            try:
+                # 生成合约代码
+                now = datetime.now()
+                year = now.year
+                month = now.month + 2  # 尝试后面几个月的合约
+                if month > 12:
+                    month -= 12
+                    year += 1
+                contract = f"{variety['code']}{str(year)[-2:]}{str(month).zfill(2)}"
+
+                result = spider.fetch_position_data(variety['name'], contract, date.today())
+
+                if result.get('success') and result.get('long_positions'):
+                    inst_long = inst_short = retail_long = retail_short = 0
+
+                    for pos in result.get('long_positions', []):
+                        is_inst = any(inst in pos['broker'] or pos['broker'] in inst for inst in institution_list)
+                        if is_inst:
+                            inst_long += pos.get('volume', 0)
+                        else:
+                            retail_long += pos.get('volume', 0)
+
+                    for pos in result.get('short_positions', []):
+                        is_inst = any(inst in pos['broker'] or pos['broker'] in inst for inst in institution_list)
+                        if is_inst:
+                            inst_short += pos.get('volume', 0)
+                        else:
+                            retail_short += pos.get('volume', 0)
+
+                    inst_net = inst_long - inst_short
+                    retail_net = retail_long - retail_short
+
+                    if inst_net * retail_net < 0:  # 方向相反
+                        results.append({
+                            'code': variety['code'],
+                            'name': variety['name'],
+                            'contract': contract,
+                            'institutionNet': inst_net,
+                            'retailNet': retail_net,
+                            'institutionDirection': 'long' if inst_net > 0 else 'short',
+                            'retailDirection': 'long' if retail_net > 0 else 'short'
+                        })
+                        logger.info(f"  发现方向相反: {variety['name']} 机构{'多' if inst_net > 0 else '空'} 散户{'多' if retail_net > 0 else '空'}")
+
+                await asyncio.sleep(0.5)  # 避免请求过快
+
+            except Exception as e:
+                logger.error(f"扫描 {variety['name']} 失败: {e}")
+
+        # 保存结果
+        import os
+        scan_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'divergent_scan_result.json')
+        with open(scan_file, 'w', encoding='utf-8') as f:
+            json.dump({
+                'varieties': results,
+                'update_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"✅ 机构散户方向相反扫描完成，发现 {len(results)} 个品种")
+        logger.info("=" * 60)
+
+    scheduler.add_job(
+        scan_divergent_varieties,
+        CronTrigger(hour=18, minute=0),
+        id='scan_divergent_varieties',
+        name='机构散户方向相反扫描-18:00',
+        replace_existing=True
+    )
+
+    # 10. 数据库备份任务
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent.parent))
 
     from scripts.backup_database import DatabaseBackup
+
+    # 11. 期限结构数据每日更新 - 每天15:30 (收盘后)
+    def update_term_structure_daily():
+        """期限结构数据每日更新"""
+        logger.info("=" * 50)
+        logger.info("[期限结构] 开始执行每日数据更新任务")
+        logger.info("=" * 50)
+
+        import subprocess
+        import os
+
+        project_root = Path(__file__).parent.parent
+        env = os.environ.copy()
+        env['PYTHONPATH'] = str(project_root)
+
+        try:
+            # 步骤1: 更新JSON数据文件
+            logger.info("[期限结构] 步骤1: 从优矿获取最新数据...")
+            result1 = subprocess.run(
+                ['python3', 'scripts/update_term_structure_data_uqer.py'],
+                cwd=str(project_root),
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+
+            if result1.returncode != 0:
+                logger.error(f"[期限结构] JSON数据更新失败: {result1.stderr}")
+                return
+
+            logger.info("[期限结构] ✅ JSON数据更新成功")
+
+            # 步骤2: 导入数据到数据库
+            logger.info("[期限结构] 步骤2: 导入数据到数据库...")
+            result2 = subprocess.run(
+                ['python3', 'migrate_term_structure.py'],
+                cwd=str(project_root),
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+
+            if result2.returncode != 0:
+                logger.error(f"[期限结构] 数据库导入失败: {result2.stderr}")
+                return
+
+            logger.info("[期限结构] ✅ 数据库导入成功")
+            logger.info("[期限结构] 每日更新任务完成")
+
+        except subprocess.TimeoutExpired:
+            logger.error("[期限结构] 任务执行超时")
+        except Exception as e:
+            logger.error(f"[期限结构] 任务执行失败: {e}")
+            import traceback
+            traceback.print_exc()
+
+    scheduler.add_job(
+        update_term_structure_daily,
+        CronTrigger(hour=15, minute=30),
+        id='update_term_structure_daily',
+        name='期限结构数据-15:30',
+        replace_existing=True
+    )
 
     def run_backup(backup_type: str):
         """执行数据库备份"""
@@ -684,10 +928,12 @@ def init_scheduler():
     logger.info("  │  智汇期讯        │ 每 30 分钟一次                    │")
     logger.info("  │  方期看盘-早盘   │ 每天 08:50                        │")
     logger.info("  │  方期看盘-夜盘   │ 每天 20:50                        │")
-    logger.info("  │  交易可查        │ 每天 19:00 (失败30分钟重试)       │")
-    logger.info("  │  Openvlab        │ 交易时段每分钟 (日盘+夜盘21-02)  │")
-    logger.info("  │  每日全品种分析  │ 每天 19:30                        │")
+    logger.info("  │  期限结构数据    │ 每天 15:30 (收盘后)               │")
+    logger.info("  │  优矿席位持仓    │ 每天 16:00                        │")
     logger.info("  │  虚实比数据      │ 每天 18:00                        │")
+    logger.info("  │  交易可查        │ 每天 19:00 (失败30分钟重试)       │")
+    logger.info("  │  每日全品种分析  │ 每天 19:30                        │")
+    logger.info("  │  Openvlab        │ 交易时段每分钟 (日盘+夜盘21-02)  │")
     logger.info("  │  数据库备份-小时 │ 每小时一次                        │")
     logger.info("  │  数据库备份-天级 │ 每天 03:00                        │")
     logger.info("  │  数据库备份-周级 │ 每周日 03:00                      │")

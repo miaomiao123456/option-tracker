@@ -207,6 +207,328 @@ class UqerSDKClient:
             logger.error(f"获取主力合约数据失败: {e}")
             return None
 
+    def get_member_positions(
+        self,
+        ticker: Optional[str] = None,
+        contract_object: Optional[str] = None,
+        exchange_cd: Optional[str] = None,
+        trade_date: Optional[str] = None,
+        begin_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        rank_type: str = "0"
+    ) -> Optional[pd.DataFrame]:
+        """
+        获取期货会员持仓排名数据 (DataAPI.MktFutMbrPosdGet)
+
+        Args:
+            ticker: 合约代码,如 "cu2501"
+            contract_object: 合约标的,如 "CU" (大写)
+            exchange_cd: 交易所代码 XSGE/XDCE/XZCE/CCFX
+            trade_date: 交易日期 YYYYMMDD
+            begin_date: 开始日期 YYYYMMDD
+            end_date: 结束日期 YYYYMMDD
+            rank_type: 排名类型
+                0-成交量
+                1-多单持仓
+                2-空单持仓
+                3-多单增减
+                4-空单增减
+
+        Returns:
+            包含会员持仓排名的DataFrame
+            主要字段:
+            - memberAbbr: 会员简称
+            - rank: 排名
+            - volume/longPosition/shortPosition: 成交量/多单持仓/空单持仓
+            - varVolume/varLongPosition/varShortPosition: 增减量
+        """
+        try:
+            params = {'pandas': '1', 'rankType': rank_type}
+
+            if ticker:
+                params['ticker'] = ticker
+            if contract_object:
+                params['contractObject'] = contract_object
+            if exchange_cd:
+                params['exchangeCD'] = exchange_cd
+            if trade_date:
+                params['tradeDate'] = trade_date
+            if begin_date:
+                params['beginDate'] = begin_date
+            if end_date:
+                params['endDate'] = end_date
+
+            df = self.DataAPI.MktFutMbrPosdGet(**params)
+            return df if not df.empty else None
+
+        except Exception as e:
+            logger.error(f"获取会员持仓数据失败: {e}")
+            return None
+
+    def get_net_positions(
+        self,
+        ticker: Optional[str] = None,
+        contract_object: Optional[str] = None,
+        exchange_cd: Optional[str] = None,
+        trade_date: Optional[str] = None,
+        begin_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        top_n: int = 20
+    ) -> Optional[pd.DataFrame]:
+        """
+        获取期货会员净持仓数据(多单-空单)
+
+        Args:
+            ticker: 合约代码
+            contract_object: 合约标的,如 "CU"
+            exchange_cd: 交易所代码
+            trade_date: 交易日期 YYYYMMDD
+            begin_date: 开始日期 YYYYMMDD
+            end_date: 结束日期 YYYYMMDD
+            top_n: 返回前N名会员
+
+        Returns:
+            包含净持仓的DataFrame
+            字段: memberAbbr, longPosition, shortPosition, netPosition, positionChange
+        """
+        try:
+            # 获取多单持仓排名
+            long_df = self.get_member_positions(
+                ticker=ticker,
+                contract_object=contract_object,
+                exchange_cd=exchange_cd,
+                trade_date=trade_date,
+                begin_date=begin_date,
+                end_date=end_date,
+                rank_type="1"  # 多单持仓
+            )
+
+            # 获取空单持仓排名
+            short_df = self.get_member_positions(
+                ticker=ticker,
+                contract_object=contract_object,
+                exchange_cd=exchange_cd,
+                trade_date=trade_date,
+                begin_date=begin_date,
+                end_date=end_date,
+                rank_type="2"  # 空单持仓
+            )
+
+            if long_df is None or short_df is None:
+                return None
+
+            # 合并数据
+            merged = pd.merge(
+                long_df[['memberAbbr', 'tradeDate', 'longPosition', 'varLongPosition']],
+                short_df[['memberAbbr', 'tradeDate', 'shortPosition', 'varShortPosition']],
+                on=['memberAbbr', 'tradeDate'],
+                how='outer'
+            )
+
+            # 填充缺失值
+            merged = merged.fillna(0)
+
+            # 计算净持仓和净增减
+            merged['netPosition'] = merged['longPosition'] - merged['shortPosition']
+            merged['positionChange'] = merged['varLongPosition'] - merged['varShortPosition']
+
+            # 按净持仓绝对值排序,取前N名
+            merged['absNetPosition'] = merged['netPosition'].abs()
+            merged = merged.nlargest(top_n, 'absNetPosition')
+            merged = merged.drop('absNetPosition', axis=1)
+
+            return merged
+
+        except Exception as e:
+            logger.error(f"获取净持仓数据失败: {e}")
+            return None
+
+    def get_oi_ratio(
+        self,
+        contract_object: Optional[str] = None,
+        ticker: Optional[str] = None,
+        begin_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> Optional[pd.DataFrame]:
+        """
+        获取期货多空持仓比例数据 (DataAPI.MktFutOiRatioGet)
+
+        注: 这是品种级别的总持仓数据,不是具体席位排名
+
+        Args:
+            contract_object: 合约标的,如 "CU" (大写)
+            ticker: 合约代码,如 "cu2501"
+            begin_date: 开始日期 YYYYMMDD
+            end_date: 结束日期 YYYYMMDD
+
+        Returns:
+            包含多空持仓比例的DataFrame
+            字段:
+            - contractObject: 合约标的
+            - contractObjectCn: 中文名
+            - tradeDate: 交易日期
+            - longOpenInt: 多单总持仓
+            - shortOpenInt: 空单总持仓
+            - ratio: 多空比
+            - prodID: 产品ID
+        """
+        try:
+            params = {'pandas': '1'}
+
+            if contract_object:
+                params['contractObject'] = contract_object
+            if ticker:
+                params['ticker'] = ticker
+            if begin_date:
+                params['beginDate'] = begin_date
+            if end_date:
+                params['endDate'] = end_date
+
+            df = self.DataAPI.MktFutOiRatioGet(**params)
+            return df if not df.empty else None
+
+        except Exception as e:
+            logger.error(f"获取多空持仓比例失败: {e}")
+            return None
+
+    def get_futures_long_rank(
+        self,
+        ticker: Optional[str] = None,
+        contract_object: Optional[str] = None,
+        exchange_cd: Optional[str] = None,
+        trade_date: Optional[str] = None,
+        begin_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> Optional[pd.DataFrame]:
+        """
+        获取期货会员多头持仓排名 (DataAPI.MktFutMLRGet)
+
+        Args:
+            ticker: 合约代码,如 "cu2501"
+            contract_object: 合约标的,如 "CU" (大写)
+            exchange_cd: 交易所代码 XSGE/XDCE/XZCE/CCFX
+            trade_date: 交易日期 YYYYMMDD
+            begin_date: 开始日期 YYYYMMDD
+            end_date: 结束日期 YYYYMMDD
+
+        Returns:
+            包含多头持仓排名的DataFrame
+        """
+        try:
+            params = {'pandas': '1'}
+
+            if ticker:
+                params['ticker'] = ticker
+            if contract_object:
+                params['contractObject'] = contract_object
+            if exchange_cd:
+                params['exchangeCD'] = exchange_cd
+            if trade_date:
+                params['tradeDate'] = trade_date
+            if begin_date:
+                params['beginDate'] = begin_date
+            if end_date:
+                params['endDate'] = end_date
+
+            df = self.DataAPI.MktFutMLRGet(**params)
+            return df if not df.empty else None
+
+        except Exception as e:
+            logger.error(f"获取多头持仓排名失败: {e}")
+            return None
+
+    def get_futures_short_rank(
+        self,
+        ticker: Optional[str] = None,
+        contract_object: Optional[str] = None,
+        exchange_cd: Optional[str] = None,
+        trade_date: Optional[str] = None,
+        begin_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> Optional[pd.DataFrame]:
+        """
+        获取期货会员空头持仓排名 (DataAPI.MktFutMSRGet)
+
+        Args:
+            ticker: 合约代码,如 "cu2501"
+            contract_object: 合约标的,如 "CU" (大写)
+            exchange_cd: 交易所代码 XSGE/XDCE/XZCE/CCFX
+            trade_date: 交易日期 YYYYMMDD
+            begin_date: 开始日期 YYYYMMDD
+            end_date: 结束日期 YYYYMMDD
+
+        Returns:
+            包含空头持仓排名的DataFrame
+        """
+        try:
+            params = {'pandas': '1'}
+
+            if ticker:
+                params['ticker'] = ticker
+            if contract_object:
+                params['contractObject'] = contract_object
+            if exchange_cd:
+                params['exchangeCD'] = exchange_cd
+            if trade_date:
+                params['tradeDate'] = trade_date
+            if begin_date:
+                params['beginDate'] = begin_date
+            if end_date:
+                params['endDate'] = end_date
+
+            df = self.DataAPI.MktFutMSRGet(**params)
+            return df if not df.empty else None
+
+        except Exception as e:
+            logger.error(f"获取空头持仓排名失败: {e}")
+            return None
+
+    def get_futures_top_rank(
+        self,
+        ticker: Optional[str] = None,
+        contract_object: Optional[str] = None,
+        exchange_cd: Optional[str] = None,
+        trade_date: Optional[str] = None,
+        begin_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> Optional[pd.DataFrame]:
+        """
+        获取期货龙虎榜Top (DataAPI.MktFutMTRGet)
+
+        Args:
+            ticker: 合约代码,如 "cu2501"
+            contract_object: 合约标的,如 "CU" (大写)
+            exchange_cd: 交易所代码 XSGE/XDCE/XZCE/CCFX
+            trade_date: 交易日期 YYYYMMDD
+            begin_date: 开始日期 YYYYMMDD
+            end_date: 结束日期 YYYYMMDD
+
+        Returns:
+            包含龙虎榜数据的DataFrame
+        """
+        try:
+            params = {'pandas': '1'}
+
+            if ticker:
+                params['ticker'] = ticker
+            if contract_object:
+                params['contractObject'] = contract_object
+            if exchange_cd:
+                params['exchangeCD'] = exchange_cd
+            if trade_date:
+                params['tradeDate'] = trade_date
+            if begin_date:
+                params['beginDate'] = begin_date
+            if end_date:
+                params['endDate'] = end_date
+
+            df = self.DataAPI.MktFutMTRGet(**params)
+            return df if not df.empty else None
+
+        except Exception as e:
+            logger.error(f"获取龙虎榜数据失败: {e}")
+            return None
+
 
 # 创建一个全局客户端实例(需要在使用前初始化)
 _uqer_sdk_client: Optional[UqerSDKClient] = None

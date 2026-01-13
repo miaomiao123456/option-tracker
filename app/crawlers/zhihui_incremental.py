@@ -63,35 +63,40 @@ class ZhihuiIncrementalCrawler:
 
         logger.info(f"获取到 {len(varieties)} 个品种")
 
-        # 2. 爬取所有品种的研报（一次性）
+        # 2. 逐个品种爬取研报（因为不指定品种会权限不足）
         all_reports = []
-        page = 1
-        limit = 100  # 每页100条
 
-        while True:
-            result = self.spider.fetch_research_reports(
-                variety_code=None,  # 不指定品种，获取全部
-                start_date=target_date,
-                end_date=target_date,
-                view_port="全部",
-                page=page,
-                limit=limit
-            )
+        for variety in varieties:
+            variety_code = variety['variety_code']
+            logger.info(f"正在爬取品种 {variety_code} ({variety['variety_name']}) 的研报...")
 
-            reports = result.get('reports', [])
-            total = result.get('total', 0)
+            page = 1
+            limit = 100
 
-            if not reports:
-                break
+            while True:
+                result = self.spider.fetch_research_reports(
+                    variety_code=variety_code,
+                    start_date=target_date,
+                    end_date=target_date,
+                    view_port="全部",
+                    page=page,
+                    limit=limit
+                )
 
-            all_reports.extend(reports)
-            logger.info(f"第 {page} 页: 获取 {len(reports)} 条研报（总共 {len(all_reports)}/{total}）")
+                reports = result.get('reports', [])
+                total = result.get('total', 0)
 
-            # 如果已获取全部，停止
-            if len(all_reports) >= total:
-                break
+                if not reports:
+                    break
 
-            page += 1
+                all_reports.extend(reports)
+                logger.info(f"  第 {page} 页: 获取 {len(reports)} 条研报（品种总共 {total} 条）")
+
+                # 如果已获取全部，停止
+                if len(all_reports) >= total or len(reports) < limit:
+                    break
+
+                page += 1
 
         logger.info(f"✅ 共爬取 {len(all_reports)} 条研报")
 
@@ -145,13 +150,17 @@ class ZhihuiIncrementalCrawler:
                     continue
 
                 # 创建新记录
+                # 将字符串日期转换为date对象
+                from datetime import datetime
+                publish_date_obj = datetime.strptime(report['publish_date'], '%Y-%m-%d').date() if isinstance(report['publish_date'], str) else report['publish_date']
+
                 db_report = ResearchReport(
                     report_id=report['report_id'],
                     comm_code=report['variety_code'],
                     variety_name=report['variety'],
                     institution_id=report.get('institution_id'),
                     institution_name=report['institution_name'],
-                    publish_date=report['publish_date'],
+                    publish_date=publish_date_obj,
                     view_port=report['view_port'],
                     sentiment=report['sentiment'],
                     trade_logic=report['trade_logic'],

@@ -1,0 +1,347 @@
+{
+  "varieties": [
+    {
+      "code": "hc",
+      "name": "热卷",
+      "contract": "hc2603",
+      "institutionNet": -7277,
+      "retailNet": 9340,
+      "institutionDirection": "short",
+      "retailDirection": "long"
+    },
+    {
+      "code": "i",
+      "name": "铁矿石",
+      "contract": "i2602",
+      "institutionNet": 3325,
+      "retailNet": -4314,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "FG",
+      "name": "玻璃",
+      "contract": "FG2602",
+      "institutionNet": 408,
+      "retailNet": -1208,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "SA",
+      "name": "纯碱",
+      "contract": "SA2602",
+      "institutionNet": 4801,
+      "retailNet": -7074,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "cu",
+      "name": "沪铜",
+      "contract": "cu2602",
+      "institutionNet": 11192,
+      "retailNet": -26019,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "al",
+      "name": "沪铝",
+      "contract": "al2602",
+      "institutionNet": 7315,
+      "retailNet": -19304,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "zn",
+      "name": "沪锌",
+      "contract": "zn2602",
+      "institutionNet": 3928,
+      "retailNet": -6285,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "pb",
+      "name": "沪铅",
+      "contract": "pb2602",
+      "institutionNet": 281,
+      "retailNet": -2264,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "ss",
+      "name": "不锈钢",
+      "contract": "ss2602",
+      "institutionNet": -1746,
+      "retailNet": 765,
+      "institutionDirection": "short",
+      "retailDirection": "long"
+    },
+    {
+      "code": "ag",
+      "name": "沪银",
+      "contract": "ag2602",
+      "institutionNet": 4749,
+      "retailNet": -6093,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "fu",
+      "name": "燃油",
+      "contract": "fu2602",
+      "institutionNet": 1125,
+      "retailNet": -2775,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "bu",
+      "name": "沥青",
+      "contract": "bu2602",
+      "institutionNet": 4736,
+      "retailNet": -5568,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "sp",
+      "name": "纸浆",
+      "contract": "sp2603",
+      "institutionNet": 1016,
+      "retailNet": -4402,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "m",
+      "name": "豆粕",
+      "contract": "m2603",
+      "institutionNet": 5750,
+      "retailNet": -19251,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "y",
+      "name": "豆油",
+      "contract": "y2603",
+      "institutionNet": 568,
+      "retailNet": -2118,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "p",
+      "name": "棕榈油",
+      "contract": "p2605",
+      "institutionNet": 8100,
+      "retailNet": -40420,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "c",
+      "name": "玉米",
+      "contract": "c2603",
+      "institutionNet": 61577,
+      "retailNet": -124811,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "cs",
+      "name": "淀粉",
+      "contract": "cs2603",
+      "institutionNet": 38543,
+      "retailNet": -67620,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "jd",
+      "name": "鸡蛋",
+      "contract": "jd2602",
+      "institutionNet": 3641,
+      "retailNet": -1112,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "lh",
+      "name": "生猪",
+      "contract": "lh2603",
+      "institutionNet": -11232,
+      "retailNet": 1121,
+      "institutionDirection": "short",
+      "retailDirection": "long"
+    },
+    {
+      "code": "v",
+      "name": "PVC",
+      "contract": "v2602",
+      "institutionNet": 6591,
+      "retailNet": -4541,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "eg",
+      "name": "乙二醇",
+      "contract": "eg2603",
+      "institutionNet": 2441,
+      "retailNet": -2827,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "pg",
+      "name": "LPG",
+      "contract": "pg2602",
+      "institutionNet": 743,
+      "retailNet": -3601,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "TA",
+      "name": "PTA",
+      "contract": "TA2602",
+      "institutionNet": 7128,
+      "retailNet": -7484,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "MA",
+      "name": "甲醇",
+      "contract": "MA2602",
+      "institutionNet": 2844,
+      "retailNet": -4233,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "CF",
+      "name": "棉花",
+      "contract": "CF2603",
+      "institutionNet": 6289,
+      "retailNet": -7624,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "SR",
+      "name": "白糖",
+      "contract": "SR2603",
+      "institutionNet": 1517,
+      "retailNet": -2742,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "OI",
+      "name": "菜油",
+      "contract": "OI2603",
+      "institutionNet": 3160,
+      "retailNet": -3185,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "RM",
+      "name": "菜粕",
+      "contract": "RM2603",
+      "institutionNet": 593,
+      "retailNet": -963,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "AP",
+      "name": "苹果",
+      "contract": "AP2605",
+      "institutionNet": 11161,
+      "retailNet": -1618,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "CJ",
+      "name": "红枣",
+      "contract": "CJ2603",
+      "institutionNet": 187,
+      "retailNet": -1935,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "PK",
+      "name": "花生",
+      "contract": "PK2603",
+      "institutionNet": 3533,
+      "retailNet": -2573,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "UR",
+      "name": "尿素",
+      "contract": "UR2602",
+      "institutionNet": 160,
+      "retailNet": -457,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "SF",
+      "name": "硅铁",
+      "contract": "SF2602",
+      "institutionNet": -1293,
+      "retailNet": 756,
+      "institutionDirection": "short",
+      "retailDirection": "long"
+    },
+    {
+      "code": "SM",
+      "name": "锰硅",
+      "contract": "SM2602",
+      "institutionNet": 2092,
+      "retailNet": -2289,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "IF",
+      "name": "沪深300",
+      "contract": "IF2602",
+      "institutionNet": 1857,
+      "retailNet": -2592,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "IC",
+      "name": "中证500",
+      "contract": "IC2602",
+      "institutionNet": 4412,
+      "retailNet": -6545,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    },
+    {
+      "code": "IM",
+      "name": "中证1000",
+      "contract": "IM2602",
+      "institutionNet": 144,
+      "retailNet": -4332,
+      "institutionDirection": "long",
+      "retailDirection": "short"
+    }
+  ],
+  "update_time": "2026/1/11 01:13:14"
+}

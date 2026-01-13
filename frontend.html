@@ -675,12 +675,98 @@
                 <!-- 查询栏 -->
                 <div class="glass-card">
                     <h2 class="text-xl font-bold mb-4 text-gray-800">📊 持仓分析</h2>
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <el-input v-model="positionVarietyName" placeholder="品种名称(如: 螺纹钢)" style="width: 200px;"></el-input>
-                        <el-input v-model="positionContractCode" placeholder="合约代码(如: rb2603)" style="width: 200px;"></el-input>
-                        <el-button type="primary" @click="loadPositionData" :loading="positionLoading">
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <!-- 品种下拉选择 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="text-gray-600">品种</span>
+                            <el-select
+                                v-model="positionSelectedVariety"
+                                filterable
+                                placeholder="选择品种..."
+                                style="width: 200px;"
+                                @change="onPositionVarietyChange"
+                            >
+                                <el-option
+                                    v-for="item in positionVarietyList"
+                                    :key="item.code"
+                                    :label="item.name"
+                                    :value="item.code"
+                                >
+                                    <span style="float: left">{{ item.name }}</span>
+                                    <span style="float: right; color: #8492a6; font-size: 12px; margin-left: 16px;">{{ item.code.toUpperCase() }}</span>
+                                </el-option>
+                            </el-select>
+                        </div>
+
+                        <!-- 合约下拉选择 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="text-gray-600">合约</span>
+                            <el-select
+                                v-model="positionContractCode"
+                                filterable
+                                placeholder="选择合约..."
+                                style="width: 160px;"
+                                :disabled="!positionSelectedVariety"
+                            >
+                                <el-option
+                                    v-for="contract in positionContractList"
+                                    :key="contract"
+                                    :label="contract"
+                                    :value="contract"
+                                >
+                                </el-option>
+                            </el-select>
+                        </div>
+
+                        <el-button type="primary" @click="loadPositionData" :loading="positionLoading" :disabled="!positionSelectedVariety || !positionContractCode">
                             🔍 查询
                         </el-button>
+                    </div>
+                </div>
+
+                <!-- UQER市场总持仓数据 (支持历史查询) -->
+                <div class="glass-card" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 class="text-lg font-bold text-gray-800">📊 市场总持仓 ({{ selectedDate }})</h2>
+                        <el-select v-model="selectedCapitalVariety" placeholder="选择品种" style="width: 140px;" @change="fetchCapitalPositions">
+                            <el-option v-for="item in mainVarieties" :key="item.code" :label="item.name" :value="item.code">
+                                <span style="float: left">{{ item.name }}</span>
+                                <span style="float: right; color: #8492a6; font-size: 12px;">{{ item.code }}</span>
+                            </el-option>
+                        </el-select>
+                    </div>
+
+                    <!-- 市场总持仓统计卡片 -->
+                    <div v-if="capitalMarketSummary" class="grid grid-cols-4 gap-4">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f56c6c 0%, #e74c3c 100%); color: white;">
+                            <div class="text-sm opacity-90 mb-1">多头总持仓</div>
+                            <div class="text-2xl font-bold">{{ capitalMarketSummary.long_total?.toLocaleString() || 0 }}</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #67c23a 0%, #27ae60 100%); color: white;">
+                            <div class="text-sm opacity-90 mb-1">空头总持仓</div>
+                            <div class="text-2xl font-bold">{{ capitalMarketSummary.short_total?.toLocaleString() || 0 }}</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <div class="text-sm opacity-90 mb-1">净持仓</div>
+                            <div class="text-2xl font-bold">{{ capitalMarketSummary.net_position?.toLocaleString() || 0 }}</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white;">
+                            <div class="text-sm opacity-90 mb-1">持仓变化</div>
+                            <div class="text-2xl font-bold">
+                                <span :style="{color: capitalMarketSummary.position_change >= 0 ? '#ffffff' : '#ffffff'}">
+                                    {{ capitalMarketSummary.position_change >= 0 ? '+' : '' }}{{ capitalMarketSummary.position_change?.toLocaleString() || 0 }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center text-gray-500 py-4">
+                        选择品种后显示市场总持仓数据
+                    </div>
+
+                    <!-- 多空持仓走势图 -->
+                    <div v-if="capitalTrendData.dates?.length" style="margin-top: 20px;">
+                        <h3 class="text-md font-bold mb-2 text-gray-700">📈 多空持仓走势</h3>
+                        <div id="capitalTrendChart" style="width: 100%; height: 350px;"></div>
                     </div>
                 </div>
 
@@ -893,6 +979,9 @@
 
                 <!-- 查询栏 -->
                 <div class="glass-card">
+                    <div style="margin-bottom: 12px; padding: 8px 12px; background: #fef3c7; border-radius: 6px; border-left: 3px solid #f59e0b;">
+                        <span class="text-xs text-yellow-700">⚠️ 交易可查席位数据仅支持查询最新交易日数据，不支持历史查询</span>
+                    </div>
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                         <!-- 品种下拉选择 -->
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1326,8 +1415,13 @@
                         <div class="glass-card" style="padding: 16px;">
                             <div class="flex justify-between items-center mb-3">
                                 <h2 class="text-base font-bold text-gray-800">📈 期限结构分析</h2>
-                                <div class="text-xs text-gray-500" v-if="allTermStructures">
-                                    日期: {{ selectedDate }}
+                                <div class="text-xs" v-if="allTermStructures">
+                                    <span v-if="allTermStructures.data_date_mismatch" class="text-orange-500">
+                                        ⚠️ 显示 {{ allTermStructures.actual_data_date }} 数据 (请求日期: {{ selectedDate }})
+                                    </span>
+                                    <span v-else class="text-gray-500">
+                                        日期: {{ allTermStructures.actual_data_date || selectedDate }}
+                                    </span>
                                 </div>
                             </div>
 
@@ -1340,7 +1434,7 @@
                             <!-- 所有品种的期限结构 -->
                             <div v-else>
                                 <!-- 分Tab显示 -->
-                                <el-tabs v-model="termStructureSubTab" type="border-card">
+                                <el-tabs v-model="termStructureSubTab" type="border-card" @tab-click="handleTermStructureTabChange">
                                     <!-- 推荐品种Tab -->
                                     <el-tab-pane v-if="recommendedVarieties.length > 0" name="recommended">
                                         <template #label>
@@ -1611,6 +1705,7 @@
                 const selectedCapitalVariety = ref('CU');
                 const capitalLongBrokers = ref([]);
                 const capitalShortBrokers = ref([]);
+                const capitalMarketSummary = ref(null);  // 市场总持仓数据
                 const capitalLoading = ref(false);
                 const capitalTrendData = ref({
                     dates: [],
@@ -1740,10 +1835,69 @@
 
                 // 持仓分析数据 refs
                 const positionVarietyName = ref('螺纹钢');
+                const positionSelectedVariety = ref('rb');  // 选中的品种代码
                 const positionContractCode = ref('rb2603');
                 const positionLoading = ref(false);
                 const positionData = ref(null);
                 const positionFullData = ref(null);
+
+                // 持仓分析品种列表（与席位分析共享）
+                const positionVarietyList = ref([
+                    { code: 'rb', name: '螺纹钢' },
+                    { code: 'hc', name: '热卷' },
+                    { code: 'i', name: '铁矿石' },
+                    { code: 'j', name: '焦炭' },
+                    { code: 'jm', name: '焦煤' },
+                    { code: 'FG', name: '玻璃' },
+                    { code: 'SA', name: '纯碱' },
+                    { code: 'MA', name: '甲醇' },
+                    { code: 'cu', name: '沪铜' },
+                    { code: 'al', name: '沪铝' },
+                    { code: 'zn', name: '沪锌' },
+                    { code: 'pb', name: '沪铅' },
+                    { code: 'ni', name: '沪镍' },
+                    { code: 'sn', name: '沪锡' },
+                    { code: 'au', name: '沪金' },
+                    { code: 'ag', name: '沪银' },
+                    { code: 'ru', name: '橡胶' },
+                    { code: 'bu', name: '沥青' },
+                    { code: 'fu', name: '燃油' },
+                    { code: 'sp', name: '纸浆' },
+                    { code: 'c', name: '玉米' },
+                    { code: 'cs', name: '玉米淀粉' },
+                    { code: 'a', name: '豆一' },
+                    { code: 'b', name: '豆二' },
+                    { code: 'm', name: '豆粕' },
+                    { code: 'y', name: '豆油' },
+                    { code: 'p', name: '棕榈油' },
+                    { code: 'l', name: '塑料' },
+                    { code: 'v', name: 'PVC' },
+                    { code: 'pp', name: 'PP' },
+                    { code: 'eg', name: '乙二醇' },
+                    { code: 'eb', name: '苯乙烯' },
+                    { code: 'pg', name: 'LPG' },
+                    { code: 'lh', name: '生猪' },
+                    { code: 'CF', name: '棉花' },
+                    { code: 'SR', name: '白糖' },
+                    { code: 'TA', name: 'PTA' },
+                    { code: 'RM', name: '菜粕' },
+                    { code: 'OI', name: '菜油' },
+                    { code: 'ZC', name: '动力煤' },
+                    { code: 'SF', name: '硅铁' },
+                    { code: 'SM', name: '锰硅' },
+                    { code: 'AP', name: '苹果' },
+                    { code: 'CJ', name: '红枣' },
+                    { code: 'UR', name: '尿素' },
+                    { code: 'PK', name: '花生' },
+                    { code: 'sc', name: '原油' },
+                    { code: 'IF', name: '沪深300' },
+                    { code: 'IC', name: '中证500' },
+                    { code: 'IH', name: '上证50' },
+                    { code: 'IM', name: '中证1000' },
+                ]);
+
+                // 持仓分析合约列表（根据品种动态生成）
+                const positionContractList = ref([]);
 
                 // 持仓季节性分析数据 refs
                 const seasonalVariety = ref('');
@@ -1890,19 +2044,76 @@
                 const allBrokersList = ref([]);
 
                 // API Base URL - 自动检测环境
-                // 本地开发使用 localhost:8001, 生产环境使用当前域名
-                const API_BASE = window.location.hostname === 'localhost' ||
-                                 window.location.hostname === '127.0.0.1' ||
-                                 window.location.hostname === '0.0.0.0'
-                    ? 'http://localhost:8001/api/v1'
-                    : `http://${window.location.hostname}:8001/api/v1`;
+                // 配置后端API地址（用于生产环境部署）
+                // 阿里云部署: 前后端在同一服务器，留空即可自动检测
+                const BACKEND_API_URL = ''; // 留空则自动检测，阿里云部署保持留空
+
+                const getApiBase = () => {
+                    const hostname = window.location.hostname;
+
+                    // 如果配置了后端API地址，直接使用
+                    if (BACKEND_API_URL) {
+                        return `${BACKEND_API_URL}/api/v1`;
+                    }
+
+                    // 本地开发环境
+                    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                        const protocol = window.location.protocol;
+                        const port = window.location.port || '8000';
+                        return `${protocol}//${hostname}:${port}/api/v1`;
+                    }
+
+                    // 阿里云/生产环境：使用相对路径（前后端同一服务器）
+                    // 访问 http://120.27.159.14/frontend 时，API为 http://120.27.159.14/api/v1
+                    const protocol = window.location.protocol;
+                    const port = window.location.port ? `:${window.location.port}` : '';
+                    return `${protocol}//${hostname}${port}/api/v1`;
+                };
+                const API_BASE = getApiBase();
 
                 // 期限结构API使用独立路径
-                const TERM_STRUCTURE_BASE = window.location.hostname === 'localhost' ||
-                                           window.location.hostname === '127.0.0.1' ||
-                                           window.location.hostname === '0.0.0.0'
-                    ? 'http://localhost:8001/api/term-structure'
-                    : `http://${window.location.hostname}:8001/api/term-structure`;
+                const getTermStructureBase = () => {
+                    const hostname = window.location.hostname;
+
+                    // 如果配置了后端API地址，直接使用
+                    if (BACKEND_API_URL) {
+                        return `${BACKEND_API_URL}/api/term-structure`;
+                    }
+
+                    // 本地开发环境
+                    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                        const protocol = window.location.protocol;
+                        const port = window.location.port || '8000';
+                        return `${protocol}//${hostname}:${port}/api/term-structure`;
+                    }
+
+                    // 阿里云/生产环境：使用相对路径
+                    const protocol = window.location.protocol;
+                    const port = window.location.port ? `:${window.location.port}` : '';
+                    return `${protocol}//${hostname}${port}/api/term-structure`;
+                };
+                const TERM_STRUCTURE_BASE = getTermStructureBase();
+
+                // V3 API Base URL (端口8001)
+                const getV3ApiBase = () => {
+                    const hostname = window.location.hostname;
+
+                    // 如果配置了后端API地址，使用V3端点
+                    if (BACKEND_API_URL) {
+                        return `${BACKEND_API_URL}/api/v3`;
+                    }
+
+                    // 本地开发环境 - V3服务运行在8001端口
+                    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
+                        return 'http://localhost:8001/api/v3';
+                    }
+
+                    // 阿里云/生产环境：V3与V2在同一服务（80端口），使用相对路径
+                    const protocol = window.location.protocol;
+                    const port = window.location.port ? `:${window.location.port}` : '';
+                    return `${protocol}//${hostname}${port}/api/v3`;
+                };
+                const V3_API_BASE = getV3ApiBase();
 
                 // 获取最近的交易日
                 const getLatestTradingDate = async () => {
@@ -2021,31 +2232,31 @@
                     const staticMap = {
                         'pd_o': '钯', 'PD_O': '钯', 'PD': '钯',
                         'pt_o': '铂', 'PT_O': '铂', 'PT': '铂',
-                        'au_o': '黄金期权', 'AU_O': '黄金期权', 'AU': '黄金',
-                        'ag_o': '白银期权', 'AG_O': '白银期权', 'AG': '白银',
-                        'cu_o': '铜期权', 'CU_O': '铜期权', 'CU': '沪铜',
-                        'al_o': '铝期权', 'AL_O': '铝期权', 'AL': '沪铝',
-                        'zn_o': '锌期权', 'ZN_O': '锌期权', 'ZN': '沪锌',
-                        'sc_o': '原油期权', 'SC_O': '原油期权', 'SC': '原油',
-                        'ru_o': '橡胶期权', 'RU_O': '橡胶期权', 'RU': '橡胶',
-                        'm_o': '豆粕期权', 'M_O': '豆粕期权', 'M': '豆粕',
-                        'c_o': '玉米期权', 'C_O': '玉米期权', 'C': '玉米',
-                        'i_o': '铁矿期权', 'I_O': '铁矿期权', 'I': '铁矿石',
-                        'p_o': '棕榈油期权', 'P_O': '棕榈油期权', 'P': '棕榈油',
-                        'cf_o': '棉花期权', 'CF_O': '棉花期权', 'CF': '棉花',
-                        'sr_o': '白糖期权', 'SR_O': '白糖期权', 'SR': '白糖',
-                        'ta_o': 'PTA期权', 'TA_O': 'PTA期权', 'TA': 'PTA',
-                        'ma_o': '甲醇期权', 'MA_O': '甲醇期权', 'MA': '甲醇',
-                        'pp_o': 'PP期权', 'PP_O': 'PP期权', 'PP': 'PP',
-                        'l_o': '塑料期权', 'L_O': '塑料期权', 'L': '塑料',
-                        'v_o': 'PVC期权', 'V_O': 'PVC期权', 'V': 'PVC',
-                        'eg_o': '乙二醇期权', 'EG_O': '乙二醇期权', 'EG': '乙二醇',
-                        'eb_o': '苯乙烯期权', 'EB_O': '苯乙烯期权', 'EB': '苯乙烯',
-                        'pg_o': 'LPG期权', 'PG_O': 'LPG期权', 'PG': 'LPG',
-                        'rb_o': '螺纹期权', 'RB_O': '螺纹期权', 'RB': '螺纹钢',
-                        'hc_o': '热卷期权', 'HC_O': '热卷期权', 'HC': '热卷',
-                        'j_o': '焦炭期权', 'J_O': '焦炭期权', 'J': '焦炭',
-                        'jm_o': '焦煤期权', 'JM_O': '焦煤期权', 'JM': '焦煤',
+                        'au_o': '黄金', 'AU_O': '黄金', 'AU': '黄金',
+                        'ag_o': '白银', 'AG_O': '白银', 'AG': '白银',
+                        'cu_o': '沪铜', 'CU_O': '沪铜', 'CU': '沪铜',
+                        'al_o': '沪铝', 'AL_O': '沪铝', 'AL': '沪铝',
+                        'zn_o': '沪锌', 'ZN_O': '沪锌', 'ZN': '沪锌',
+                        'sc_o': '原油', 'SC_O': '原油', 'SC': '原油',
+                        'ru_o': '橡胶', 'RU_O': '橡胶', 'RU': '橡胶',
+                        'm_o': '豆粕', 'M_O': '豆粕', 'M': '豆粕',
+                        'c_o': '玉米', 'C_O': '玉米', 'C': '玉米',
+                        'i_o': '铁矿石', 'I_O': '铁矿石', 'I': '铁矿石',
+                        'p_o': '棕榈油', 'P_O': '棕榈油', 'P': '棕榈油',
+                        'cf_o': '棉花', 'CF_O': '棉花', 'CF': '棉花',
+                        'sr_o': '白糖', 'SR_O': '白糖', 'SR': '白糖',
+                        'ta_o': 'PTA', 'TA_O': 'PTA', 'TA': 'PTA',
+                        'ma_o': '甲醇', 'MA_O': '甲醇', 'MA': '甲醇',
+                        'pp_o': 'PP', 'PP_O': 'PP', 'PP': 'PP',
+                        'l_o': '塑料', 'L_O': '塑料', 'L': '塑料',
+                        'v_o': 'PVC', 'V_O': 'PVC', 'V': 'PVC',
+                        'eg_o': '乙二醇', 'EG_O': '乙二醇', 'EG': '乙二醇',
+                        'eb_o': '苯乙烯', 'EB_O': '苯乙烯', 'EB': '苯乙烯',
+                        'pg_o': 'LPG', 'PG_O': 'LPG', 'PG': 'LPG',
+                        'rb_o': '螺纹钢', 'RB_O': '螺纹钢', 'RB': '螺纹钢',
+                        'hc_o': '热卷', 'HC_O': '热卷', 'HC': '热卷',
+                        'j_o': '焦炭', 'J_O': '焦炭', 'J': '焦炭',
+                        'jm_o': '焦煤', 'JM_O': '焦煤', 'JM': '焦煤',
                         'ZC': '动力煤', 'zc': '动力煤',
                         'FG': '玻璃', 'fg': '玻璃',
                         'SA': '纯碱', 'sa': '纯碱',
@@ -2539,11 +2750,7 @@
 
                         // 优先尝试V3 API (优化版本)
                         try {
-                            const v3ApiUrl = (window.location.hostname === 'localhost' ||
-                                             window.location.hostname === '127.0.0.1' ||
-                                             window.location.hostname === '0.0.0.0')
-                                ? `http://localhost:8001/api/v3/analysis/overview?query_date=${queryDate}`
-                                : `http://${window.location.hostname}:8001/api/v3/analysis/overview?query_date=${queryDate}`;
+                            const v3ApiUrl = `${V3_API_BASE}/analysis/overview?query_date=${queryDate}`;
                             const v3Response = await fetch(v3ApiUrl);
                             const v3Result = await v3Response.json();
 
@@ -2892,21 +3099,24 @@
                     capitalLoading.value = true;
                     try {
                         const variety = selectedCapitalVariety.value;  // 不转换大小写，保持原样
+                        const queryDate = selectedDate.value;  // 获取当前选择的日期
 
-                        // 获取席位龙虎榜数据
-                        const res = await fetch(`${API_BASE}/capital/${variety}/top-brokers?limit=15`);
+                        // 获取席位龙虎榜数据 - 传递日期参数
+                        const res = await fetch(`${API_BASE}/capital/${variety}/top-brokers?limit=15&target_date=${queryDate}`);
                         if (res.ok) {
                             const data = await res.json();
                             capitalLongBrokers.value = data.top_long || [];
                             capitalShortBrokers.value = data.top_short || [];
+                            capitalMarketSummary.value = data.market_summary || null;
                         } else {
                             ElMessage.warning('暂无该品种的席位数据');
                             capitalLongBrokers.value = [];
                             capitalShortBrokers.value = [];
+                            capitalMarketSummary.value = null;
                         }
 
-                        // 获取多空持仓走势数据
-                        const trendRes = await fetch(`${API_BASE}/capital/${variety}/position-trend?days=30`);
+                        // 获取多空持仓走势数据 - 传递日期参数
+                        const trendRes = await fetch(`${API_BASE}/capital/${variety}/position-trend?days=30&target_date=${queryDate}`);
                         if (trendRes.ok) {
                             const trendData = await trendRes.json();
                             capitalTrendData.value = trendData;
@@ -3466,18 +3676,40 @@
                 const renderSingleTermChart = (varietyCode, contracts) => {
                     // 根据当前tab选择正确的DOM ID前缀
                     let chartDom = null;
+                    let chartId = '';
+
                     if (termStructureSubTab.value === 'recommended') {
-                        chartDom = document.getElementById(`termChart_rec_${varietyCode}`);
+                        chartId = `termChart_rec_${varietyCode}`;
                     } else {
                         // contango 和 backwardation 都使用普通前缀
-                        chartDom = document.getElementById(`termChart_${varietyCode}`);
+                        chartId = `termChart_${varietyCode}`;
                     }
 
-                    if (!chartDom || !contracts || !contracts.length) {
-                        console.warn(`图表DOM未找到: ${varietyCode}, tab=${termStructureSubTab.value}`);
+                    chartDom = document.getElementById(chartId);
+
+                    if (!chartDom) {
+                        console.warn(`图表DOM未找到: ${chartId}, tab=${termStructureSubTab.value}`);
+                        // 尝试延迟重试一次
+                        setTimeout(() => {
+                            chartDom = document.getElementById(chartId);
+                            if (chartDom && contracts && contracts.length) {
+                                console.log(`重试成功，渲染图表: ${chartId}`);
+                                renderChartWithData(chartDom, varietyCode, contracts);
+                            }
+                        }, 500);
                         return;
                     }
 
+                    if (!contracts || !contracts.length) {
+                        console.warn(`无合约数据: ${varietyCode}`);
+                        return;
+                    }
+
+                    renderChartWithData(chartDom, varietyCode, contracts);
+                };
+
+                // 实际渲染图表的函数（抽取出来避免重复代码）
+                const renderChartWithData = (chartDom, varietyCode, contracts) => {
                     // 获取或创建ECharts实例（避免重复初始化）
                     let myChart = echarts.getInstanceByDom(chartDom);
                     if (!myChart) {
@@ -3655,6 +3887,12 @@
                     });
                 });
 
+                // 处理期限结构Tab切换事件
+                const handleTermStructureTabChange = (tab) => {
+                    console.log('Tab点击事件:', tab.paneName);
+                    // watch已经处理了图表渲染，这里只需记录日志
+                };
+
                 // Phase 3: Load term structure enhanced analysis
                 const loadTermEnhancedData = async () => {
                     if (!termEnhancedSelectedComm.value) {
@@ -3753,11 +3991,59 @@
                 let seasonalChartInstance = null;
                 let institutionTrendChartInstance = null;
 
+                // 持仓分析品种选择变化时，生成合约列表
+                const onPositionVarietyChange = (varietyCode) => {
+                    // 清空之前的数据
+                    positionContractCode.value = '';
+                    positionData.value = null;
+                    positionFullData.value = null;
+
+                    // 根据品种代码生成合约列表
+                    const variety = positionVarietyList.value.find(v => v.code === varietyCode);
+                    if (variety) {
+                        positionVarietyName.value = variety.name;
+
+                        // 生成合约列表 (当前月份及未来几个月的主力合约)
+                        const contracts = [];
+                        const now = new Date();
+                        const currentYear = now.getFullYear();
+                        const currentMonth = now.getMonth() + 1;
+
+                        // 生成未来12个月的合约
+                        for (let i = 0; i < 12; i++) {
+                            let month = currentMonth + i;
+                            let year = currentYear;
+                            if (month > 12) {
+                                month -= 12;
+                                year += 1;
+                            }
+                            // 格式: rb2603 (年份后两位 + 月份两位)
+                            const yearStr = String(year).slice(-2);
+                            const monthStr = String(month).padStart(2, '0');
+                            contracts.push(`${varietyCode}${yearStr}${monthStr}`);
+                        }
+
+                        positionContractList.value = contracts;
+
+                        // 默认选择主力合约月份
+                        const preferredMonths = ['03', '05', '09', '01', '10', '11', '12'];
+                        let defaultContract = contracts[0];
+                        for (const pm of preferredMonths) {
+                            const found = contracts.find(c => c.endsWith(pm));
+                            if (found) {
+                                defaultContract = found;
+                                break;
+                            }
+                        }
+                        positionContractCode.value = defaultContract;
+                    }
+                };
+
                 const loadPositionData = async () => {
                     positionLoading.value = true;
                     try {
-                        // 加载基本持仓数据
-                        const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(positionVarietyName.value)}/${positionContractCode.value}`;
+                        // 加载基本持仓数据 - 传递日期参数
+                        const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(positionVarietyName.value)}/${positionContractCode.value}?target_date=${selectedDate.value}`;
                         const posResponse = await fetch(posUrl);
 
                         if (!posResponse.ok) {
@@ -3783,8 +4069,8 @@
                             throw new Error(posResult.error || '获取持仓数据失败');
                         }
 
-                        // 加载完整数据(包含趋势)
-                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(positionVarietyName.value)}/${positionContractCode.value}/full`;
+                        // 加载完整数据(包含趋势) - 传递日期参数
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(positionVarietyName.value)}/${positionContractCode.value}/full?target_date=${selectedDate.value}`;
                         const fullResponse = await fetch(fullUrl);
 
                         if (fullResponse.ok) {
@@ -3944,7 +4230,7 @@
                         }
 
                         const contractCode = `${seasonalVariety.value}${seasonalContract.value}`;
-                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(variety.name)}/${contractCode}/full`;
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(variety.name)}/${contractCode}/full?target_date=${selectedDate.value}`;
                         const response = await fetch(fullUrl);
 
                         if (!response.ok) {
@@ -4274,7 +4560,7 @@
                             let successContract = null;
                             for (const contract of monthsToTry) {
                                 try {
-                                    const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(variety.name)}/${contract}`;
+                                    const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(variety.name)}/${contract}?target_date=${selectedDate.value}`;
                                     const posResponse = await fetch(posUrl);
                                     if (posResponse.ok) {
                                         const result = await posResponse.json();
@@ -4415,8 +4701,8 @@
                         // 初始化席位配置（如果没有配置过）
                         initSeatConfig();
 
-                        // 先加载持仓数据
-                        const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(seatVarietyName.value)}/${seatContractCode.value}`;
+                        // 先加载持仓数据 - 传递日期参数
+                        const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(seatVarietyName.value)}/${seatContractCode.value}?target_date=${selectedDate.value}`;
                         const posResponse = await fetch(posUrl);
 
                         if (!posResponse.ok) {
@@ -4447,8 +4733,8 @@
                             throw new Error(posResult.error || '获取席位数据失败');
                         }
 
-                        // 加载趋势数据
-                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(seatVarietyName.value)}/${seatContractCode.value}/full`;
+                        // 加载趋势数据 - 传递日期参数
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(seatVarietyName.value)}/${seatContractCode.value}/full?target_date=${selectedDate.value}`;
                         const fullResponse = await fetch(fullUrl);
 
                         if (fullResponse.ok) {
@@ -4787,6 +5073,19 @@
                     // 席位分析数据
                     loadDivergentFromServer();
 
+                    // 持仓分析数据（席位龙虎榜和走势图）
+                    fetchCapitalPositions();
+
+                    // 席位分析数据（如果已选择品种和合约，重新加载）
+                    if (seatSelectedVariety.value && seatContractCode.value) {
+                        loadSeatAnalysisData();
+                    }
+
+                    // 持仓分析数据（如果已选择品种和合约，重新加载）
+                    if (positionSelectedVariety.value && positionContractCode.value) {
+                        loadPositionData();
+                    }
+
                     ElMessage.success('正在加载 ' + selectedDate.value + ' 的数据...');
                 };
 
@@ -4812,7 +5111,8 @@
                             });
                         }
                     } else if (newTab === 'capital') {
-                        if (!capitalLongBrokers.value.length) fetchCapitalPositions();
+                        // 加载UQER市场总持仓数据
+                        if (!capitalMarketSummary.value) fetchCapitalPositions();
                     } else if (newTab === 'virtual-real-ratio') {
                         // Load virtual-real ratio data
                         if (!vrrList.value.length) loadVirtualRealRatioData();
@@ -4871,6 +5171,9 @@
                     const latestTradingDate = await getLatestTradingDate();
                     selectedDate.value = latestTradingDate;
 
+                    // 初始化持仓分析的默认品种和合约
+                    onPositionVarietyChange('rb');  // 初始化螺纹钢的合约列表
+
                     // 然后加载其他数据
                     fetchCommodityMapping();  // 先获取品种映射
                     fetchZhihuiStats();
@@ -4905,6 +5208,7 @@
                     selectedCapitalVariety,
                     capitalLongBrokers,
                     capitalShortBrokers,
+                    capitalMarketSummary,
                     capitalLoading,
                     capitalTrendData,
                     mainVarieties,
@@ -5017,10 +5321,14 @@
                     handleOpportunitySubTabChange,
                     // 持仓分析
                     positionVarietyName,
+                    positionSelectedVariety,
                     positionContractCode,
+                    positionVarietyList,
+                    positionContractList,
                     positionLoading,
                     positionData,
                     positionFullData,
+                    onPositionVarietyChange,
                     loadPositionData,
                     // 季节性分析
                     seasonalVariety,

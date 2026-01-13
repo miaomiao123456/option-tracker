@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增强分析 - OptionAlpha</title>
+    <!-- Vue 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .content-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .analysis-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .signal-box {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
+
+        .signal-box.success {
+            background: #f0fdf4;
+            border-left-color: #22c55e;
+        }
+
+        .signal-box.warning {
+            background: #fefce8;
+            border-left-color: #eab308;
+        }
+
+        .signal-box.danger {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="header-bar">
+            <div class="content-container">
+                <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 8px;">📊 增强分析系统</h1>
+                <p style="opacity: 0.9;">Phase 2研报增强 + Phase 3期限结构历史化 + 虚实比增强</p>
+            </div>
+        </div>
+
+        <div class="content-container">
+            <!-- 品种选择 -->
+            <div class="analysis-card">
+                <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">选择品种</h2>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <el-input
+                        v-model="selectedComm"
+                        placeholder="输入品种代码 (如: CU, V, RB)"
+                        style="max-width: 300px;"
+                        @keyup.enter="loadAllEnhancedData">
+                    </el-input>
+                    <el-button type="primary" @click="loadAllEnhancedData" :loading="loading">
+                        加载增强分析
+                    </el-button>
+                </div>
+            </div>
+
+            <!-- Phase 2: 研报增强分析 -->
+            <div v-if="researchData" class="analysis-card">
+                <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">
+                    📰 Phase 2: 研报评级增强分析
+                </h2>
+
+                <!-- 评级一致性 -->
+                <h3 style="font-size: 16px; font-weight: 600; margin: 20px 0 12px;">1. 评级一致性指标</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">一致性得分</div>
+                        <div class="stat-value">{{ researchData.consistency.consistency_score.toFixed(1) }}%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">主流观点</div>
+                        <div class="stat-value">{{ researchData.consistency.dominant_view }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">分歧水平</div>
+                        <div class="stat-value">{{ researchData.consistency.divergence_level }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">机构分布</div>
+                        <div style="font-size: 14px; color: #666;">
+                            看多: {{ researchData.consistency.bull_count }}<br>
+                            看空: {{ researchData.consistency.bear_count }}<br>
+                            中性: {{ researchData.consistency.neutral_count }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 观点变化信号 -->
+                <h3 style="font-size: 16px; font-weight: 600; margin: 20px 0 12px;">2. 观点变化信号</h3>
+                <div v-if="researchData.change_signals.has_change"
+                     :class="['signal-box', researchData.change_signals.signal_strength === '强' ? 'danger' : 'warning']">
+                    <div style="font-weight: 600; margin-bottom: 8px;">
+                        {{ researchData.change_signals.change_type }} (强度: {{ researchData.change_signals.signal_strength }})
+                    </div>
+                    <div style="color: #666;">
+                        {{ researchData.change_signals.signal_description }}<br>
+                        过去主流: {{ researchData.change_signals.past_dominant }} →
+                        当前主流: {{ researchData.change_signals.current_dominant }}
+                    </div>
+                </div>
+                <div v-else class="signal-box">
+                    <div style="color: #666;">近期无明显观点变化</div>
+                </div>
+
+                <!-- Bull-Bear指数 -->
+                <h3 style="font-size: 16px; font-weight: 600; margin: 20px 0 12px;">3. Bull-Bear综合指数</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">BB指数</div>
+                        <div class="stat-value">{{ researchData.bb_index.bb_index.toFixed(1) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">指数水平</div>
+                        <div class="stat-value">{{ researchData.bb_index.index_level }}</div>
+                    </div>
+                    <div class="stat-item" v-if="researchData.bb_index.extreme_signal">
+                        <div class="stat-label">极值信号</div>
+                        <div class="stat-value" style="font-size: 18px;">{{ researchData.bb_index.extreme_signal }}</div>
+                    </div>
+                </div>
+                <div class="signal-box success">
+                    {{ researchData.bb_index.index_description }}
+                </div>
+            </div>
+
+            <!-- Phase 3: 期限结构增强分析 -->
+            <div v-if="termData" class="analysis-card">
+                <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">
+                    📈 Phase 3: 期限结构历史化分析
+                </h2>
+
+                <!-- 结构转换信号 -->
+                <h3 style="font-size: 16px; font-weight: 600; margin: 20px 0 12px;">1. 结构转换信号</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">当前结构</div>
+                        <div class="stat-value">{{ termData.conversion.current_structure }}</div>
+                    </div>
+                    <div class="stat-item" v-if="termData.conversion.has_conversion">
+                        <div class="stat-label">转换类型</div>
+                        <div class="stat-value">{{ termData.conversion.conversion_type }}</div>
+                    </div>
+                    <div class="stat-item" v-if="termData.conversion.has_conversion">
+                        <div class="stat-label">转换强度</div>
+                        <div class="stat-value">{{ termData.conversion.conversion_strength }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">综合得分</div>
+                        <div class="stat-value">{{ termData.score }}分</div>
+                    </div>
+                </div>
+                <div :class="['signal-box', termData.conversion.has_conversion ? 'warning' : '']">
+                    {{ termData.conversion.signal_description }}
+                </div>
+
+                <!-- 价差分析 -->
+                <h3 style="font-size: 16px; font-weight: 600; margin: 20px 0 12px;">2. 价差历史分析</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">当前价差</div>
+                        <div class="stat-value">{{ termData.spread_analysis.current_spread }}元</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">价差状态</div>
+                        <div class="stat-value">{{ termData.spread_analysis.spread_status }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">30日百分位</div>
+                        <div class="stat-value">{{ termData.spread_analysis.spread_percentile_30d.toFixed(1) }}%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Z-Score</div>
+                        <div class="stat-value">{{ termData.spread_analysis.spread_zscore }}</div>
+                    </div>
+                </div>
+
+                <!-- 交易建议 -->
+                <h3 style="font-size: 16px; font-weight: 600; margin: 20px 0 12px;">3. 交易建议</h3>
+                <div v-for="reason in termData.reasons" :key="reason" class="signal-box success">
+                    {{ reason }}
+                </div>
+            </div>
+
+            <!-- 虚实比增强分析 (Phase 1) -->
+            <div v-if="vrData" class="analysis-card">
+                <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">
+                    🔄 Phase 1: 虚实比增强分析
+                </h2>
+                <div class="signal-box">
+                    虚实比数据加载中... (需要调用虚实比API)
+                </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-if="!loading && !researchData && !termData" class="analysis-card" style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 60px; margin-bottom: 16px; opacity: 0.3;">📊</div>
+                <div style="font-size: 18px; color: #666; margin-bottom: 8px;">请输入品种代码开始分析</div>
+                <div style="font-size: 14px; color: #999;">例如: CU(沪铜), V(聚氯乙烯), RB(螺纹钢)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            data() {
+                return {
+                    API_BASE: 'http://localhost:8001/api/v1',
+                    selectedComm: 'CU',
+                    loading: false,
+                    researchData: null,
+                    termData: null,
+                    vrData: null
+                };
+            },
+            methods: {
+                async loadAllEnhancedData() {
+                    if (!this.selectedComm) {
+                        ElMessage.warning('请输入品种代码');
+                        return;
+                    }
+
+                    this.loading = true;
+                    this.researchData = null;
+                    this.termData = null;
+                    this.vrData = null;
+
+                    try {
+                        // Phase 2: 研报增强
+                        const researchRes = await fetch(`${this.API_BASE}/zhihui/enhanced-analysis/${this.selectedComm}`);
+                        if (researchRes.ok) {
+                            const data = await researchRes.json();
+                            if (data.success) {
+                                this.researchData = data;
+                            }
+                        }
+
+                        // Phase 3: 期限结构增强
+                        const termRes = await fetch(`http://localhost:8001/api/term-structure/enhanced-analysis/${this.selectedComm}`);
+                        if (termRes.ok) {
+                            const data = await termRes.json();
+                            if (data.success) {
+                                this.termData = data;
+                            }
+                        }
+
+                        if (this.researchData || this.termData) {
+                            ElMessage.success('增强分析加载完成');
+                        } else {
+                            ElMessage.error('未找到该品种的增强数据');
+                        }
+                    } catch (error) {
+                        console.error('加载失败:', error);
+                        ElMessage.error('加载失败: ' + error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            },
+            mounted() {
+                // 默认加载CU的数据
+                this.loadAllEnhancedData();
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日早报 - OptionAlpha</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .report-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .report-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .report-date {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .report-body {
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .opportunity-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .opportunity-card.bear {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .news-item {
+            padding: 16px;
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .news-item.high {
+            border-left-color: #f5576c;
+            background: #fff5f7;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .badge-s {
+            background: #f5576c;
+            color: white;
+        }
+
+        .badge-a {
+            background: #f093fb;
+            color: white;
+        }
+
+        .badge-bull {
+            background: #f56c6c;
+            color: white;
+        }
+
+        .badge-bear {
+            background: #67c23a;
+            color: white;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .risk-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .capital-flow {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .flow-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .flow-card.inflow {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .flow-card.outflow {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="report-container">
+        <!-- 加载中 -->
+        <div v-if="loading" class="loading">
+            <div class="text-4xl mb-4">🌅</div>
+            <div>正在加载每日早报...</div>
+        </div>
+
+        <!-- 早报内容 -->
+        <div v-else-if="report" class="report-card">
+            <!-- 头部 -->
+            <div class="report-header">
+                <div class="report-title">🌅 OptionAlpha 每日早报</div>
+                <div class="report-date">{{ report.report_date }} {{ getDayOfWeek(report.report_date) }}</div>
+                <div class="text-sm mt-2 opacity-80">生成时间: {{ report.generate_time }}</div>
+            </div>
+
+            <!-- 主体内容 -->
+            <div class="report-body">
+                <!-- 执行摘要 -->
+                <div class="summary-box">
+                    <div class="text-2xl font-bold mb-4">📋 今日要点</div>
+                    <div>{{ report.executive_summary || '暂无摘要' }}</div>
+                </div>
+
+                <!-- 顶级交易机会 -->
+                <section class="mb-12">
+                    <h2 class="section-title">🎯 顶级交易机会</h2>
+                    <div v-if="report.content.top_opportunities && report.content.top_opportunities.length">
+                        <div v-for="opp in report.content.top_opportunities" :key="opp.variety"
+                             :class="['opportunity-card', opp.direction === '空头' ? 'bear' : '']">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="badge" :class="'badge-' + opp.grade.toLowerCase()">{{ opp.grade }}级</span>
+                                    <span class="text-2xl font-bold">{{ opp.variety }}</span>
+                                    <span class="badge badge-bull" v-if="opp.direction === '多头'">{{ opp.direction }}</span>
+                                    <span class="badge badge-bear" v-else>{{ opp.direction }}</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-3xl font-bold">{{ opp.confidence }}%</div>
+                                    <div class="text-sm opacity-90">置信度</div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="font-semibold mb-2">交易理由:</div>
+                                <ul class="space-y-1">
+                                    <li v-for="(reason, idx) in opp.reasons" :key="idx">• {{ reason }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-gray-500 text-center py-8">暂无交易机会数据</div>
+                </section>
+
+                <!-- 市场资讯 -->
+                <section class="mb-12">
+                    <h2 class="section-title">📰 重要资讯</h2>
+                    <div v-if="report.content.market_news && report.content.market_news.length">
+                        <div v-for="news in report.content.market_news" :key="news.time"
+                             :class="['news-item', news.importance]">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <span class="text-sm text-gray-600 mr-2">{{ news.time }}</span>
+                                    <span class="text-sm text-gray-500">[{{ news.source }}]</span>
+                                    <div class="mt-1 text-gray-800">{{ news.title }}</div>
+                                </div>
+                                <span v-if="news.importance === 'high'" class="badge" style="background: #f5576c; color: white;">重要</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-gray-500 text-center py-8">暂无资讯数据</div>
+                </section>
+
+                <!-- 研报要点 -->
+                <section class="mb-12">
+                    <h2 class="section-title">📊 研报要点</h2>
+                    <div v-if="report.content.research_highlights">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- 强烈看多 -->
+                            <div v-if="report.content.research_highlights.strong_bull && report.content.research_highlights.strong_bull.length">
+                                <h3 class="font-bold text-lg mb-3 text-red-600">📈 机构强烈看多</h3>
+                                <div v-for="item in report.content.research_highlights.strong_bull" :key="item.variety"
+                                     class="bg-red-50 p-4 rounded-lg mb-3">
+                                    <div class="font-bold text-lg">{{ item.variety }} {{ item.name }}</div>
+                                    <div class="text-sm text-gray-600 mt-1">
+                                        <span class="font-semibold text-red-600">{{ item.ratio }}%</span>
+                                        看多 ({{ item.institutions }}家机构)
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-2">
+                                        看多: {{ item.bull_count }}家 | 中性: {{ item.neutral_count }}家 | 看空: {{ item.bear_count }}家
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 强烈看空 -->
+                            <div v-if="report.content.research_highlights.strong_bear && report.content.research_highlights.strong_bear.length">
+                                <h3 class="font-bold text-lg mb-3 text-green-600">📉 机构强烈看空</h3>
+                                <div v-for="item in report.content.research_highlights.strong_bear" :key="item.variety"
+                                     class="bg-green-50 p-4 rounded-lg mb-3">
+                                    <div class="font-bold text-lg">{{ item.variety }} {{ item.name }}</div>
+                                    <div class="text-sm text-gray-600 mt-1">
+                                        <span class="font-semibold text-green-600">{{ item.ratio }}%</span>
+                                        看空 ({{ item.institutions }}家机构)
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-2">
+                                        看多: {{ item.bull_count }}家 | 中性: {{ item.neutral_count }}家 | 看空: {{ item.bear_count }}家
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 资金流向 -->
+                <section class="mb-12">
+                    <h2 class="section-title">💰 资金流向</h2>
+                    <div v-if="report.content.capital_flow_summary">
+                        <div class="capital-flow">
+                            <!-- 净流入 -->
+                            <div class="flow-card inflow">
+                                <h3 class="text-xl font-bold mb-4">📈 资金流入</h3>
+                                <div v-for="item in report.content.capital_flow_summary.top_inflow" :key="item.variety"
+                                     class="mb-3 pb-3 border-b border-white border-opacity-30">
+                                    <div class="font-bold text-2xl">{{ item.variety }}</div>
+                                    <div class="text-3xl font-bold mt-1">+{{ item.net_flow.toFixed(0) }} 万</div>
+                                    <div class="text-sm opacity-80">成交量: {{ item.volume.toFixed(0) }} 万</div>
+                                </div>
+                            </div>
+
+                            <!-- 净流出 -->
+                            <div class="flow-card outflow">
+                                <h3 class="text-xl font-bold mb-4">📉 资金流出</h3>
+                                <div v-for="item in report.content.capital_flow_summary.top_outflow" :key="item.variety"
+                                     class="mb-3 pb-3 border-b border-white border-opacity-30">
+                                    <div class="font-bold text-2xl">{{ item.variety }}</div>
+                                    <div class="text-3xl font-bold mt-1">{{ item.net_flow.toFixed(0) }} 万</div>
+                                    <div class="text-sm opacity-80">成交量: {{ item.volume.toFixed(0) }} 万</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 风险预警 -->
+                <section class="mb-12" v-if="report.content.risk_warnings && report.content.risk_warnings.length">
+                    <h2 class="section-title">⚠️ 风险预警</h2>
+                    <div v-for="warning in report.content.risk_warnings" :key="warning.variety"
+                         class="risk-warning">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="font-bold text-lg">{{ warning.variety }} {{ warning.name }}</span>
+                                <span class="badge ml-2" style="background: #ffc107; color: #333;">{{ warning.type }}</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-orange-600">{{ warning.ratio }}</div>
+                                <div class="text-sm text-gray-600">虚实比</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-gray-700">{{ warning.description }}</div>
+                    </div>
+                </section>
+
+                <!-- 底部操作 -->
+                <div class="text-center mt-12 pt-8 border-t border-gray-200">
+                    <el-button type="primary" size="large" @click="generateNewReport" :loading="generating">
+                        🔄 立即生成最新早报
+                    </el-button>
+                    <el-button size="large" @click="viewHistory">
+                        📅 查看历史早报
+                    </el-button>
+                    <div class="text-sm text-gray-500 mt-4">
+                        早报每天早上 8:30 自动生成
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 无数据 -->
+        <div v-else class="text-center text-white py-20">
+            <div class="text-6xl mb-4">📋</div>
+            <div class="text-2xl mb-4">暂无早报数据</div>
+            <el-button type="primary" size="large" @click="generateNewReport" :loading="generating">
+                立即生成早报
+            </el-button>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const { ElMessage, ElButton } = ElementPlus;
+
+        createApp({
+            setup() {
+                const API_BASE = 'http://localhost:8001/api/v1/daily-report';
+                const loading = Vue.ref(true);
+                const generating = Vue.ref(false);
+                const report = Vue.ref(null);
+
+                // 获取最新早报
+                const loadLatestReport = async () => {
+                    loading.value = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/latest`);
+                        const data = await response.json();
+
+                        if (data.success) {
+                            report.value = data;
+                        } else {
+                            ElMessage.warning('暂无早报数据');
+                        }
+                    } catch (error) {
+                        console.error('加载失败:', error);
+                        ElMessage.error('加载早报失败');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // 生成新早报
+                const generateNewReport = async () => {
+                    generating.value = true;
+                    ElMessage.info('正在生成早报,请稍候...');
+
+                    try {
+                        const response = await fetch(`${API_BASE}/generate`, {
+                            method: 'POST'
+                        });
+                        const data = await response.json();
+
+                        if (data.success) {
+                            ElMessage.success('早报生成成功!');
+                            await loadLatestReport();
+                        } else {
+                            ElMessage.error('早报生成失败');
+                        }
+                    } catch (error) {
+                        console.error('生成失败:', error);
+                        ElMessage.error('早报生成失败');
+                    } finally {
+                        generating.value = false;
+                    }
+                };
+
+                // 查看历史
+                const viewHistory = () => {
+                    ElMessage.info('历史早报功能开发中...');
+                };
+
+                // 获取星期几
+                const getDayOfWeek = (dateStr) => {
+                    const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                    const date = new Date(dateStr);
+                    return days[date.getDay()];
+                };
+
+                // 页面加载时获取最新早报
+                Vue.onMounted(() => {
+                    loadLatestReport();
+                });
+
+                return {
+                    loading,
+                    generating,
+                    report,
+                    loadLatestReport,
+                    generateNewReport,
+                    viewHistory,
+                    getDayOfWeek
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

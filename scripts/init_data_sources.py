@@ -89,7 +89,38 @@ def init_all_data_sources():
 
     # ==================== 资金面数据源 ====================
 
-    # 6. openvlab - 期权资金流向
+    # 6. 优矿 - 期货多空持仓比例 (数据源1: 品种总体趋势)
+    register_data_source(
+        source_name="优矿-席位持仓",
+        source_type="api",
+        category="capital",
+        provider="优矿(Uqer)",
+        url="https://uqer.datayes.com",
+        description="优矿API - 期货多空持仓比例数据(DataAPI.MktFutOiRatioGet)，品种级别的总持仓和多空比，反映市场整体资金面",
+        update_frequency="daily",
+        cron_expression="0 0 16 * * *",  # 每天16:00
+        data_fields=[
+            "contractObject", "contractObjectCn", "tradeDate",
+            "longOpenInt", "shortOpenInt", "ratio"
+        ],
+        dependencies=[]
+    )
+
+    # 6.1 交易可查 - 席位持仓排名 (数据源2: 具体席位分布)
+    register_data_source(
+        source_name="交易可查-席位持仓",
+        source_type="spider",
+        category="capital",
+        provider="交易可查网",
+        url="https://www.jiaoyikecha.com",
+        description="席位持仓Top20排名数据，包含具体席位名称、净持仓、持仓变化，与优矿数据互补",
+        update_frequency="daily",
+        cron_expression="0 0 19 * * *",  # 每天19:00(随蓝图一起爬取)
+        data_fields=["broker_name", "net_position", "position_change"],
+        dependencies=["交易可查-每日蓝图"]
+    )
+
+    # 7. openvlab - 期权资金流向
     register_data_source(
         source_name="openvlab-期权流向",
         source_type="spider",
@@ -106,7 +137,7 @@ def init_all_data_sources():
         dependencies=[]
     )
 
-    # 7. 融达期货 - 机构持仓
+    # 8. 融达期货 - 机构持仓
     register_data_source(
         source_name="融达期货-机构持仓",
         source_type="spider",
@@ -120,7 +151,7 @@ def init_all_data_sources():
         dependencies=[]
     )
 
-    # 8. 容大期货 - 技术指标
+    # 9. 容大期货 - 技术指标
     register_data_source(
         source_name="容大期货-技术指标",
         source_type="spider",
@@ -136,7 +167,7 @@ def init_all_data_sources():
 
     # ==================== 消息面数据源 ====================
 
-    # 9. 方期看盘 - 合约信息
+    # 10. 方期看盘 - 合约信息
     register_data_source(
         source_name="方期看盘-合约信息",
         source_type="spider",
@@ -152,7 +183,7 @@ def init_all_data_sources():
 
     # ==================== 第三方API数据源 ====================
 
-    # 10. akshare - 行情数据（示例）
+    # 11. akshare - 行情数据（示例）
     register_data_source(
         source_name="akshare-期货行情",
         source_type="api",
@@ -165,7 +196,7 @@ def init_all_data_sources():
         dependencies=[]
     )
 
-    # 11. tushare - 财经数据（备用）
+    # 12. tushare - 财经数据（备用）
     register_data_source(
         source_name="tushare-财经数据",
         source_type="api",
@@ -180,7 +211,7 @@ def init_all_data_sources():
 
     # ==================== 本地文件数据源 ====================
 
-    # 12. 本地蓝图图片
+    # 13. 本地蓝图图片
     register_data_source(
         source_name="本地-蓝图图片库",
         source_type="file",

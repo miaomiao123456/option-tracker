@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易可查席位数据 - OptionAlpha</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); color: white; }
+        .rank-other { background: #e5e7eb; color: #6b7280; }
+
+        .change-up { color: #f56c6c; font-weight: bold; }
+        .change-down { color: #67c23a; font-weight: bold; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div style="max-width: 1600px; margin: 0 auto;">
+            <div class="glass-card">
+                <h1 style="margin: 0 0 20px 0; font-size: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    📊 交易可查席位数据
+                </h1>
+
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; align-items: center;">
+                    <el-input v-model="varietyName" placeholder="品种名称(如: 螺纹钢)" style="width: 200px;"></el-input>
+                    <el-input v-model="contractCode" placeholder="合约代码(如: rb2605)" style="width: 200px;"></el-input>
+                    <el-button type="primary" @click="loadData" :loading="loading" size="large">
+                        🔍 查询
+                    </el-button>
+                </div>
+
+                <div v-if="data" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                    <div class="stat-card">
+                        <div class="stat-label">多头前5总计</div>
+                        <div class="stat-value">{{ data.long_top5_total?.toLocaleString() }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">空头前5总计</div>
+                        <div class="stat-value">{{ data.short_top5_total?.toLocaleString() }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">多空比</div>
+                        <div class="stat-value">{{ data.long_short_ratio }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- 多头席位 -->
+                <div class="glass-card">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #f56c6c;">
+                        🔴 多头席位 Top 20
+                    </h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>席位</th>
+                                <th>持仓量</th>
+                                <th>增减</th>
+                                <th>净持仓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="pos in data.long_positions" :key="pos.rank">
+                                <td>
+                                    <span :class="`rank-badge ${getRankClass(pos.rank)}`">
+                                        {{ pos.rank }}
+                                    </span>
+                                </td>
+                                <td style="font-weight: 500;">{{ pos.broker }}</td>
+                                <td>{{ pos.volume.toLocaleString() }}</td>
+                                <td :class="pos.change >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.change >= 0 ? '+' : '' }}{{ pos.change }}
+                                </td>
+                                <td :class="pos.net_position >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.net_position.toLocaleString() }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 空头席位 -->
+                <div class="glass-card">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #67c23a;">
+                        🟢 空头席位 Top 20
+                    </h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>席位</th>
+                                <th>持仓量</th>
+                                <th>增减</th>
+                                <th>净持仓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="pos in data.short_positions" :key="pos.rank">
+                                <td>
+                                    <span :class="`rank-badge ${getRankClass(pos.rank)}`">
+                                        {{ pos.rank }}
+                                    </span>
+                                </td>
+                                <td style="font-weight: 500;">{{ pos.broker }}</td>
+                                <td>{{ pos.volume.toLocaleString() }}</td>
+                                <td :class="pos.change >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.change >= 0 ? '+' : '' }}{{ pos.change }}
+                                </td>
+                                <td :class="pos.net_position >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.net_position.toLocaleString() }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div v-if="error" class="glass-card" style="background: #fee; color: #c00;">
+                <h3>❌ 错误</h3>
+                <p>{{ error }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            setup() {
+                const varietyName = ref('螺纹钢');
+                const contractCode = ref('rb2605');
+                const loading = ref(false);
+                const data = ref(null);
+                const error = ref(null);
+
+                const API_BASE = 'http://localhost:8000/api/v1';
+
+                const loadData = async () => {
+                    loading.value = true;
+                    error.value = null;
+
+                    try {
+                        const url = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(varietyName.value)}/${contractCode.value}`;
+                        console.log('Fetching:', url);
+
+                        const response = await fetch(url);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            data.value = result;
+                            ElMessage.success('数据加载成功');
+                        } else {
+                            throw new Error(result.error || '获取数据失败');
+                        }
+                    } catch (err) {
+                        console.error('加载失败:', err);
+                        error.value = err.message;
+                        ElMessage.error('加载失败: ' + err.message);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const getRankClass = (rank) => {
+                    if (rank === 1) return 'rank-1';
+                    if (rank === 2) return 'rank-2';
+                    if (rank === 3) return 'rank-3';
+                    return 'rank-other';
+                };
+
+                // 自动加载默认数据
+                loadData();
+
+                return {
+                    varietyName,
+                    contractCode,
+                    loading,
+                    data,
+                    error,
+                    loadData,
+                    getRankClass
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

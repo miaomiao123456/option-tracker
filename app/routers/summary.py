@@ -44,9 +44,18 @@ async def get_overview(
 ):
     """
     获取所有品种的四维总览
+    如果不指定日期,返回数据库中最新日期的数据
     """
     if target_date is None:
-        target_date = date.today()
+        # 获取数据库中最新的日期
+        latest_record = db.query(MarketAnalysisSummary).order_by(
+            desc(MarketAnalysisSummary.date)
+        ).first()
+
+        if latest_record:
+            target_date = latest_record.date
+        else:
+            raise HTTPException(status_code=404, detail="数据库中没有任何数据")
 
     summaries = db.query(MarketAnalysisSummary).filter(
         MarketAnalysisSummary.date == target_date
@@ -79,9 +88,18 @@ async def get_top_movers(
 ):
     """
     获取多空前N名品种
+    如果不指定日期,返回数据库中最新日期的数据
     """
     if target_date is None:
-        target_date = date.today()
+        # 获取数据库中最新的日期
+        latest_record = db.query(MarketAnalysisSummary).order_by(
+            desc(MarketAnalysisSummary.date)
+        ).first()
+
+        if latest_record:
+            target_date = latest_record.date
+        else:
+            raise HTTPException(status_code=404, detail="数据库中没有任何数据")
 
     # 计算总分 = 各维度加权和
     # 这里简单相加，实际可以加权
@@ -174,9 +192,18 @@ async def get_variety_summary(
 ):
     """
     获取单个品种的四维总览
+    如果不指定日期,返回数据库中最新日期的数据
     """
     if target_date is None:
-        target_date = date.today()
+        # 获取该品种的最新日期数据
+        latest_record = db.query(MarketAnalysisSummary).filter(
+            MarketAnalysisSummary.comm_code == variety_code
+        ).order_by(desc(MarketAnalysisSummary.date)).first()
+
+        if latest_record:
+            target_date = latest_record.date
+        else:
+            target_date = date.today()
 
     summary = db.query(MarketAnalysisSummary).filter(
         MarketAnalysisSummary.comm_code == variety_code,

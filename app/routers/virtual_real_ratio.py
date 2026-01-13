@@ -8,7 +8,7 @@ from typing import List, Optional
 from datetime import date, datetime, timedelta
 
 from app.models.database import get_db
-from app.models.models import WarehouseReceipt
+from app.models.models import WarehouseReceipt, Commodity
 from pydantic import BaseModel
 
 
@@ -71,13 +71,27 @@ async def get_virtual_real_ratio_list(
 ):
     """
     获取虚实比数据列表,包含与上一期对比数据
+    修改:基于commodities主品种列表返回所有品种,无数据显示null
     """
-    query = db.query(WarehouseReceipt)
+    # 获取所有品种列表
+    all_commodities = db.query(Commodity).all()
+    commodity_dict = {c.code: c.name for c in all_commodities}
 
     # 日期筛选
     if query_date:
         target_date = datetime.strptime(query_date, "%Y-%m-%d").date()
-        query = query.filter(WarehouseReceipt.record_date == target_date)
+        # 检查该日期是否有数据,如果没有则使用最新日期
+        has_data = db.query(WarehouseReceipt).filter(
+            WarehouseReceipt.record_date == target_date
+        ).first()
+
+        if not has_data:
+            # 没有数据时回退到最新日期
+            latest_date = db.query(WarehouseReceipt.record_date).order_by(
+                desc(WarehouseReceipt.record_date)
+            ).first()
+            if latest_date:
+                target_date = latest_date[0]
     else:
         # 默认返回最近一天的数据
         latest_date = db.query(WarehouseReceipt.record_date).order_by(
@@ -85,38 +99,59 @@ async def get_virtual_real_ratio_list(
         ).first()
         if latest_date:
             target_date = latest_date[0]
-            query = query.filter(WarehouseReceipt.record_date == target_date)
         else:
-            return []
+            # 如果没有任何数据,返回所有品种的空记录
+            return [{
+                "comm_code": code,
+                "variety_name": name,
+                "record_date": None,
+                "virtual_real_ratio": None,
+                "squeeze_risk": None,
+                "impact_analysis": None
+            } for code, name in commodity_dict.items()]
 
-    # 品种筛选
+    # 获取当前日期的数据
+    query = db.query(WarehouseReceipt).filter(
+        WarehouseReceipt.record_date == target_date
+    )
+
+    # 品种筛选(如果指定)
     if comm_code:
         query = query.filter(WarehouseReceipt.comm_code == comm_code.upper())
 
-    # 风险等级筛选
+    # 风险等级筛选(如果指定)
     if risk_level:
         query = query.filter(WarehouseReceipt.squeeze_risk == risk_level)
 
-    # 按虚实比降序排列
-    results = query.order_by(desc(WarehouseReceipt.virtual_real_ratio)).all()
+    results = query.all()
+    results_dict = {r.comm_code: r for r in results}
 
     # 获取上一期数据进行对比
-    if results and target_date:
-        # 查找上一个交易日数据
-        prev_date = db.query(WarehouseReceipt.record_date).filter(
-            WarehouseReceipt.record_date < target_date
-        ).order_by(desc(WarehouseReceipt.record_date)).first()
+    prev_date = db.query(WarehouseReceipt.record_date).filter(
+        WarehouseReceipt.record_date < target_date
+    ).order_by(desc(WarehouseReceipt.record_date)).first()
 
-        prev_data_dict = {}
-        if prev_date:
-            prev_records = db.query(WarehouseReceipt).filter(
-                WarehouseReceipt.record_date == prev_date[0]
-            ).all()
-            prev_data_dict = {r.comm_code: r for r in prev_records}
+    prev_data_dict = {}
+    if prev_date:
+        prev_records = db.query(WarehouseReceipt).filter(
+            WarehouseReceipt.record_date == prev_date[0]
+        ).all()
+        prev_data_dict = {r.comm_code: r for r in prev_records}
 
-        # 构建返回数据,添加对比信息
-        response_data = []
-        for record in results:
+    # 构建返回数据 - 基于所有品种
+    response_data = []
+    for code, name in commodity_dict.items():
+        # 如果指定了comm_code或risk_level,只返回匹配的品种
+        if comm_code and code != comm_code.upper():
+            continue
+
+        if code in results_dict:
+            record = results_dict[code]
+
+            # 如果指定了risk_level且不匹配,跳过
+            if risk_level and record.squeeze_risk != risk_level:
+                continue
+
             item = {
                 "id": record.id,
                 "comm_code": record.comm_code,
@@ -177,12 +212,55 @@ async def get_virtual_real_ratio_list(
                 item["receipt_change_pct"] = None
                 item["oi_change_pct"] = None
                 item["prev_date"] = None
+        else:
+            # 品种无数据,返回null记录
+            item = {
+                "id": None,
+                "comm_code": code,
+                "variety_name": name,
+                "record_date": target_date.isoformat(),
+                "receipt_quantity": None,
+                "receipt_change": None,
+                "main_contract": None,
+                "open_interest": None,
+                "open_interest_change": None,
+                "contract_unit": None,
+                "virtual_quantity": None,
+                "virtual_real_ratio": None,
+                "squeeze_risk": None,
+                "impact_analysis": None,
+                "market_activity": None,
 
-            response_data.append(item)
+                # Phase 1 增强字段
+                "percentile_30d": None,
+                "percentile_90d": None,
+                "mean_30d": None,
+                "std_30d": None,
+                "zscore": None,
+                "change_rate_3d": None,
+                "change_rate_7d": None,
+                "acceleration": None,
+                "signal_type": None,
+                "signal_score": None,
 
-        return response_data
+                "created_at": None,
+                "updated_at": None,
 
-    return []
+                # 对比数据也为空
+                "prev_virtual_real_ratio": None,
+                "ratio_change": None,
+                "ratio_change_pct": None,
+                "receipt_change_pct": None,
+                "oi_change_pct": None,
+                "prev_date": None
+            }
+
+        response_data.append(item)
+
+    # 按虚实比降序排列(null值排最后)
+    response_data.sort(key=lambda x: x["virtual_real_ratio"] if x["virtual_real_ratio"] is not None else -999999, reverse=True)
+
+    return response_data
 
 
 @router.get("/summary", response_model=VirtualRealRatioSummary)
@@ -196,6 +274,17 @@ async def get_virtual_real_ratio_summary(
     # 确定查询日期
     if query_date:
         target_date = datetime.strptime(query_date, "%Y-%m-%d").date()
+        # 检查该日期是否有数据,如果没有则使用最新日期
+        has_data = db.query(WarehouseReceipt).filter(
+            WarehouseReceipt.record_date == target_date
+        ).first()
+
+        if not has_data:
+            # 没有数据时回退到最新日期
+            latest_date = db.query(WarehouseReceipt.record_date).order_by(
+                desc(WarehouseReceipt.record_date)
+            ).first()
+            target_date = latest_date[0] if latest_date else date.today()
     else:
         latest_date = db.query(WarehouseReceipt.record_date).order_by(
             desc(WarehouseReceipt.record_date)

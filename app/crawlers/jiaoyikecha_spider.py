@@ -22,25 +22,45 @@ logger = logging.getLogger(__name__)
 class JiaoyikechaSpider:
     """交易可查爬虫"""
 
-    def __init__(self):
+    # 预设的浏览器cookie (从浏览器登录后获取，定期更新)
+    PRESET_COOKIES = {
+        'remember': '202c963771fa356d45067587ea46dea6',
+        'PHPSESSID': '90ce1eb19a6cb7e7c112b4ddebb6a6a9'
+    }
+
+    def __init__(self, use_preset_cookie: bool = True):
         self.base_url = "https://www.jiaoyikecha.com"
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Accept-Language': 'zh-CN,zh;q=0.9',
             'X-Requested-With': 'XMLHttpRequest',
-            'Referer': 'https://www.jiaoyikecha.com/',
+            'Referer': 'https://www.jiaoyikecha.com/position.html',
             'Origin': 'https://www.jiaoyikecha.com'
         })
 
-        # OCR识别器
-        self.ocr = ddddocr.DdddOcr()
+        # 优先使用预设cookie
+        self.use_preset_cookie = use_preset_cookie
+        if use_preset_cookie:
+            for name, value in self.PRESET_COOKIES.items():
+                self.session.cookies.set(name, value)
+            self.is_logged_in = True
+            logger.info("使用预设cookie初始化")
+
+        # OCR识别器 (仅在需要登录时初始化)
+        self._ocr = None
 
         # 登录凭证
         self.username = "18321399574"
         self.password = "yi2013405"
-        self.is_logged_in = False
+
+    @property
+    def ocr(self):
+        """延迟初始化OCR识别器"""
+        if self._ocr is None:
+            self._ocr = ddddocr.DdddOcr()
+        return self._ocr
 
     def get_captcha(self) -> str:
         """获取验证码并识别"""
@@ -132,7 +152,7 @@ class JiaoyikechaSpider:
 
             date_str = query_date.strftime('%Y-%m-%d')
 
-            url = f"{self.base_url}/ajax/variety_position.php?v=b011affc"
+            url = f"{self.base_url}/ajax/variety_position.php?v=f0799170"
             data = {
                 'variety': variety,
                 'code': contract_code,
@@ -267,7 +287,7 @@ class JiaoyikechaSpider:
 
             date_str = query_date.strftime('%Y-%m-%d')
 
-            url = f"{self.base_url}/ajax/variety_position.php?v=b011affc"
+            url = f"{self.base_url}/ajax/variety_position.php?v=f0799170"
             data = {
                 'variety': variety,
                 'code': contract_code,

@@ -22,9 +22,9 @@ async def get_latest_trading_date(db: Session = Depends(get_db)):
     用于前端日期选择器默认值
     """
     try:
-        # 从MarketFullView表查询最新日期
-        latest_record = db.query(MarketFullView.record_date).order_by(
-            desc(MarketFullView.record_date)
+        # 从ResearchReport表查询最新日期(实际有数据的日期)
+        latest_record = db.query(ResearchReport.publish_date).order_by(
+            desc(ResearchReport.publish_date)
         ).first()
 
         if latest_record:
@@ -138,11 +138,12 @@ async def get_full_view(
 @router.get("/research-reports")
 async def get_research_reports(
     query_date: Optional[str] = Query(None, description="查询日期 YYYY-MM-DD"),
+    comm_code: Optional[str] = Query(None, description="品种代码筛选,如RB"),
     db: Session = Depends(get_db)
 ):
     """
     获取智汇期讯研报淘金数据
-    从数据库获取,如果没有则实时爬取
+    改为从market_full_view表查询机构观点汇总数据
     """
     try:
         # 解析日期
@@ -151,66 +152,33 @@ async def get_research_reports(
         else:
             target_date = date.today()
 
-        # 先从数据库查询
-        reports = db.query(ResearchReport).filter(
-            ResearchReport.publish_date == target_date
-        ).all()
+        # 从market_full_view表查询
+        query = db.query(MarketFullView).filter(
+            MarketFullView.record_date == target_date
+        )
 
-        # 如果数据库没有数据,从API获取
-        if not reports:
-            logger.info(f"数据库中没有{target_date}的研报数据,开始爬取...")
-            from app.crawlers.zhihui_spider import ZhihuiQixunSpider
+        # 如果指定了品种代码,则筛选
+        if comm_code:
+            query = query.filter(MarketFullView.comm_code == comm_code.upper())
 
-            spider = ZhihuiQixunSpider()
-            # 获取当天的所有研报 (可能有很多页,这里先获取100条)
-            reports_data = spider.fetch_research_reports(
-                start_date=target_date,
-                end_date=target_date,
-                limit=100
-            )
+        market_data_list = query.all()
 
-            # 保存到数据库
-            for report_dict in reports_data['reports']:
-                report = ResearchReport(
-                    report_id=report_dict['report_id'],
-                    comm_code=report_dict['variety_code'],
-                    variety_name=report_dict['variety'],
-                    institution_id=report_dict['institution_id'],
-                    institution_name=report_dict['institution_name'],
-                    publish_date=datetime.strptime(report_dict['publish_date'], '%Y-%m-%d').date(),
-                    view_port=report_dict['view_port'],
-                    sentiment=report_dict['sentiment'],
-                    trade_logic=report_dict['trade_logic'],
-                    related_data=report_dict['related_data'],
-                    risk_factor=report_dict['risk_factor'],
-                    report_link=report_dict['link']
-                )
-                db.add(report)
-
-            db.commit()
-            logger.info(f"成功保存{len(reports_data['reports'])}条研报到数据库")
-
-            # 重新查询
-            reports = db.query(ResearchReport).filter(
-                ResearchReport.publish_date == target_date
-            ).all()
-
-        # 转换为字典
+        # 转换为研报格式的字典
         reports_list = [
             {
-                "report_id": r.report_id,
-                "comm_code": r.comm_code,
-                "variety_name": r.variety_name,
-                "institution_name": r.institution_name,
-                "publish_date": r.publish_date.strftime('%Y-%m-%d'),
-                "view_port": r.view_port,
-                "sentiment": r.sentiment,
-                "trade_logic": r.trade_logic or "",
-                "related_data": r.related_data or "",
-                "risk_factor": r.risk_factor or "",
-                "report_link": r.report_link
+                "report_id": f"{data.comm_code}_{target_date.strftime('%Y%m%d')}",
+                "comm_code": data.comm_code,
+                "variety_name": data.variety_name,
+                "institution_name": "智汇期讯机构汇总",
+                "publish_date": target_date.strftime('%Y-%m-%d'),
+                "view_port": data.more_port,
+                "sentiment": data.main_sentiment,
+                "trade_logic": f"看多{data.excessive_num}家({data.excessive_ratio:.1f}%)，中性{data.neutral_num}家({data.neutral_ratio:.1f}%)，看空{data.empty_num}家({data.empty_ratio:.1f}%)" if data.excessive_num is not None else "",
+                "related_data": f"共{data.total_num}家机构发表观点" if data.total_num else "",
+                "risk_factor": f"主流观点占比{data.more_rate:.1f}%，请关注市场情绪变化" if data.more_rate is not None else "",
+                "report_link": ""
             }
-            for r in reports
+            for data in market_data_list
         ]
 
         return {
@@ -235,7 +203,7 @@ async def get_research_summary(
 ):
     """
     获取某个品种的研报汇总
-    使用AI汇总交易逻辑、相关数据、风险因素
+    从MarketFullView表查询智汇期讯多空全景数据
     """
     try:
         # 解析日期
@@ -244,15 +212,15 @@ async def get_research_summary(
         else:
             target_date = date.today()
 
-        # 查询该品种在指定日期的所有研报
-        reports = db.query(ResearchReport).filter(
+        # 从MarketFullView表查询该品种的数据
+        market_data = db.query(MarketFullView).filter(
             and_(
-                ResearchReport.comm_code == comm_code.upper(),
-                ResearchReport.publish_date == target_date
+                MarketFullView.comm_code == comm_code.upper(),
+                MarketFullView.record_date == target_date
             )
-        ).all()
+        ).first()
 
-        if not reports:
+        if not market_data:
             return {
                 "success": True,
                 "comm_code": comm_code.upper(),
@@ -265,47 +233,23 @@ async def get_research_summary(
                 }
             }
 
-        # 收集所有研报的内容
-        trade_logics = [r.trade_logic for r in reports if r.trade_logic]
-        related_datas = [r.related_data for r in reports if r.related_data]
-        risk_factors = [r.risk_factor for r in reports if r.risk_factor]
-
-        # 使用AI汇总(如果内容较多)
-        if len(trade_logics) > 1:
-            # 调用AI汇总服务
-            from app.services.analysis import summarize_research_reports
-
-            summary = summarize_research_reports(
-                trade_logics=trade_logics,
-                related_datas=related_datas,
-                risk_factors=risk_factors,
-                variety_name=reports[0].variety_name
-            )
-        else:
-            # 单个研报直接返回
-            summary = {
-                "trade_logic": trade_logics[0] if trade_logics else "暂无数据",
-                "related_data": related_datas[0] if related_datas else "暂无数据",
-                "risk_factor": risk_factors[0] if risk_factors else "暂无数据"
-            }
-
-        # 返回详细研报列表
-        reports_list = [
-            {
-                "institution_name": r.institution_name,
-                "view_port": r.view_port,
-                "sentiment": r.sentiment
-            }
-            for r in reports
-        ]
+        # 构建研报汇总
+        summary = {
+            "trade_logic": f"市场主流观点为{market_data.more_port}，占比{market_data.more_rate:.1f}%。"
+                          f"看多机构{market_data.excessive_num}家({market_data.excessive_ratio:.1f}%)，"
+                          f"中性{market_data.neutral_num}家({market_data.neutral_ratio:.1f}%)，"
+                          f"看空{market_data.empty_num}家({market_data.empty_ratio:.1f}%)。",
+            "related_data": f"共有{market_data.total_num}家机构发表观点，"
+                           f"市场情绪倾向{market_data.main_sentiment}。",
+            "risk_factor": "基于机构观点统计，建议关注市场情绪变化和基本面数据。"
+        }
 
         return {
             "success": True,
             "comm_code": comm_code.upper(),
-            "variety_name": reports[0].variety_name if reports else "",
+            "variety_name": market_data.variety_name,
             "date": target_date.strftime('%Y-%m-%d'),
-            "reports_count": len(reports),
-            "reports": reports_list,
+            "reports_count": market_data.total_num,
             "summary": summary
         }
 

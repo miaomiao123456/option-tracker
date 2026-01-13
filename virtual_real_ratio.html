@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>虚实比分析 - OptionAlpha</title>
     <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
     <!-- Element Plus -->
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.3.14/dist/index.css" />
     <script src="https://unpkg.com/element-plus"></script>
     <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
@@ -448,7 +448,7 @@
 
                 // API Base URL
                 const API_BASE = window.location.hostname === 'localhost'
-                    ? 'http://localhost:8000/api/v1'
+                    ? 'http://localhost:8001/api/v1'
                     : `${window.location.origin}/api/v1`;
 
                 // 加载数据

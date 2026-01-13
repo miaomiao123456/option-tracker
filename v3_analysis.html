@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V3智能分析 - 期权交易系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.13/lib/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.13/lib/theme-chalk/index.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #app {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header-title {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .header-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-number.long { color: #10b981; }
+        .stat-number.short { color: #ef4444; }
+        .stat-number.neutral { color: #6b7280; }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .top5-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .top5-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .top5-card.long { border-top: 4px solid #10b981; }
+        .top5-card.short { border-top: 4px solid #ef4444; }
+
+        .top5-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .top5-title.long { color: #10b981; }
+        .top5-title.short { color: #ef4444; }
+
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid,
+            .top5-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header-card">
+            <div class="header-title">📊 V3智能分析系统</div>
+            <div class="header-subtitle">
+                更新时间: {{ updateTime }} | 数据源: {{ dataSource }} |
+                <el-button type="primary" size="mini" @click="refreshData" :loading="loading">
+                    刷新数据
+                </el-button>
+            </div>
+        </div>
+
+        <el-alert
+            v-if="fileAgeHours > 1"
+            type="warning"
+            :closable="false"
+            style="margin-bottom: 20px;"
+        >
+            数据已超过1小时 ({{ fileAgeHours }}小时前), 建议刷新
+        </el-alert>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total }}</div>
+                <div class="stat-label">总品种数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number long">{{ stats.long }}</div>
+                <div class="stat-label">多头品种</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number short">{{ stats.short }}</div>
+                <div class="stat-label">空头品种</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number neutral">{{ stats.neutral }}</div>
+                <div class="stat-label">中性品种</div>
+            </div>
+        </div>
+
+        <!-- 图表区 -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div id="directionChart" style="width: 100%; height: 300px;"></div>
+            </div>
+            <div class="chart-card">
+                <div id="strengthChart" style="width: 100%; height: 300px;"></div>
+            </div>
+        </div>
+
+        <!-- Top5榜单 -->
+        <div class="top5-grid">
+            <div class="top5-card long">
+                <div class="top5-title long">🚀 多头Top5</div>
+                <el-table :data="longTop5" style="width: 100%">
+                    <el-table-column type="index" label="排名" width="60" />
+                    <el-table-column prop="品种" label="品种" />
+                    <el-table-column prop="综合星级" label="强度" />
+                    <el-table-column prop="净得分" label="得分">
+                        <template slot-scope="scope">
+                            <span style="color: #10b981; font-weight: 600;">
+                                +{{ scope.row.净得分 }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+
+            <div class="top5-card short">
+                <div class="top5-title short">📉 空头Top5</div>
+                <el-table :data="shortTop5" style="width: 100%">
+                    <el-table-column type="index" label="排名" width="60" />
+                    <el-table-column prop="品种" label="品种" />
+                    <el-table-column prop="综合星级" label="强度" />
+                    <el-table-column prop="净得分" label="得分">
+                        <template slot-scope="scope">
+                            <span style="color: #ef4444; font-weight: 600;">
+                                {{ scope.row.净得分 }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+        </div>
+
+        <!-- 详情表格 -->
+        <el-card>
+            <div slot="header">
+                <span style="font-size: 20px; font-weight: bold;">所有品种分析详情</span>
+                <div class="toolbar" style="margin-top: 15px;">
+                    <el-input
+                        v-model="searchText"
+                        placeholder="搜索品种..."
+                        prefix-icon="el-icon-search"
+                        style="width: 300px;"
+                        clearable
+                    />
+                    <el-radio-group v-model="directionFilter" size="small">
+                        <el-radio-button label="all">全部</el-radio-button>
+                        <el-radio-button label="多头">多头</el-radio-button>
+                        <el-radio-button label="空头">空头</el-radio-button>
+                        <el-radio-button label="中性">中性</el-radio-button>
+                    </el-radio-group>
+                </div>
+            </div>
+            <el-table
+                :data="filteredOverview"
+                style="width: 100%"
+                :default-sort="{prop: '净得分', order: 'descending'}"
+                max-height="600"
+            >
+                <el-table-column prop="品种" label="品种" sortable width="100" fixed />
+                <el-table-column prop="综合方向" label="综合方向" sortable width="100">
+                    <template slot-scope="scope">
+                        <el-tag
+                            :type="scope.row.综合方向 === '多头' ? 'success' :
+                                   scope.row.综合方向 === '空头' ? 'danger' : 'info'"
+                        >
+                            {{ scope.row.综合方向 }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="综合星级" label="综合强度" sortable width="120" />
+                <el-table-column prop="净得分" label="净得分" sortable width="100" />
+                <el-table-column label="研报分析" width="120">
+                    <template slot-scope="scope">
+                        {{ scope.row.研报分析_方向 }} {{ scope.row.研报分析_星级 }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="虚实比PCR" width="120">
+                    <template slot-scope="scope">
+                        {{ scope.row.虚实比PCR_方向 }} {{ scope.row.虚实比PCR_星级 }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="期限结构" width="120">
+                    <template slot-scope="scope">
+                        {{ scope.row.期限结构_方向 }} {{ scope.row.期限结构_星级 }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="波动率背离" width="130">
+                    <template slot-scope="scope">
+                        {{ scope.row.波动率背离_方向 }} {{ scope.row.波动率背离_星级 }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="资金面" width="120">
+                    <template slot-scope="scope">
+                        {{ scope.row.资金面_方向 }} {{ scope.row.资金面_星级 }}
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-card>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    loading: false,
+                    overview: [],
+                    longTop5: [],
+                    shortTop5: [],
+                    stats: {
+                        total: 0,
+                        long: 0,
+                        short: 0,
+                        neutral: 0
+                    },
+                    updateTime: '',
+                    dataSource: '',
+                    fileAgeHours: 0,
+                    searchText: '',
+                    directionFilter: 'all',
+                    directionChart: null,
+                    strengthChart: null
+                }
+            },
+            computed: {
+                filteredOverview() {
+                    let filtered = this.overview;
+
+                    // 搜索过滤
+                    if (this.searchText) {
+                        filtered = filtered.filter(item =>
+                            item.品种.toLowerCase().includes(this.searchText.toLowerCase())
+                        );
+                    }
+
+                    // 方向过滤
+                    if (this.directionFilter !== 'all') {
+                        filtered = filtered.filter(item =>
+                            item.综合方向 === this.directionFilter
+                        );
+                    }
+
+                    return filtered;
+                }
+            },
+            mounted() {
+                this.loadData();
+                window.addEventListener('resize', this.resizeCharts);
+            },
+            beforeDestroy() {
+                window.removeEventListener('resize', this.resizeCharts);
+            },
+            methods: {
+                async loadData() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('http://localhost:8000/api/v3/analysis/overview');
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            const data = result.data;
+                            this.overview = data.overview;
+                            this.longTop5 = data.long_top5;
+                            this.shortTop5 = data.short_top5;
+                            this.stats = data.stats;
+                            this.updateTime = new Date(data.update_time).toLocaleString('zh-CN');
+                            this.dataSource = data.data_source === 'cached' ? '缓存' : '文件';
+                            this.fileAgeHours = data.file_age_hours;
+
+                            this.$nextTick(() => {
+                                this.renderCharts();
+                            });
+
+                            this.$message.success('数据加载成功');
+                        }
+                    } catch (error) {
+                        this.$message.error('数据加载失败: ' + error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async refreshData() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('http://localhost:8000/api/v3/analysis/refresh', {
+                            method: 'POST'
+                        });
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            this.$message.success('数据刷新成功');
+                            await this.loadData();
+                        }
+                    } catch (error) {
+                        this.$message.error('数据刷新失败: ' + error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                renderCharts() {
+                    this.renderDirectionChart();
+                    this.renderStrengthChart();
+                },
+
+                renderDirectionChart() {
+                    const chartDom = document.getElementById('directionChart');
+                    this.directionChart = echarts.init(chartDom);
+
+                    const option = {
+                        title: {
+                            text: '方向分布',
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: '{b}: {c} ({d}%)'
+                        },
+                        legend: {
+                            bottom: '0%',
+                            left: 'center'
+                        },
+                        series: [{
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: {
+                                borderRadius: 10,
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            },
+                            data: [
+                                { value: this.stats.long, name: '多头', itemStyle: { color: '#10b981' } },
+                                { value: this.stats.short, name: '空头', itemStyle: { color: '#ef4444' } },
+                                { value: this.stats.neutral, name: '中性', itemStyle: { color: '#6b7280' } }
+                            ]
+                        }]
+                    };
+
+                    this.directionChart.setOption(option);
+                },
+
+                renderStrengthChart() {
+                    const chartDom = document.getElementById('strengthChart');
+                    this.strengthChart = echarts.init(chartDom);
+
+                    // 统计强度分布
+                    const strengthCount = {1: 0, 2: 0, 3: 0};
+                    this.overview.forEach(item => {
+                        strengthCount[item.综合强度] = (strengthCount[item.综合强度] || 0) + 1;
+                    });
+
+                    const option = {
+                        title: {
+                            text: '强度分布',
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['1星', '2星', '3星']
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '品种数'
+                        },
+                        series: [{
+                            data: [strengthCount[1], strengthCount[2], strengthCount[3]],
+                            type: 'bar',
+                            itemStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: '#667eea' },
+                                    { offset: 1, color: '#764ba2' }
+                                ]),
+                                borderRadius: [5, 5, 0, 0]
+                            },
+                            label: {
+                                show: true,
+                                position: 'top'
+                            }
+                        }]
+                    };
+
+                    this.strengthChart.setOption(option);
+                },
+
+                resizeCharts() {
+                    if (this.directionChart) this.directionChart.resize();
+                    if (this.strengthChart) this.strengthChart.resize();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

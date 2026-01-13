@@ -11,7 +11,7 @@ from typing import Optional, List
 import logging
 
 from app.models.database import get_db
-from app.models.models import TermStructureHistory, MarketFullView
+from app.models.models import TermStructureHistory, MarketFullView, Commodity
 from app.services.comprehensive_analyzer import ComprehensiveAnalyzer
 
 logger = logging.getLogger(__name__)
@@ -73,6 +73,7 @@ async def get_opportunity_radar(
 ):
     """
     机会雷达总览 (Phase 5.4)
+    修改:基于commodities主品种列表返回所有品种,无数据显示null
 
     扫描所有品种,识别S/A/B级交易机会
 
@@ -80,25 +81,36 @@ async def get_opportunity_radar(
     - min_grade: 最低等级(S/A/B),默认B级以上
     """
     try:
+        # 获取所有品种列表
+        all_commodities = db.query(Commodity).all()
+        commodity_dict = {c.code: c.name for c in all_commodities}
+
         # 获取最新日期
         latest_record = db.query(TermStructureHistory.record_date).order_by(
             desc(TermStructureHistory.record_date)
         ).first()
 
         if not latest_record:
+            # 无数据时返回所有品种的空结构
             return {
-                "success": False,
-                "message": "无可用数据"
+                "success": True,
+                "analysis_date": date.today().isoformat(),
+                "min_grade": min_grade,
+                "stats": {
+                    "total_scanned": len(commodity_dict),
+                    "total_opportunities": 0,
+                    "s_count": 0,
+                    "a_count": 0,
+                    "b_count": 0,
+                    "bull_count": 0,
+                    "bear_count": 0
+                },
+                "opportunities": []
             }
 
         target_date = latest_record[0]
 
-        # 获取所有有数据的品种
-        varieties = db.query(TermStructureHistory.comm_code, TermStructureHistory.variety_name).filter(
-            TermStructureHistory.record_date == target_date
-        ).distinct().all()
-
-        logger.info(f"开始扫描 {len(varieties)} 个品种...")
+        logger.info(f"开始扫描 {len(commodity_dict)} 个品种...")
 
         # 创建分析器
         analyzer = ComprehensiveAnalyzer(db)
@@ -110,15 +122,16 @@ async def get_opportunity_radar(
             "B": []   # B级机会
         }
 
-        for comm_code, variety_name in varieties:
+        # 基于所有品种进行分析
+        for code, name in commodity_dict.items():
             try:
-                result = analyzer.analyze(comm_code, target_date)
+                result = analyzer.analyze(code, target_date)
 
                 grade = result["grade"]
                 if grade in ["S", "A", "B"]:
                     opportunities[grade].append({
-                        "comm_code": comm_code,
-                        "variety_name": variety_name,
+                        "comm_code": code,
+                        "variety_name": name,
                         "total_score": result["total_score"],
                         "direction": result["direction"],
                         "strength": result["strength"],
@@ -128,7 +141,8 @@ async def get_opportunity_radar(
                     })
 
             except Exception as e:
-                logger.warning(f"分析 {comm_code} 失败: {e}")
+                logger.warning(f"分析 {code} 失败: {e}")
+                # 无法分析的品种跳过,不添加到机会列表
                 continue
 
         # 按得分排序
@@ -149,7 +163,7 @@ async def get_opportunity_radar(
 
         # 统计
         stats = {
-            "total_scanned": len(varieties),
+            "total_scanned": len(commodity_dict),
             "total_opportunities": len(filtered_opportunities),
             "s_count": len(opportunities["S"]),
             "a_count": len(opportunities["A"]),
@@ -181,10 +195,15 @@ async def get_top_opportunities(
 ):
     """
     获取Top N交易机会
+    修改:基于commodities主品种列表返回所有品种,无数据显示null
 
     按综合得分排序,返回最强的N个机会
     """
     try:
+        # 获取所有品种列表
+        all_commodities = db.query(Commodity).all()
+        commodity_dict = {c.code: c.name for c in all_commodities}
+
         # 获取最新日期
         latest_record = db.query(TermStructureHistory.record_date).order_by(
             desc(TermStructureHistory.record_date)
@@ -192,16 +211,16 @@ async def get_top_opportunities(
 
         if not latest_record:
             return {
-                "success": False,
-                "message": "无可用数据"
+                "success": True,
+                "analysis_date": date.today().isoformat(),
+                "direction_filter": direction,
+                "total_analyzed": len(commodity_dict),
+                "total_matched": 0,
+                "limit": limit,
+                "opportunities": []
             }
 
         target_date = latest_record[0]
-
-        # 获取所有品种
-        varieties = db.query(TermStructureHistory.comm_code, TermStructureHistory.variety_name).filter(
-            TermStructureHistory.record_date == target_date
-        ).distinct().all()
 
         # 创建分析器
         analyzer = ComprehensiveAnalyzer(db)
@@ -209,17 +228,17 @@ async def get_top_opportunities(
         # 分析所有品种
         all_opportunities = []
 
-        for comm_code, variety_name in varieties:
+        for code, name in commodity_dict.items():
             try:
-                result = analyzer.analyze(comm_code, target_date)
+                result = analyzer.analyze(code, target_date)
 
                 # 方向筛选
                 if direction and result["direction"] != direction:
                     continue
 
                 all_opportunities.append({
-                    "comm_code": comm_code,
-                    "variety_name": variety_name,
+                    "comm_code": code,
+                    "variety_name": name,
                     "total_score": result["total_score"],
                     "direction": result["direction"],
                     "strength": result["strength"],
@@ -229,7 +248,7 @@ async def get_top_opportunities(
                 })
 
             except Exception as e:
-                logger.warning(f"分析 {comm_code} 失败: {e}")
+                logger.warning(f"分析 {code} 失败: {e}")
                 continue
 
         # 按得分绝对值排序
@@ -245,7 +264,7 @@ async def get_top_opportunities(
             "success": True,
             "analysis_date": target_date.isoformat(),
             "direction_filter": direction,
-            "total_analyzed": len(varieties),
+            "total_analyzed": len(commodity_dict),
             "total_matched": len(all_opportunities),
             "limit": limit,
             "opportunities": top_opportunities
@@ -262,10 +281,15 @@ async def get_top_opportunities(
 async def get_market_stats(db: Session = Depends(get_db)):
     """
     获取市场统计数据
+    修改:基于commodities主品种列表返回所有品种,无数据显示null
 
     统计各等级机会数量、多空分布等
     """
     try:
+        # 获取所有品种列表
+        all_commodities = db.query(Commodity).all()
+        commodity_dict = {c.code: c.name for c in all_commodities}
+
         # 获取最新日期
         latest_record = db.query(TermStructureHistory.record_date).order_by(
             desc(TermStructureHistory.record_date)
@@ -273,23 +297,25 @@ async def get_market_stats(db: Session = Depends(get_db)):
 
         if not latest_record:
             return {
-                "success": False,
-                "message": "无可用数据"
+                "success": True,
+                "analysis_date": date.today().isoformat(),
+                "stats": {
+                    "total_varieties": len(commodity_dict),
+                    "grade_distribution": {"S": 0, "A": 0, "B": 0, "C": 0},
+                    "direction_distribution": {"多头": 0, "空头": 0, "中性": 0},
+                    "avg_score": 0,
+                    "avg_confidence": 0
+                }
             }
 
         target_date = latest_record[0]
-
-        # 获取所有品种
-        varieties = db.query(TermStructureHistory.comm_code, TermStructureHistory.variety_name).filter(
-            TermStructureHistory.record_date == target_date
-        ).distinct().all()
 
         # 创建分析器
         analyzer = ComprehensiveAnalyzer(db)
 
         # 统计
         stats = {
-            "total_varieties": len(varieties),
+            "total_varieties": len(commodity_dict),
             "grade_distribution": {"S": 0, "A": 0, "B": 0, "C": 0},
             "direction_distribution": {"多头": 0, "空头": 0, "中性": 0},
             "avg_score": 0,
@@ -299,9 +325,10 @@ async def get_market_stats(db: Session = Depends(get_db)):
         scores = []
         confidences = []
 
-        for comm_code, _ in varieties:
+        # 基于所有品种进行统计
+        for code, _ in commodity_dict.items():
             try:
-                result = analyzer.analyze(comm_code, target_date)
+                result = analyzer.analyze(code, target_date)
 
                 stats["grade_distribution"][result["grade"]] += 1
                 stats["direction_distribution"][result["direction"]] += 1
@@ -309,7 +336,7 @@ async def get_market_stats(db: Session = Depends(get_db)):
                 confidences.append(result["confidence"])
 
             except Exception as e:
-                logger.warning(f"分析 {comm_code} 失败: {e}")
+                logger.warning(f"分析 {code} 失败: {e}")
                 continue
 
         if scores:

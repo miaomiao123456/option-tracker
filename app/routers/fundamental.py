@@ -158,31 +158,37 @@ class ZhihuiSentiment(BaseModel):
     """智汇期讯市场情绪数据"""
     variety_code: str
     variety_name: str
-    excessive_ratio: float  # 看多占比%
-    neutral_ratio: float    # 中性占比%
-    empty_ratio: float      # 看空占比%
-    excessive_num: int      # 看多数量
-    neutral_num: int        # 中性数量
-    empty_num: int          # 看空数量
-    sum: int                # 总数
-    more_port: str          # 主流观点
-    more_rate: float        # 主流观点比例
-    main_sentiment: str     # 情绪标签
+    excessive_ratio: Optional[float] = None  # 看多占比%
+    neutral_ratio: Optional[float] = None    # 中性占比%
+    empty_ratio: Optional[float] = None      # 看空占比%
+    excessive_num: Optional[int] = None      # 看多数量
+    neutral_num: Optional[int] = None        # 中性数量
+    empty_num: Optional[int] = None          # 看空数量
+    sum: Optional[int] = None                # 总数
+    more_port: Optional[str] = None          # 主流观点
+    more_rate: Optional[float] = None        # 主流观点比例
+    main_sentiment: Optional[str] = None     # 情绪标签
     record_time: str
 
 
 @router.get("/zhihui/market-sentiment", response_model=List[ZhihuiSentiment])
 async def get_zhihui_market_sentiment(
         target_date: Optional[str] = None,
-        sentiment_filter: Optional[str] = None
+        sentiment_filter: Optional[str] = None,
+        db: Session = Depends(get_db)
 ):
     """
     获取智汇期讯市场情绪数据（多空全景）
+    修改:基于commodities主品种列表返回所有品种,无数据显示null
 
     Args:
         target_date: 目标日期 (格式: YYYYMMDD)，默认为今天
         sentiment_filter: 情绪过滤 ('bull', 'bear', 'neutral')，默认返回全部
     """
+    # 获取所有品种列表
+    all_commodities = db.query(Commodity).all()
+    commodity_dict = {c.code: c.name for c in all_commodities}
+
     if target_date is None:
         target_date = date.today().strftime('%Y%m%d')
 
@@ -192,20 +198,67 @@ async def get_zhihui_market_sentiment(
     filepath = data_dir / filename
 
     if not filepath.exists():
-        raise HTTPException(
-            status_code=404,
-            detail=f"未找到日期 {target_date} 的智汇期讯数据"
-        )
+        # 文件不存在时,返回所有品种的空结构
+        result = []
+        for code, name in commodity_dict.items():
+            result.append({
+                "variety_code": code,
+                "variety_name": name,
+                "excessive_ratio": None,
+                "neutral_ratio": None,
+                "empty_ratio": None,
+                "excessive_num": None,
+                "neutral_num": None,
+                "empty_num": None,
+                "sum": None,
+                "more_port": None,
+                "more_rate": None,
+                "main_sentiment": None,
+                "record_time": target_date
+            })
+        return result
 
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        # 如果有情绪过滤
-        if sentiment_filter:
-            data = [item for item in data if item['main_sentiment'] == sentiment_filter]
+        # 构建品种代码到数据的映射
+        existing_data = {}
+        for item in data:
+            existing_data[item['variety_code']] = item
 
-        return data
+        # 基于所有品种构建返回数据
+        result = []
+        for code, name in commodity_dict.items():
+            if code in existing_data:
+                # 有数据的品种
+                item = existing_data[code]
+                # 如果有情绪过滤且不匹配,跳过
+                if sentiment_filter and item['main_sentiment'] != sentiment_filter:
+                    continue
+                result.append(item)
+            else:
+                # 无数据的品种 - 返回null结构
+                item = {
+                    "variety_code": code,
+                    "variety_name": name,
+                    "excessive_ratio": None,
+                    "neutral_ratio": None,
+                    "empty_ratio": None,
+                    "excessive_num": None,
+                    "neutral_num": None,
+                    "empty_num": None,
+                    "sum": None,
+                    "more_port": None,
+                    "more_rate": None,
+                    "main_sentiment": None,
+                    "record_time": target_date
+                }
+                # 如果有情绪过滤,无数据品种不返回
+                if not sentiment_filter:
+                    result.append(item)
+
+        return result
     except Exception as e:
         raise HTTPException(
             status_code=500,

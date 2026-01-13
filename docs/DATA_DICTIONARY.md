@@ -413,6 +413,49 @@ GET https://www.openvlab.cn
 
 ---
 
+### UQer/优矿/通联数据（Datayes）
+
+**网站**: https://api.datayes.com/api
+**类型**: 量化数据API（Token认证）
+**客户端文件**: `app/services/uqer_client.py`
+
+**功能**:
+```python
+# 期货仓单日报
+get_warehouse_receipt(contract_object, exchange_cd, begin_date, end_date)
+    返回: DataFrame
+
+# 期货日行情数据
+get_futures_daily(ticker, trade_date, begin_date, end_date, exchange_cd)
+    返回: DataFrame
+
+# 主力合约日行情
+get_main_contract_daily(variety_code, trade_date, begin_date, end_date)
+    返回: DataFrame
+```
+
+**数据表**: warehouse_receipts (虚实比数据源), option_flows (资金面数据源补充)
+
+**配置**:
+- 需在 `.env` 配置 `UQER_TOKEN`
+- Base URL: `https://api.datayes.com/api`
+- 认证方式: Bearer Token
+
+**采集时间**: 按需获取（API调用）
+
+**特殊说明**:
+- 专业量化数据平台，数据质量高
+- 可用于替代或补充Openvlab资金流向数据
+- Token需向通联数据申请
+- 返回pandas DataFrame格式
+
+**使用场景**:
+1. 虚实比分析 - 从仓单数据计算
+2. 资金面分析 - 期货行情数据
+3. 期限结构分析 - 主力合约数据
+
+---
+
 ### Gemini AI 分析服务
 
 **API**: https://www.apillm.online/v1

@@ -56,18 +56,40 @@ async def get_blueprints_by_date(
 ):
     """
     根据日期获取蓝图数据 (支持前端日期选择器)
+    如果指定日期没有数据,自动返回最新日期的数据
     """
     if date:
         try:
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
             raise HTTPException(status_code=400, detail="日期格式错误,应为 YYYY-MM-DD")
-    else:
-        target_date = datetime.today().date()
 
-    blueprint = db.query(DailyBlueprint).filter(
-        DailyBlueprint.record_date == target_date
-    ).first()
+        # 检查该日期是否有数据
+        blueprint = db.query(DailyBlueprint).filter(
+            DailyBlueprint.record_date == target_date
+        ).first()
+
+        # 如果没有数据,使用最新日期
+        if not blueprint:
+            latest_blueprint = db.query(DailyBlueprint).order_by(
+                desc(DailyBlueprint.record_date)
+            ).first()
+
+            if latest_blueprint:
+                blueprint = latest_blueprint
+                target_date = latest_blueprint.record_date
+    else:
+        # 没有指定日期时,使用最新日期
+        latest_blueprint = db.query(DailyBlueprint).order_by(
+            desc(DailyBlueprint.record_date)
+        ).first()
+
+        if latest_blueprint:
+            blueprint = latest_blueprint
+            target_date = latest_blueprint.record_date
+        else:
+            target_date = datetime.today().date()
+            blueprint = None
 
     if not blueprint:
         return {

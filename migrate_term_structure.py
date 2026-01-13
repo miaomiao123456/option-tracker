@@ -209,6 +209,9 @@ def migrate_database(db_path='option_tracker.db', json_dir='data'):
             else:
                 structure_type = 'Neutral'
 
+            # 将合约列表转为JSON字符串
+            contracts_json = json.dumps(contracts, ensure_ascii=False) if contracts else '[]'
+
             # 插入数据
             cursor.execute("""
                 INSERT INTO term_structure_history (
@@ -218,8 +221,8 @@ def migrate_database(db_path='option_tracker.db', json_dir='data'):
                     near_volume, near_oi,
                     price_spread, spread_pct,
                     structure_score, grade, recommend,
-                    trade_suggestion
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    trade_suggestion, contracts_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 comm_code,
                 variety_name,
@@ -238,7 +241,8 @@ def migrate_database(db_path='option_tracker.db', json_dir='data'):
                 variety.get('structure_score', 0),
                 variety.get('grade', ''),
                 1 if variety.get('recommend', False) else 0,
-                variety.get('trade_suggestion', '')
+                variety.get('trade_suggestion', ''),
+                contracts_json
             ))
 
             inserted_count += 1

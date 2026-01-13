@@ -2,17 +2,17 @@
   {
     "variety_code": "LC",
     "variety_name": "碳酸锂",
-    "excessive_ratio": 61.4,
-    "neutral_ratio": 35.09,
-    "empty_ratio": 3.51,
-    "excessive_num": 35,
+    "excessive_ratio": 62.07,
+    "neutral_ratio": 34.48,
+    "empty_ratio": 3.45,
+    "excessive_num": 36,
     "neutral_num": 20,
     "empty_num": 2,
-    "sum": 57,
+    "sum": 58,
     "more_port": "偏多",
-    "more_rate": 61.4,
+    "more_rate": 62.07,
     "main_sentiment": "bull",
-    "record_time": "2025-12-17T19:54:08.825929"
+    "record_time": "2025-12-17T23:21:56.791974"
   },
   {
     "variety_code": "AU",
@@ -27,7 +27,7 @@
     "more_port": "偏多",
     "more_rate": 53.23,
     "main_sentiment": "bull",
-    "record_time": "2025-12-17T19:54:08.825942"
+    "record_time": "2025-12-17T23:21:56.791989"
   },
   {
     "variety_code": "PS",
@@ -42,7 +42,7 @@
     "more_port": "偏多",
     "more_rate": 59.09,
     "main_sentiment": "bull",
-    "record_time": "2025-12-17T19:54:08.825944"
+    "record_time": "2025-12-17T23:21:56.791992"
   },
   {
     "variety_code": "AG",
@@ -57,52 +57,52 @@
     "more_port": "中性",
     "more_rate": 50.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825946"
+    "record_time": "2025-12-17T23:21:56.791995"
   },
   {
     "variety_code": "CF",
     "variety_name": "棉花",
-    "excessive_ratio": 54.55,
-    "neutral_ratio": 45.45,
+    "excessive_ratio": 53.33,
+    "neutral_ratio": 46.67,
     "empty_ratio": 0.0,
     "excessive_num": 24,
-    "neutral_num": 20,
+    "neutral_num": 21,
     "empty_num": 0,
-    "sum": 44,
+    "sum": 45,
     "more_port": "偏多",
-    "more_rate": 54.55,
+    "more_rate": 53.33,
     "main_sentiment": "bull",
-    "record_time": "2025-12-17T19:54:08.825948"
+    "record_time": "2025-12-17T23:21:56.791997"
   },
   {
     "variety_code": "CU",
     "variety_name": "沪铜",
-    "excessive_ratio": 33.33,
-    "neutral_ratio": 55.07,
-    "empty_ratio": 11.59,
+    "excessive_ratio": 32.86,
+    "neutral_ratio": 55.71,
+    "empty_ratio": 11.43,
     "excessive_num": 23,
-    "neutral_num": 38,
+    "neutral_num": 39,
     "empty_num": 8,
-    "sum": 69,
+    "sum": 70,
     "more_port": "中性",
-    "more_rate": 55.07,
+    "more_rate": 55.71,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825949"
+    "record_time": "2025-12-17T23:21:56.792000"
   },
   {
     "variety_code": "AL",
     "variety_name": "沪铝",
-    "excessive_ratio": 35.71,
-    "neutral_ratio": 53.57,
-    "empty_ratio": 10.71,
+    "excessive_ratio": 35.09,
+    "neutral_ratio": 54.39,
+    "empty_ratio": 10.53,
     "excessive_num": 20,
-    "neutral_num": 30,
+    "neutral_num": 31,
     "empty_num": 6,
-    "sum": 56,
+    "sum": 57,
     "more_port": "中性",
-    "more_rate": 53.57,
+    "more_rate": 54.39,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825954"
+    "record_time": "2025-12-17T23:21:56.792002"
   },
   {
     "variety_code": "PT",
@@ -117,7 +117,7 @@
     "more_port": "偏多",
     "more_rate": 100.0,
     "main_sentiment": "bull",
-    "record_time": "2025-12-17T19:54:08.825959"
+    "record_time": "2025-12-17T23:21:56.792004"
   },
   {
     "variety_code": "PD",
@@ -132,7 +132,7 @@
     "more_port": "偏多",
     "more_rate": 90.91,
     "main_sentiment": "bull",
-    "record_time": "2025-12-17T19:54:08.825961"
+    "record_time": "2025-12-17T23:21:56.792010"
   },
   {
     "variety_code": "IF",
@@ -147,22 +147,22 @@
     "more_port": "中性",
     "more_rate": 60.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825963"
+    "record_time": "2025-12-17T23:21:56.792012"
   },
   {
     "variety_code": "JM",
     "variety_name": "焦煤",
-    "excessive_ratio": 13.33,
-    "neutral_ratio": 56.67,
-    "empty_ratio": 30.0,
+    "excessive_ratio": 13.11,
+    "neutral_ratio": 57.38,
+    "empty_ratio": 29.51,
     "excessive_num": 8,
-    "neutral_num": 34,
+    "neutral_num": 35,
     "empty_num": 18,
-    "sum": 60,
+    "sum": 61,
     "more_port": "中性",
-    "more_rate": 56.67,
+    "more_rate": 57.38,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825965"
+    "record_time": "2025-12-17T23:21:56.792014"
   },
   {
     "variety_code": "BR",
@@ -177,7 +177,7 @@
     "more_port": "中性",
     "more_rate": 55.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825966"
+    "record_time": "2025-12-17T23:21:56.792017"
   },
   {
     "variety_code": "IH",
@@ -192,7 +192,7 @@
     "more_port": "中性",
     "more_rate": 64.91,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825968"
+    "record_time": "2025-12-17T23:21:56.792019"
   },
   {
     "variety_code": "IM",
@@ -207,7 +207,7 @@
     "more_port": "中性",
     "more_rate": 58.93,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825970"
+    "record_time": "2025-12-17T23:21:56.792021"
   },
   {
     "variety_code": "IC",
@@ -222,22 +222,22 @@
     "more_port": "中性",
     "more_rate": 64.81,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825972"
+    "record_time": "2025-12-17T23:21:56.792023"
   },
   {
     "variety_code": "MA",
     "variety_name": "甲醇",
-    "excessive_ratio": 15.91,
-    "neutral_ratio": 75.0,
-    "empty_ratio": 9.09,
+    "excessive_ratio": 15.56,
+    "neutral_ratio": 75.56,
+    "empty_ratio": 8.89,
     "excessive_num": 7,
-    "neutral_num": 33,
+    "neutral_num": 34,
     "empty_num": 4,
-    "sum": 44,
+    "sum": 45,
     "more_port": "中性",
-    "more_rate": 75.0,
+    "more_rate": 75.56,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825974"
+    "record_time": "2025-12-17T23:21:56.792025"
   },
   {
     "variety_code": "AD",
@@ -252,37 +252,52 @@
     "more_port": "中性",
     "more_rate": 61.9,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825975"
+    "record_time": "2025-12-17T23:21:56.792027"
   },
   {
     "variety_code": "M",
     "variety_name": "豆粕",
-    "excessive_ratio": 9.23,
-    "neutral_ratio": 52.31,
-    "empty_ratio": 38.46,
+    "excessive_ratio": 9.09,
+    "neutral_ratio": 53.03,
+    "empty_ratio": 37.88,
     "excessive_num": 6,
-    "neutral_num": 34,
+    "neutral_num": 35,
     "empty_num": 25,
-    "sum": 65,
+    "sum": 66,
     "more_port": "中性",
-    "more_rate": 52.31,
+    "more_rate": 53.03,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825980"
+    "record_time": "2025-12-17T23:21:56.792029"
   },
   {
     "variety_code": "SP",
     "variety_name": "纸浆",
-    "excessive_ratio": 24.0,
-    "neutral_ratio": 68.0,
-    "empty_ratio": 8.0,
+    "excessive_ratio": 23.08,
+    "neutral_ratio": 69.23,
+    "empty_ratio": 7.69,
     "excessive_num": 6,
-    "neutral_num": 17,
+    "neutral_num": 18,
     "empty_num": 2,
-    "sum": 25,
+    "sum": 26,
     "more_port": "中性",
-    "more_rate": 68.0,
+    "more_rate": 69.23,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825986"
+    "record_time": "2025-12-17T23:21:56.792031"
+  },
+  {
+    "variety_code": "EC",
+    "variety_name": "集运欧线",
+    "excessive_ratio": 26.09,
+    "neutral_ratio": 60.87,
+    "empty_ratio": 13.04,
+    "excessive_num": 6,
+    "neutral_num": 14,
+    "empty_num": 3,
+    "sum": 23,
+    "more_port": "中性",
+    "more_rate": 60.87,
+    "main_sentiment": "neutral",
+    "record_time": "2025-12-17T23:21:56.792034"
   },
   {
     "variety_code": "T",
@@ -297,22 +312,22 @@
     "more_port": "中性",
     "more_rate": 61.29,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825988"
+    "record_time": "2025-12-17T23:21:56.792036"
   },
   {
     "variety_code": "J",
     "variety_name": "焦炭",
-    "excessive_ratio": 9.09,
-    "neutral_ratio": 58.18,
-    "empty_ratio": 32.73,
+    "excessive_ratio": 8.93,
+    "neutral_ratio": 58.93,
+    "empty_ratio": 32.14,
     "excessive_num": 5,
-    "neutral_num": 32,
+    "neutral_num": 33,
     "empty_num": 18,
-    "sum": 55,
+    "sum": 56,
     "more_port": "中性",
-    "more_rate": 58.18,
+    "more_rate": 58.93,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825989"
+    "record_time": "2025-12-17T23:21:56.792038"
   },
   {
     "variety_code": "SI",
@@ -327,7 +342,7 @@
     "more_port": "中性",
     "more_rate": 51.16,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825991"
+    "record_time": "2025-12-17T23:21:56.792040"
   },
   {
     "variety_code": "SN",
@@ -342,37 +357,37 @@
     "more_port": "中性",
     "more_rate": 56.25,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825993"
+    "record_time": "2025-12-17T23:21:56.792042"
   },
   {
     "variety_code": "ZN",
     "variety_name": "沪锌",
-    "excessive_ratio": 12.82,
-    "neutral_ratio": 48.72,
-    "empty_ratio": 38.46,
+    "excessive_ratio": 12.5,
+    "neutral_ratio": 47.5,
+    "empty_ratio": 40.0,
     "excessive_num": 5,
     "neutral_num": 19,
-    "empty_num": 15,
-    "sum": 39,
+    "empty_num": 16,
+    "sum": 40,
     "more_port": "中性",
-    "more_rate": 48.72,
+    "more_rate": 47.5,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825995"
+    "record_time": "2025-12-17T23:21:56.792044"
   },
   {
-    "variety_code": "EC",
-    "variety_name": "集运欧线",
-    "excessive_ratio": 22.73,
-    "neutral_ratio": 63.64,
-    "empty_ratio": 13.64,
+    "variety_code": "TA",
+    "variety_name": "PTA",
+    "excessive_ratio": 10.0,
+    "neutral_ratio": 54.0,
+    "empty_ratio": 36.0,
     "excessive_num": 5,
-    "neutral_num": 14,
-    "empty_num": 3,
-    "sum": 22,
+    "neutral_num": 27,
+    "empty_num": 18,
+    "sum": 50,
     "more_port": "中性",
-    "more_rate": 63.64,
+    "more_rate": 54.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825997"
+    "record_time": "2025-12-17T23:21:56.792046"
   },
   {
     "variety_code": "TF",
@@ -387,7 +402,7 @@
     "more_port": "中性",
     "more_rate": 65.52,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.825999"
+    "record_time": "2025-12-17T23:21:56.792048"
   },
   {
     "variety_code": "V",
@@ -402,37 +417,37 @@
     "more_port": "中性",
     "more_rate": 68.75,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826002"
+    "record_time": "2025-12-17T23:21:56.792051"
   },
   {
     "variety_code": "I",
     "variety_name": "铁矿石",
-    "excessive_ratio": 6.25,
-    "neutral_ratio": 51.56,
-    "empty_ratio": 42.19,
+    "excessive_ratio": 6.15,
+    "neutral_ratio": 52.31,
+    "empty_ratio": 41.54,
     "excessive_num": 4,
-    "neutral_num": 33,
+    "neutral_num": 34,
     "empty_num": 27,
-    "sum": 64,
+    "sum": 65,
     "more_port": "中性",
-    "more_rate": 51.56,
+    "more_rate": 52.31,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826003"
+    "record_time": "2025-12-17T23:21:56.792053"
   },
   {
     "variety_code": "EG",
     "variety_name": "乙二醇",
-    "excessive_ratio": 10.26,
-    "neutral_ratio": 51.28,
-    "empty_ratio": 38.46,
+    "excessive_ratio": 10.0,
+    "neutral_ratio": 50.0,
+    "empty_ratio": 40.0,
     "excessive_num": 4,
     "neutral_num": 20,
-    "empty_num": 15,
-    "sum": 39,
+    "empty_num": 16,
+    "sum": 40,
     "more_port": "中性",
-    "more_rate": 51.28,
+    "more_rate": 50.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826005"
+    "record_time": "2025-12-17T23:21:56.792055"
   },
   {
     "variety_code": "RB",
@@ -447,37 +462,67 @@
     "more_port": "中性",
     "more_rate": 60.32,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826010"
+    "record_time": "2025-12-17T23:21:56.792057"
   },
   {
-    "variety_code": "TA",
-    "variety_name": "PTA",
-    "excessive_ratio": 8.16,
-    "neutral_ratio": 55.1,
-    "empty_ratio": 36.73,
+    "variety_code": "PX",
+    "variety_name": "对二甲苯",
+    "excessive_ratio": 13.79,
+    "neutral_ratio": 65.52,
+    "empty_ratio": 20.69,
     "excessive_num": 4,
-    "neutral_num": 27,
-    "empty_num": 18,
-    "sum": 49,
+    "neutral_num": 19,
+    "empty_num": 6,
+    "sum": 29,
     "more_port": "中性",
-    "more_rate": 55.1,
+    "more_rate": 65.52,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826012"
+    "record_time": "2025-12-17T23:21:56.792059"
+  },
+  {
+    "variety_code": "LH",
+    "variety_name": "生猪",
+    "excessive_ratio": 5.56,
+    "neutral_ratio": 57.41,
+    "empty_ratio": 37.04,
+    "excessive_num": 3,
+    "neutral_num": 31,
+    "empty_num": 20,
+    "sum": 54,
+    "more_port": "中性",
+    "more_rate": 57.41,
+    "main_sentiment": "neutral",
+    "record_time": "2025-12-17T23:21:56.792061"
   },
   {
     "variety_code": "C",
     "variety_name": "玉米",
-    "excessive_ratio": 6.82,
-    "neutral_ratio": 52.27,
-    "empty_ratio": 40.91,
+    "excessive_ratio": 6.67,
+    "neutral_ratio": 53.33,
+    "empty_ratio": 40.0,
     "excessive_num": 3,
-    "neutral_num": 23,
+    "neutral_num": 24,
     "empty_num": 18,
-    "sum": 44,
+    "sum": 45,
     "more_port": "中性",
-    "more_rate": 52.27,
+    "more_rate": 53.33,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826014"
+    "record_time": "2025-12-17T23:21:56.792063"
+  },
+  {
+    "variety_code": "NR",
+    "variety_name": "20号胶",
+    "excessive_ratio": 18.75,
+    "neutral_ratio": 81.25,
+    "empty_ratio": 0.0,
+    "excessive_num": 3,
+    "neutral_num": 13,
+    "empty_num": 0,
+    "sum": 16,
+    "more_port": "中性",
+    "more_rate": 81.25,
+    "main_sentiment": "neutral",
+    "record_time": "2025-12-17T23:21:56.792065"
   },
   {
     "variety_code": "RM",
@@ -492,37 +537,37 @@
     "more_port": "中性",
     "more_rate": 58.82,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826016"
+    "record_time": "2025-12-17T23:21:56.792067"
   },
   {
     "variety_code": "SA",
     "variety_name": "纯碱",
-    "excessive_ratio": 6.12,
-    "neutral_ratio": 44.9,
-    "empty_ratio": 48.98,
+    "excessive_ratio": 6.0,
+    "neutral_ratio": 46.0,
+    "empty_ratio": 48.0,
     "excessive_num": 3,
-    "neutral_num": 22,
+    "neutral_num": 23,
     "empty_num": 24,
-    "sum": 49,
+    "sum": 50,
     "more_port": "偏空",
-    "more_rate": 48.98,
+    "more_rate": 48.0,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826023"
+    "record_time": "2025-12-17T23:21:56.792069"
   },
   {
-    "variety_code": "PX",
-    "variety_name": "对二甲苯",
-    "excessive_ratio": 10.71,
-    "neutral_ratio": 67.86,
-    "empty_ratio": 21.43,
+    "variety_code": "PF",
+    "variety_name": "短纤",
+    "excessive_ratio": 12.5,
+    "neutral_ratio": 62.5,
+    "empty_ratio": 25.0,
     "excessive_num": 3,
-    "neutral_num": 19,
+    "neutral_num": 15,
     "empty_num": 6,
-    "sum": 28,
+    "sum": 24,
     "more_port": "中性",
-    "more_rate": 67.86,
+    "more_rate": 62.5,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826025"
+    "record_time": "2025-12-17T23:21:56.792071"
   },
   {
     "variety_code": "SF",
@@ -537,112 +582,82 @@
     "more_port": "中性",
     "more_rate": 73.91,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826026"
-  },
-  {
-    "variety_code": "JD",
-    "variety_name": "鸡蛋",
-    "excessive_ratio": 5.56,
-    "neutral_ratio": 52.78,
-    "empty_ratio": 41.67,
-    "excessive_num": 2,
-    "neutral_num": 19,
-    "empty_num": 15,
-    "sum": 36,
-    "more_port": "中性",
-    "more_rate": 52.78,
-    "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826028"
-  },
-  {
-    "variety_code": "LH",
-    "variety_name": "生猪",
-    "excessive_ratio": 3.77,
-    "neutral_ratio": 58.49,
-    "empty_ratio": 37.74,
-    "excessive_num": 2,
-    "neutral_num": 31,
-    "empty_num": 20,
-    "sum": 53,
-    "more_port": "中性",
-    "more_rate": 58.49,
-    "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826036"
-  },
-  {
-    "variety_code": "AO",
-    "variety_name": "氧化铝",
-    "excessive_ratio": 5.26,
-    "neutral_ratio": 28.95,
-    "empty_ratio": 65.79,
-    "excessive_num": 2,
-    "neutral_num": 11,
-    "empty_num": 25,
-    "sum": 38,
-    "more_port": "偏空",
-    "more_rate": 65.79,
-    "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826038"
-  },
-  {
-    "variety_code": "NR",
-    "variety_name": "20号胶",
-    "excessive_ratio": 13.33,
-    "neutral_ratio": 86.67,
-    "empty_ratio": 0.0,
-    "excessive_num": 2,
-    "neutral_num": 13,
-    "empty_num": 0,
-    "sum": 15,
-    "more_port": "中性",
-    "more_rate": 86.67,
-    "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826040"
-  },
-  {
-    "variety_code": "FG",
-    "variety_name": "玻璃",
-    "excessive_ratio": 4.26,
-    "neutral_ratio": 38.3,
-    "empty_ratio": 57.45,
-    "excessive_num": 2,
-    "neutral_num": 18,
-    "empty_num": 27,
-    "sum": 47,
-    "more_port": "偏空",
-    "more_rate": 57.45,
-    "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826041"
-  },
-  {
-    "variety_code": "PF",
-    "variety_name": "短纤",
-    "excessive_ratio": 8.7,
-    "neutral_ratio": 65.22,
-    "empty_ratio": 26.09,
-    "excessive_num": 2,
-    "neutral_num": 15,
-    "empty_num": 6,
-    "sum": 23,
-    "more_port": "中性",
-    "more_rate": 65.22,
-    "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826043"
+    "record_time": "2025-12-17T23:21:56.792073"
   },
   {
     "variety_code": "UR",
     "variety_name": "尿素",
-    "excessive_ratio": 6.06,
-    "neutral_ratio": 75.76,
-    "empty_ratio": 18.18,
-    "excessive_num": 2,
+    "excessive_ratio": 8.82,
+    "neutral_ratio": 73.53,
+    "empty_ratio": 17.65,
+    "excessive_num": 3,
     "neutral_num": 25,
     "empty_num": 6,
-    "sum": 33,
+    "sum": 34,
     "more_port": "中性",
-    "more_rate": 75.76,
+    "more_rate": 73.53,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826045"
+    "record_time": "2025-12-17T23:21:56.792075"
+  },
+  {
+    "variety_code": "JD",
+    "variety_name": "鸡蛋",
+    "excessive_ratio": 5.41,
+    "neutral_ratio": 54.05,
+    "empty_ratio": 40.54,
+    "excessive_num": 2,
+    "neutral_num": 20,
+    "empty_num": 15,
+    "sum": 37,
+    "more_port": "中性",
+    "more_rate": 54.05,
+    "main_sentiment": "neutral",
+    "record_time": "2025-12-17T23:21:56.792077"
+  },
+  {
+    "variety_code": "BU",
+    "variety_name": "沥青",
+    "excessive_ratio": 5.56,
+    "neutral_ratio": 47.22,
+    "empty_ratio": 47.22,
+    "excessive_num": 2,
+    "neutral_num": 17,
+    "empty_num": 17,
+    "sum": 36,
+    "more_port": "中性",
+    "more_rate": 47.22,
+    "main_sentiment": "neutral",
+    "record_time": "2025-12-17T23:21:56.792079"
+  },
+  {
+    "variety_code": "AO",
+    "variety_name": "氧化铝",
+    "excessive_ratio": 5.13,
+    "neutral_ratio": 30.77,
+    "empty_ratio": 64.1,
+    "excessive_num": 2,
+    "neutral_num": 12,
+    "empty_num": 25,
+    "sum": 39,
+    "more_port": "偏空",
+    "more_rate": 64.1,
+    "main_sentiment": "bear",
+    "record_time": "2025-12-17T23:21:56.792081"
+  },
+  {
+    "variety_code": "FG",
+    "variety_name": "玻璃",
+    "excessive_ratio": 4.17,
+    "neutral_ratio": 39.58,
+    "empty_ratio": 56.25,
+    "excessive_num": 2,
+    "neutral_num": 19,
+    "empty_num": 27,
+    "sum": 48,
+    "more_port": "偏空",
+    "more_rate": 56.25,
+    "main_sentiment": "bear",
+    "record_time": "2025-12-17T23:21:56.792083"
   },
   {
     "variety_code": "AP",
@@ -657,22 +672,22 @@
     "more_port": "中性",
     "more_rate": 44.44,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826047"
+    "record_time": "2025-12-17T23:21:56.792085"
   },
   {
     "variety_code": "EB",
     "variety_name": "苯乙烯",
-    "excessive_ratio": 4.55,
-    "neutral_ratio": 54.55,
-    "empty_ratio": 40.91,
+    "excessive_ratio": 4.35,
+    "neutral_ratio": 56.52,
+    "empty_ratio": 39.13,
     "excessive_num": 1,
-    "neutral_num": 12,
+    "neutral_num": 13,
     "empty_num": 9,
-    "sum": 22,
+    "sum": 23,
     "more_port": "中性",
-    "more_rate": 54.55,
+    "more_rate": 56.52,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826049"
+    "record_time": "2025-12-17T23:21:56.792087"
   },
   {
     "variety_code": "A",
@@ -687,52 +702,52 @@
     "more_port": "中性",
     "more_rate": 66.67,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826050"
+    "record_time": "2025-12-17T23:21:56.792089"
   },
   {
     "variety_code": "PP",
     "variety_name": "聚丙烯",
-    "excessive_ratio": 2.56,
-    "neutral_ratio": 46.15,
-    "empty_ratio": 51.28,
+    "excessive_ratio": 2.5,
+    "neutral_ratio": 47.5,
+    "empty_ratio": 50.0,
     "excessive_num": 1,
-    "neutral_num": 18,
+    "neutral_num": 19,
     "empty_num": 20,
-    "sum": 39,
+    "sum": 40,
     "more_port": "偏空",
-    "more_rate": 51.28,
+    "more_rate": 50.0,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826052"
+    "record_time": "2025-12-17T23:21:56.792091"
   },
   {
     "variety_code": "L",
     "variety_name": "塑料",
-    "excessive_ratio": 2.5,
-    "neutral_ratio": 37.5,
-    "empty_ratio": 60.0,
+    "excessive_ratio": 2.44,
+    "neutral_ratio": 36.59,
+    "empty_ratio": 60.98,
     "excessive_num": 1,
     "neutral_num": 15,
-    "empty_num": 24,
-    "sum": 40,
+    "empty_num": 25,
+    "sum": 41,
     "more_port": "偏空",
-    "more_rate": 60.0,
+    "more_rate": 60.98,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826054"
+    "record_time": "2025-12-17T23:21:56.792098"
   },
   {
     "variety_code": "PG",
     "variety_name": "液化气",
-    "excessive_ratio": 6.25,
-    "neutral_ratio": 62.5,
-    "empty_ratio": 31.25,
+    "excessive_ratio": 5.88,
+    "neutral_ratio": 64.71,
+    "empty_ratio": 29.41,
     "excessive_num": 1,
-    "neutral_num": 10,
+    "neutral_num": 11,
     "empty_num": 5,
-    "sum": 16,
+    "sum": 17,
     "more_port": "中性",
-    "more_rate": 62.5,
+    "more_rate": 64.71,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826056"
+    "record_time": "2025-12-17T23:21:56.792100"
   },
   {
     "variety_code": "LG",
@@ -747,7 +762,7 @@
     "more_port": "中性",
     "more_rate": 78.57,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826058"
+    "record_time": "2025-12-17T23:21:56.792102"
   },
   {
     "variety_code": "SS",
@@ -762,22 +777,7 @@
     "more_port": "偏空",
     "more_rate": 58.06,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826060"
-  },
-  {
-    "variety_code": "BU",
-    "variety_name": "沥青",
-    "excessive_ratio": 2.86,
-    "neutral_ratio": 48.57,
-    "empty_ratio": 48.57,
-    "excessive_num": 1,
-    "neutral_num": 17,
-    "empty_num": 17,
-    "sum": 35,
-    "more_port": "中性",
-    "more_rate": 48.57,
-    "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826061"
+    "record_time": "2025-12-17T23:21:56.792104"
   },
   {
     "variety_code": "FU",
@@ -792,7 +792,7 @@
     "more_port": "偏空",
     "more_rate": 60.71,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826063"
+    "record_time": "2025-12-17T23:21:56.792106"
   },
   {
     "variety_code": "HC",
@@ -807,7 +807,22 @@
     "more_port": "中性",
     "more_rate": 68.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826065"
+    "record_time": "2025-12-17T23:21:56.792108"
+  },
+  {
+    "variety_code": "RU",
+    "variety_name": "橡胶",
+    "excessive_ratio": 2.22,
+    "neutral_ratio": 88.89,
+    "empty_ratio": 8.89,
+    "excessive_num": 1,
+    "neutral_num": 40,
+    "empty_num": 4,
+    "sum": 45,
+    "more_port": "中性",
+    "more_rate": 88.89,
+    "main_sentiment": "neutral",
+    "record_time": "2025-12-17T23:21:56.792110"
   },
   {
     "variety_code": "LU",
@@ -822,7 +837,7 @@
     "more_port": "偏空",
     "more_rate": 55.0,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826067"
+    "record_time": "2025-12-17T23:21:56.792112"
   },
   {
     "variety_code": "OI",
@@ -837,22 +852,22 @@
     "more_port": "偏空",
     "more_rate": 72.0,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826072"
+    "record_time": "2025-12-17T23:21:56.792114"
   },
   {
     "variety_code": "PR",
     "variety_name": "瓶片",
-    "excessive_ratio": 5.56,
-    "neutral_ratio": 55.56,
-    "empty_ratio": 38.89,
+    "excessive_ratio": 5.26,
+    "neutral_ratio": 57.89,
+    "empty_ratio": 36.84,
     "excessive_num": 1,
-    "neutral_num": 10,
+    "neutral_num": 11,
     "empty_num": 7,
-    "sum": 18,
+    "sum": 19,
     "more_port": "中性",
-    "more_rate": 55.56,
+    "more_rate": 57.89,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826074"
+    "record_time": "2025-12-17T23:21:56.792116"
   },
   {
     "variety_code": "TS",
@@ -867,7 +882,7 @@
     "more_port": "中性",
     "more_rate": 65.52,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826076"
+    "record_time": "2025-12-17T23:21:56.792118"
   },
   {
     "variety_code": "TL",
@@ -882,7 +897,7 @@
     "more_port": "偏空",
     "more_rate": 58.62,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826078"
+    "record_time": "2025-12-17T23:21:56.792120"
   },
   {
     "variety_code": "CS",
@@ -897,7 +912,7 @@
     "more_port": "中性",
     "more_rate": 75.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826080"
+    "record_time": "2025-12-17T23:21:56.792122"
   },
   {
     "variety_code": "B",
@@ -912,37 +927,37 @@
     "more_port": "中性",
     "more_rate": 55.56,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826081"
+    "record_time": "2025-12-17T23:21:56.792124"
   },
   {
     "variety_code": "Y",
     "variety_name": "豆油",
     "excessive_ratio": 0.0,
-    "neutral_ratio": 30.77,
-    "empty_ratio": 69.23,
+    "neutral_ratio": 30.19,
+    "empty_ratio": 69.81,
     "excessive_num": 0,
     "neutral_num": 16,
-    "empty_num": 36,
-    "sum": 52,
+    "empty_num": 37,
+    "sum": 53,
     "more_port": "偏空",
-    "more_rate": 69.23,
+    "more_rate": 69.81,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826083"
+    "record_time": "2025-12-17T23:21:56.792127"
   },
   {
     "variety_code": "P",
     "variety_name": "棕榈油",
     "excessive_ratio": 0.0,
-    "neutral_ratio": 16.95,
-    "empty_ratio": 83.05,
+    "neutral_ratio": 16.67,
+    "empty_ratio": 83.33,
     "excessive_num": 0,
     "neutral_num": 10,
-    "empty_num": 49,
-    "sum": 59,
+    "empty_num": 50,
+    "sum": 60,
     "more_port": "偏空",
-    "more_rate": 83.05,
+    "more_rate": 83.33,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826085"
+    "record_time": "2025-12-17T23:21:56.792129"
   },
   {
     "variety_code": "NI",
@@ -957,7 +972,7 @@
     "more_port": "偏空",
     "more_rate": 73.17,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826087"
+    "record_time": "2025-12-17T23:21:56.792132"
   },
   {
     "variety_code": "PB",
@@ -972,22 +987,7 @@
     "more_port": "中性",
     "more_rate": 50.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826089"
-  },
-  {
-    "variety_code": "RU",
-    "variety_name": "橡胶",
-    "excessive_ratio": 0.0,
-    "neutral_ratio": 90.91,
-    "empty_ratio": 9.09,
-    "excessive_num": 0,
-    "neutral_num": 40,
-    "empty_num": 4,
-    "sum": 44,
-    "more_port": "中性",
-    "more_rate": 90.91,
-    "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826091"
+    "record_time": "2025-12-17T23:21:56.792135"
   },
   {
     "variety_code": "SC",
@@ -1002,22 +1002,22 @@
     "more_port": "偏空",
     "more_rate": 83.93,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826092"
+    "record_time": "2025-12-17T23:21:56.792137"
   },
   {
     "variety_code": "SR",
     "variety_name": "白糖",
     "excessive_ratio": 0.0,
-    "neutral_ratio": 21.62,
-    "empty_ratio": 78.38,
+    "neutral_ratio": 21.05,
+    "empty_ratio": 78.95,
     "excessive_num": 0,
     "neutral_num": 8,
-    "empty_num": 29,
-    "sum": 37,
+    "empty_num": 30,
+    "sum": 38,
     "more_port": "偏空",
-    "more_rate": 78.38,
+    "more_rate": 78.95,
     "main_sentiment": "bear",
-    "record_time": "2025-12-17T19:54:08.826094"
+    "record_time": "2025-12-17T23:21:56.792139"
   },
   {
     "variety_code": "CJ",
@@ -1032,7 +1032,7 @@
     "more_port": "中性",
     "more_rate": 57.14,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826096"
+    "record_time": "2025-12-17T23:21:56.792141"
   },
   {
     "variety_code": "PK",
@@ -1047,7 +1047,7 @@
     "more_port": "中性",
     "more_rate": 70.0,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826098"
+    "record_time": "2025-12-17T23:21:56.792143"
   },
   {
     "variety_code": "SM",
@@ -1062,37 +1062,37 @@
     "more_port": "中性",
     "more_rate": 78.26,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826100"
+    "record_time": "2025-12-17T23:21:56.792145"
   },
   {
     "variety_code": "SH",
     "variety_name": "烧碱",
     "excessive_ratio": 0.0,
-    "neutral_ratio": 60.0,
-    "empty_ratio": 40.0,
+    "neutral_ratio": 57.14,
+    "empty_ratio": 42.86,
     "excessive_num": 0,
     "neutral_num": 12,
-    "empty_num": 8,
-    "sum": 20,
+    "empty_num": 9,
+    "sum": 21,
     "more_port": "中性",
-    "more_rate": 60.0,
+    "more_rate": 57.14,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826101"
+    "record_time": "2025-12-17T23:21:56.792147"
   },
   {
     "variety_code": "BZ",
     "variety_name": "纯苯",
     "excessive_ratio": 0.0,
-    "neutral_ratio": 50.0,
-    "empty_ratio": 50.0,
+    "neutral_ratio": 52.17,
+    "empty_ratio": 47.83,
     "excessive_num": 0,
-    "neutral_num": 11,
+    "neutral_num": 12,
     "empty_num": 11,
-    "sum": 22,
+    "sum": 23,
     "more_port": "中性",
-    "more_rate": 50.0,
+    "more_rate": 52.17,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826103"
+    "record_time": "2025-12-17T23:21:56.792149"
   },
   {
     "variety_code": "PL",
@@ -1107,7 +1107,7 @@
     "more_port": "中性",
     "more_rate": 63.64,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826105"
+    "record_time": "2025-12-17T23:21:56.792151"
   },
   {
     "variety_code": "OP",
@@ -1122,6 +1122,6 @@
     "more_port": "中性",
     "more_rate": 66.67,
     "main_sentiment": "neutral",
-    "record_time": "2025-12-17T19:54:08.826107"
+    "record_time": "2025-12-17T23:21:56.792153"
   }
 ]

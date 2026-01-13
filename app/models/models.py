@@ -250,6 +250,9 @@ class TermStructureHistory(Base):
     near_volume = Column(Integer, comment="近月成交量")
     near_oi = Column(Integer, comment="近月持仓量")
 
+    # 完整合约列表 (JSON格式)
+    contracts_json = Column(Text, comment="合约列表JSON")
+
     # 价差分析
     price_spread = Column(Float, comment="价差(远月-近月)")
     spread_pct = Column(Float, comment="价差百分比")

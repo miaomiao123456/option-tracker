@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资金流向分析 - OptionAlpha</title>
+    <!-- Vue 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .content-container {
+            max-width: 1600px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .glass-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .position-up {
+            color: #f56c6c;
+            font-weight: bold;
+        }
+
+        .position-down {
+            color: #67c23a;
+            font-weight: bold;
+        }
+
+        .broker-row:hover {
+            background: #f5f7fa;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%); color: white; }
+        .rank-other { background: #e5e7eb; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header-bar">
+            <div style="max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 28px;">💰 资金流向分析</h1>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">席位持仓 · 龙虎榜 · 资金流向趋势</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <el-select v-model="selectedVariety" placeholder="选择品种" size="large" @change="loadVarietyData" style="width: 200px;">
+                        <el-option v-for="variety in varieties" :key="variety.code" :label="`${variety.code} - ${variety.name}`" :value="variety.code"></el-option>
+                    </el-select>
+                    <el-button type="primary" @click="loadVarietyData" :loading="loading" size="large">
+                        刷新数据
+                    </el-button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-container">
+            <!-- 多空持仓趋势图 -->
+            <div class="glass-card">
+                <h2 class="text-xl font-bold mb-4">📈 {{ selectedVariety }} 多空持仓趋势</h2>
+                <div id="holdingTrendChart" class="chart-container"></div>
+            </div>
+
+            <!-- 龙虎榜：多头 vs 空头 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 多头龙虎榜 -->
+                <div class="glass-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">🔴 {{ selectedVariety }} 多头龙虎榜</h2>
+                        <el-tag type="danger" size="large">
+                            总持仓: {{ formatNumber(longTotalPosition) }}
+                        </el-tag>
+                    </div>
+
+                    <el-table :data="topLongBrokers" style="width: 100%" :show-header="true">
+                        <el-table-column label="排名" width="80">
+                            <template #default="scope">
+                                <span :class="`rank-badge ${getRankClass(scope.$index + 1)}`">
+                                    {{ scope.$index + 1 }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="broker" label="席位名称" min-width="150" />
+                        <el-table-column label="持仓" width="120" align="right">
+                            <template #default="scope">
+                                <span class="font-bold">{{ formatNumber(scope.row.position) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="增减" width="100" align="right">
+                            <template #default="scope">
+                                <span :class="scope.row.change > 0 ? 'position-up' : 'position-down'">
+                                    {{ scope.row.change > 0 ? '+' : '' }}{{ formatNumber(scope.row.change) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="净持仓" width="120" align="right">
+                            <template #default="scope">
+                                <span :class="scope.row.netPosition > 0 ? 'position-up' : 'position-down'">
+                                    {{ scope.row.netPosition > 0 ? '多' : '空' }} {{ formatNumber(Math.abs(scope.row.netPosition)) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <!-- 空头龙虎榜 -->
+                <div class="glass-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">🟢 {{ selectedVariety }} 空头龙虎榜</h2>
+                        <el-tag type="success" size="large">
+                            总持仓: {{ formatNumber(shortTotalPosition) }}
+                        </el-tag>
+                    </div>
+
+                    <el-table :data="topShortBrokers" style="width: 100%" :show-header="true">
+                        <el-table-column label="排名" width="80">
+                            <template #default="scope">
+                                <span :class="`rank-badge ${getRankClass(scope.$index + 1)}`">
+                                    {{ scope.$index + 1 }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="broker" label="席位名称" min-width="150" />
+                        <el-table-column label="持仓" width="120" align="right">
+                            <template #default="scope">
+                                <span class="font-bold">{{ formatNumber(scope.row.position) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="增减" width="100" align="right">
+                            <template #default="scope">
+                                <span :class="scope.row.change > 0 ? 'position-up' : 'position-down'">
+                                    {{ scope.row.change > 0 ? '+' : '' }}{{ formatNumber(scope.row.change) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="净持仓" width="120" align="right">
+                            <template #default="scope">
+                                <span :class="scope.row.netPosition > 0 ? 'position-up' : 'position-down'">
+                                    {{ scope.row.netPosition > 0 ? '多' : '空' }} {{ formatNumber(Math.abs(scope.row.netPosition)) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+            </div>
+
+            <!-- 数据说明 -->
+            <div class="glass-card">
+                <h3 class="text-lg font-bold mb-3">📊 数据说明</h3>
+                <div class="text-sm text-gray-600 space-y-2">
+                    <p>• <strong>持仓</strong>: 该席位在该品种的总持仓量</p>
+                    <p>• <strong>增减</strong>: 相比上一交易日的持仓变化(正数为增仓,负数为减仓)</p>
+                    <p>• <strong>净持仓</strong>: 多头持仓 - 空头持仓(正数为净多头,负数为净空头)</p>
+                    <p>• <strong>多空持仓趋势</strong>: 展示最近30天的多头和空头总持仓量变化趋势</p>
+                    <p class="text-yellow-600 mt-3">⚠️ 当前显示的是模拟数据,需要接入真实的席位持仓数据源</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            setup() {
+                const API_BASE = 'http://localhost:8001/api/v1';
+
+                // 数据
+                const loading = ref(false);
+                const selectedVariety = ref('I');
+                const varieties = ref([
+                    { code: 'I', name: '铁矿石' },
+                    { code: 'RB', name: '螺纹钢' },
+                    { code: 'HC', name: '热轧卷板' },
+                    { code: 'J', name: '焦炭' },
+                    { code: 'JM', name: '焦煤' },
+                    { code: 'ZN', name: '沪锌' },
+                    { code: 'CU', name: '沪铜' },
+                    { code: 'AL', name: '沪铝' },
+                    { code: 'AU', name: '黄金' },
+                    { code: 'AG', name: '白银' },
+                    { code: 'M', name: '豆粕' },
+                    { code: 'P', name: '棕榈油' },
+                    { code: 'Y', name: '豆油' },
+                    { code: 'C', name: '玉米' },
+                    { code: 'SR', name: '白糖' }
+                ]);
+
+                const topLongBrokers = ref([]);
+                const topShortBrokers = ref([]);
+                const holdingTrendData = ref([]);
+
+                const longTotalPosition = computed(() => {
+                    return topLongBrokers.value.reduce((sum, b) => sum + b.position, 0);
+                });
+
+                const shortTotalPosition = computed(() => {
+                    return topShortBrokers.value.reduce((sum, b) => sum + b.position, 0);
+                });
+
+                // 加载品种数据
+                const loadVarietyData = async () => {
+                    loading.value = true;
+                    try {
+                        // 调用真实API获取席位数据
+                        const response = await fetch(`${API_BASE}/capital/${selectedVariety.value}/top-brokers?limit=15`);
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('API返回数据:', data);
+
+                            // 解析数据
+                            if (data.top_long && data.top_long.length > 0) {
+                                topLongBrokers.value = data.top_long.map(b => ({
+                                    broker: b.broker,
+                                    position: b.position,
+                                    change: b.change,
+                                    netPosition: b.position,
+                                    winRate: b.win_rate
+                                }));
+                            }
+
+                            if (data.top_short && data.top_short.length > 0) {
+                                topShortBrokers.value = data.top_short.map(b => ({
+                                    broker: b.broker,
+                                    position: b.position,
+                                    change: b.change,
+                                    netPosition: -b.position,
+                                    winRate: b.win_rate
+                                }));
+                            }
+
+                            // 加载趋势数据
+                            await loadHoldingTrend();
+
+                            renderHoldingTrendChart();
+                            ElMessage.success('数据加载成功');
+                        } else {
+                            // API调用失败,降级使用模拟数据
+                            console.warn('API调用失败,使用模拟数据');
+                            generateMockData();
+                            renderHoldingTrendChart();
+                            ElMessage.warning('API暂不可用,显示模拟数据');
+                        }
+                    } catch (error) {
+                        console.error('加载数据失败:', error);
+                        // 出错时使用模拟数据
+                        generateMockData();
+                        renderHoldingTrendChart();
+                        ElMessage.warning('加载失败,显示模拟数据');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // 加载持仓趋势
+                const loadHoldingTrend = async () => {
+                    try {
+                        const response = await fetch(`${API_BASE}/capital/${selectedVariety.value}/flow?days=30`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.flow_data && data.flow_data.length > 0) {
+                                holdingTrendData.value = data.flow_data.map(item => ({
+                                    date: item.date,
+                                    longHolding: Math.abs(item.total_net_position) + item.total_change,
+                                    shortHolding: Math.abs(item.total_net_position),
+                                    netHolding: item.total_net_position
+                                }));
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载趋势数据失败:', error);
+                    }
+                };
+
+                // 生成模拟数据
+                const generateMockData = () => {
+                    const brokers = ['国泰君安', '中信期货', '永安期货', '中信建投', '广发期货',
+                                   '东证期货', '五矿期货', '银河期货', '瑞达期货', '华泰期货',
+                                   '浙商期货', '中粮期货', '光大期货', '方正中期', '南华期货'];
+
+                    // 多头数据
+                    topLongBrokers.value = brokers.map((broker, idx) => ({
+                        broker,
+                        position: Math.floor(100000 - idx * 8000 + Math.random() * 5000),
+                        change: Math.floor((Math.random() - 0.5) * 10000),
+                        netPosition: Math.floor((Math.random() - 0.3) * 50000)
+                    })).sort((a, b) => b.position - a.position).slice(0, 10);
+
+                    // 空头数据
+                    topShortBrokers.value = brokers.map((broker, idx) => ({
+                        broker,
+                        position: Math.floor(90000 - idx * 7000 + Math.random() * 5000),
+                        change: Math.floor((Math.random() - 0.5) * 8000),
+                        netPosition: Math.floor((Math.random() - 0.7) * 50000)
+                    })).sort((a, b) => b.position - a.position).slice(0, 10);
+
+                    // 趋势数据(最近30天)
+                    const dates = [];
+                    const longHoldings = [];
+                    const shortHoldings = [];
+                    const netHoldings = [];
+
+                    const baseDate = new Date();
+                    for (let i = 29; i >= 0; i--) {
+                        const date = new Date(baseDate);
+                        date.setDate(date.getDate() - i);
+                        dates.push(date.toISOString().split('T')[0]);
+
+                        const longVal = 20000 + Math.sin(i / 5) * 5000 + Math.random() * 3000;
+                        const shortVal = 18000 + Math.cos(i / 5) * 4000 + Math.random() * 3000;
+
+                        longHoldings.push(Math.floor(longVal));
+                        shortHoldings.push(Math.floor(shortVal));
+                        netHoldings.push(Math.floor(longVal - shortVal));
+                    }
+
+                    holdingTrendData.value = { dates, longHoldings, shortHoldings, netHoldings };
+                };
+
+                // 渲染持仓趋势图
+                const renderHoldingTrendChart = () => {
+                    const chart = echarts.init(document.getElementById('holdingTrendChart'));
+                    const data = holdingTrendData.value;
+
+                    const option = {
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: { type: 'cross' }
+                        },
+                        legend: {
+                            data: ['多头净持仓', '空头净持仓', '净持仓'],
+                            top: 10
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: data.dates
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '持仓量'
+                        },
+                        series: [
+                            {
+                                name: '多头净持仓',
+                                type: 'line',
+                                data: data.longHoldings,
+                                smooth: true,
+                                itemStyle: { color: '#f56c6c' },
+                                areaStyle: { color: 'rgba(245, 108, 108, 0.2)' }
+                            },
+                            {
+                                name: '空头净持仓',
+                                type: 'line',
+                                data: data.shortHoldings,
+                                smooth: true,
+                                itemStyle: { color: '#67c23a' },
+                                areaStyle: { color: 'rgba(103, 194, 58, 0.2)' }
+                            },
+                            {
+                                name: '净持仓',
+                                type: 'line',
+                                data: data.netHoldings,
+                                smooth: true,
+                                itemStyle: { color: '#409eff' },
+                                lineStyle: { width: 3 }
+                            }
+                        ]
+                    };
+
+                    chart.setOption(option);
+                    window.addEventListener('resize', () => chart.resize());
+                };
+
+                // 工具函数
+                const formatNumber = (num) => {
+                    return num.toLocaleString();
+                };
+
+                const getRankClass = (rank) => {
+                    if (rank === 1) return 'rank-1';
+                    if (rank === 2) return 'rank-2';
+                    if (rank === 3) return 'rank-3';
+                    return 'rank-other';
+                };
+
+                // 初始化
+                onMounted(() => {
+                    loadVarietyData();
+                });
+
+                return {
+                    loading,
+                    selectedVariety,
+                    varieties,
+                    topLongBrokers,
+                    topShortBrokers,
+                    longTotalPosition,
+                    shortTotalPosition,
+                    loadVarietyData,
+                    formatNumber,
+                    getRankClass
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

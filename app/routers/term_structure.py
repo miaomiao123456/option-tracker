@@ -64,37 +64,40 @@ def load_all_term_structure_data():
 
 
 @router.get("/varieties")
-async def get_available_varieties():
+async def get_available_varieties(db: Session = Depends(get_db)):
     """
     获取可用的期货品种列表
+    优先从数据库获取，备选从JSON数据获取
     """
     try:
-        if ak is None:
-            raise HTTPException(
-                status_code=503,
-                detail="akshare未安装,无法获取品种列表"
-            )
+        # 优先从数据库获取品种列表
+        commodities = db.query(Commodity).all()
+        if commodities:
+            varieties = [
+                {"code": c.code, "name": c.name}
+                for c in commodities
+            ]
+            return {
+                "success": True,
+                "varieties": varieties
+            }
 
-        # 获取所有期货主力合约数据作为品种列表
-        df = ak.futures_main_sina()
+        # 备选：从JSON数据文件获取
+        all_data = load_all_term_structure_data()
+        if all_data:
+            varieties = [
+                {"code": code, "name": data.get("variety_name", code)}
+                for code, data in all_data.items()
+            ]
+            return {
+                "success": True,
+                "varieties": varieties
+            }
 
-        # 提取品种代码（去除数字部分）
-        varieties = []
-        seen = set()
-
-        for symbol in df['symbol'].tolist():
-            # 提取品种代码（去除数字）
-            variety_code = ''.join([c for c in symbol if not c.isdigit()])
-            if variety_code and variety_code not in seen:
-                seen.add(variety_code)
-                varieties.append({
-                    "code": variety_code,
-                    "name": variety_code  # 暂时使用代码作为名称
-                })
-
+        # 如果都没有，返回空列表
         return {
             "success": True,
-            "varieties": varieties[:50]  # 限制返回数量
+            "varieties": []
         }
     except Exception as e:
         logger.error(f"获取品种列表失败: {e}")
@@ -181,12 +184,32 @@ async def get_all_term_structures(
             TermStructureHistory.record_date == target_date
         ).all()
 
+        # 如果指定日期没有数据，尝试获取最近的数据日期
+        actual_data_date = target_date
+        if not db_records:
+            latest_record = db.query(TermStructureHistory).order_by(
+                TermStructureHistory.record_date.desc()
+            ).first()
+            if latest_record:
+                actual_data_date = latest_record.record_date
+                db_records = db.query(TermStructureHistory).filter(
+                    TermStructureHistory.record_date == actual_data_date
+                ).all()
+
         all_data = {}
         data_source = "database"
 
         if db_records:
-            # 使用数据库数据
+            # 使用数据库数据，包含合约列表
             for record in db_records:
+                # 解析合约JSON数据
+                contracts = []
+                if record.contracts_json:
+                    try:
+                        contracts = json.loads(record.contracts_json)
+                    except:
+                        contracts = []
+
                 all_data[record.comm_code] = {
                     "variety_code": record.comm_code,
                     "variety_name": record.variety_name or record.comm_code,
@@ -194,8 +217,8 @@ async def get_all_term_structures(
                     "structure_desc": record.structure_desc,
                     "trade_suggestion": record.trade_suggestion,
                     "trade_reason": None,
-                    "contracts": [],  # 数据库记录不包含完整合约列表
-                    "total_contracts": 0,
+                    "contracts": contracts,
+                    "total_contracts": len(contracts),
                     "grade": record.grade,
                     "structure_score": record.structure_score,
                     "recommend": bool(record.recommend),
@@ -269,6 +292,8 @@ async def get_all_term_structures(
         return {
             "success": True,
             "query_date": target_date.strftime('%Y-%m-%d'),
+            "actual_data_date": actual_data_date.strftime('%Y-%m-%d'),
+            "data_date_mismatch": target_date != actual_data_date,
             "data_source": data_source,
             "total_varieties": len(commodity_dict),
             "contango_count": len(contango_varieties),

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>持仓分析 - 增强版</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="seat_config.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+        }
+        .glass-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="p-6">
+        <!-- 机构vs散户持仓对比 -->
+        <div class="glass-card mb-6">
+            <h2 class="text-xl font-bold mb-4">💼 机构vs散户持仓变化</h2>
+
+            <!-- 配置按钮 -->
+            <div class="mb-4 flex justify-between items-center">
+                <div class="flex gap-3">
+                    <el-select v-model="selectedVariety" placeholder="选择品种" @change="loadPositionData" size="small">
+                        <el-option v-for="variety in varieties" :key="variety" :label="variety" :value="variety"></el-option>
+                    </el-select>
+                    <el-select v-model="selectedPeriod" placeholder="时间周期" @change="loadPositionData" size="small">
+                        <el-option label="近7天" value="7d"></el-option>
+                        <el-option label="近14天" value="14d"></el-option>
+                        <el-option label="近30天" value="30d"></el-option>
+                    </el-select>
+                </div>
+                <el-button type="primary" size="small" @click="showSeatConfig = true">⚙️ 席位配置</el-button>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="stat-card bg-blue-50 border-blue-500">
+                    <div class="text-sm text-blue-700">机构净持仓变化</div>
+                    <div class="text-2xl font-bold" :class="institutionalChange > 0 ? 'text-red-500' : 'text-green-500'">
+                        {{ institutionalChange > 0 ? '+' : '' }}{{ formatNumber(institutionalChange) }}
+                    </div>
+                </div>
+                <div class="stat-card bg-orange-50 border-orange-500">
+                    <div class="text-sm text-orange-700">散户净持仓变化</div>
+                    <div class="text-2xl font-bold" :class="retailChange > 0 ? 'text-red-500' : 'text-green-500'">
+                        {{ retailChange > 0 ? '+' : '' }}{{ formatNumber(retailChange) }}
+                    </div>
+                </div>
+                <div class="stat-card bg-purple-50 border-purple-500">
+                    <div class="text-sm text-purple-700">机构/散户持仓比</div>
+                    <div class="text-2xl font-bold text-purple-600">
+                        {{ positionRatio.toFixed(2) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 对比图表 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="positionComparisonChart" style="height: 400px;"></div>
+                <div id="positionTrendChart" style="height: 400px;"></div>
+            </div>
+
+            <!-- 详细席位列表 -->
+            <div class="mt-6">
+                <el-tabs v-model="activeTab">
+                    <el-tab-pane label="机构席位" name="institutional">
+                        <el-table :data="institutionalSeats" stripe size="small">
+                            <el-table-column prop="name" label="席位名称" width="180"></el-table-column>
+                            <el-table-column prop="long" label="多头持仓" width="120">
+                                <template #default="scope">
+                                    {{ formatNumber(scope.row.long) }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="short" label="空头持仓" width="120">
+                                <template #default="scope">
+                                    {{ formatNumber(scope.row.short) }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="net" label="净持仓" width="120">
+                                <template #default="scope">
+                                    <span :class="scope.row.net > 0 ? 'text-red-500' : 'text-green-500'">
+                                        {{ scope.row.net > 0 ? '+' : '' }}{{ formatNumber(scope.row.net) }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="change" label="较昨日" width="120">
+                                <template #default="scope">
+                                    <span :class="scope.row.change > 0 ? 'text-red-500' : 'text-green-500'">
+                                        {{ scope.row.change > 0 ? '↑' : '↓' }} {{ Math.abs(scope.row.change) }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-tab-pane>
+                    <el-tab-pane label="散户席位" name="retail">
+                        <el-table :data="retailSeats" stripe size="small">
+                            <el-table-column prop="name" label="席位名称" width="180"></el-table-column>
+                            <el-table-column prop="long" label="多头持仓" width="120">
+                                <template #default="scope">
+                                    {{ formatNumber(scope.row.long) }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="short" label="空头持仓" width="120">
+                                <template #default="scope">
+                                    {{ formatNumber(scope.row.short) }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="net" label="净持仓" width="120">
+                                <template #default="scope">
+                                    <span :class="scope.row.net > 0 ? 'text-red-500' : 'text-green-500'">
+                                        {{ scope.row.net > 0 ? '+' : '' }}{{ formatNumber(scope.row.net) }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="change" label="较昨日" width="120">
+                                <template #default="scope">
+                                    <span :class="scope.row.change > 0 ? 'text-red-500' : 'text-green-500'">
+                                        {{ scope.row.change > 0 ? '↑' : '↓' }} {{ Math.abs(scope.row.change) }}
+                                    </span>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+        </div>
+
+        <!-- 席位配置弹窗 -->
+        <el-dialog v-model="showSeatConfig" title="席位类型配置" width="70%">
+            <div class="mb-4">
+                <h3 class="font-bold mb-2">机构席位</h3>
+                <el-tag v-for="seat in SEAT_CONFIG.institutional_seats" :key="seat" class="mr-2 mb-2">
+                    {{ seat }}
+                    <el-icon @click="removeSeat('institutional', seat)" style="cursor: pointer; margin-left: 4px;">
+                        <Close />
+                    </el-icon>
+                </el-tag>
+                <el-input v-model="newInstitutionalSeat" placeholder="添加机构席位" size="small"
+                    style="width: 200px; margin-top: 8px;" @keyup.enter="addSeat('institutional')">
+                    <template #append>
+                        <el-button @click="addSeat('institutional')">添加</el-button>
+                    </template>
+                </el-input>
+            </div>
+
+            <div>
+                <h3 class="font-bold mb-2">散户席位</h3>
+                <el-tag v-for="seat in SEAT_CONFIG.retail_seats" :key="seat" type="warning" class="mr-2 mb-2">
+                    {{ seat }}
+                    <el-icon @click="removeSeat('retail', seat)" style="cursor: pointer; margin-left: 4px;">
+                        <Close />
+                    </el-icon>
+                </el-tag>
+                <el-input v-model="newRetailSeat" placeholder="添加散户席位" size="small"
+                    style="width: 200px; margin-top: 8px;" @keyup.enter="addSeat('retail')">
+                    <template #append>
+                        <el-button @click="addSeat('retail')">添加</el-button>
+                    </template>
+                </el-input>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    varieties: ['IF', 'IC', 'IH', 'IM', 'CU', 'AL', 'ZN', 'PB', 'AU', 'AG', 'RB', 'HC'],
+                    selectedVariety: 'IF',
+                    selectedPeriod: '7d',
+                    activeTab: 'institutional',
+                    showSeatConfig: false,
+
+                    institutionalChange: 12500,
+                    retailChange: -8300,
+                    positionRatio: 2.35,
+
+                    institutionalSeats: [],
+                    retailSeats: [],
+
+                    newInstitutionalSeat: '',
+                    newRetailSeat: '',
+
+                    positionComparisonChart: null,
+                    positionTrendChart: null
+                };
+            },
+
+            mounted() {
+                this.initCharts();
+                this.loadPositionData();
+            },
+
+            methods: {
+                initCharts() {
+                    // 机构vs散户持仓对比图
+                    this.positionComparisonChart = echarts.init(document.getElementById('positionComparisonChart'));
+                    const comparisonOption = {
+                        title: { text: '机构vs散户持仓分布' },
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['机构多头', '机构空头', '散户多头', '散户空头'] },
+                        xAxis: { type: 'category', data: ['周一', '周二', '周三', '周四', '周五'] },
+                        yAxis: { type: 'value' },
+                        series: [
+                            {
+                                name: '机构多头',
+                                type: 'bar',
+                                stack: '机构',
+                                data: [32000, 33200, 34100, 35000, 36500],
+                                itemStyle: { color: '#3b82f6' }
+                            },
+                            {
+                                name: '机构空头',
+                                type: 'bar',
+                                stack: '机构',
+                                data: [-28000, -29000, -29500, -30000, -31000],
+                                itemStyle: { color: '#93c5fd' }
+                            },
+                            {
+                                name: '散户多头',
+                                type: 'bar',
+                                stack: '散户',
+                                data: [18000, 17500, 17000, 16500, 16000],
+                                itemStyle: { color: '#f97316' }
+                            },
+                            {
+                                name: '散户空头',
+                                type: 'bar',
+                                stack: '散户',
+                                data: [-15000, -14800, -14500, -14000, -13500],
+                                itemStyle: { color: '#fdba74' }
+                            }
+                        ]
+                    };
+                    this.positionComparisonChart.setOption(comparisonOption);
+
+                    // 持仓趋势图
+                    this.positionTrendChart = echarts.init(document.getElementById('positionTrendChart'));
+                    const trendOption = {
+                        title: { text: '机构/散户持仓比趋势' },
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['持仓比', '机构净持仓', '散户净持仓'] },
+                        xAxis: { type: 'category', data: ['周一', '周二', '周三', '周四', '周五'] },
+                        yAxis: [
+                            { type: 'value', name: '持仓量' },
+                            { type: 'value', name: '持仓比' }
+                        ],
+                        series: [
+                            {
+                                name: '持仓比',
+                                type: 'line',
+                                yAxisIndex: 1,
+                                data: [2.13, 2.24, 2.35, 2.48, 2.71],
+                                smooth: true,
+                                itemStyle: { color: '#8b5cf6' }
+                            },
+                            {
+                                name: '机构净持仓',
+                                type: 'line',
+                                data: [4000, 4200, 4600, 5000, 5500],
+                                smooth: true,
+                                itemStyle: { color: '#3b82f6' }
+                            },
+                            {
+                                name: '散户净持仓',
+                                type: 'line',
+                                data: [3000, 2700, 2500, 2500, 2500],
+                                smooth: true,
+                                itemStyle: { color: '#f97316' }
+                            }
+                        ]
+                    };
+                    this.positionTrendChart.setOption(trendOption);
+                },
+
+                loadPositionData() {
+                    // 模拟加载数据
+                    this.institutionalSeats = [
+                        { name: '中信期货', long: 12500, short: 8900, net: 3600, change: 350 },
+                        { name: '国泰君安', long: 10200, short: 9500, net: 700, change: -120 },
+                        { name: '海通期货', long: 9800, short: 7600, net: 2200, change: 180 },
+                        { name: '银河期货', long: 8500, short: 8200, net: 300, change: 50 }
+                    ];
+
+                    this.retailSeats = [
+                        { name: '东方财富', long: 5200, short: 6800, net: -1600, change: -200 },
+                        { name: '同花顺期货', long: 4800, short: 5200, net: -400, change: -150 },
+                        { name: '一德期货', long: 3500, short: 3200, net: 300, change: 80 },
+                        { name: '金瑞期货', long: 2800, short: 2600, net: 200, change: 30 }
+                    ];
+                },
+
+                formatNumber(num) {
+                    if (!num) return '0';
+                    return num.toLocaleString();
+                },
+
+                addSeat(type) {
+                    if (type === 'institutional' && this.newInstitutionalSeat) {
+                        SEAT_CONFIG.institutional_seats.push(this.newInstitutionalSeat);
+                        this.newInstitutionalSeat = '';
+                        this.$message.success('添加成功');
+                    } else if (type === 'retail' && this.newRetailSeat) {
+                        SEAT_CONFIG.retail_seats.push(this.newRetailSeat);
+                        this.newRetailSeat = '';
+                        this.$message.success('添加成功');
+                    }
+                },
+
+                removeSeat(type, seat) {
+                    if (type === 'institutional') {
+                        const index = SEAT_CONFIG.institutional_seats.indexOf(seat);
+                        if (index > -1) {
+                            SEAT_CONFIG.institutional_seats.splice(index, 1);
+                            this.$message.success('删除成功');
+                        }
+                    } else if (type === 'retail') {
+                        const index = SEAT_CONFIG.retail_seats.indexOf(seat);
+                        if (index > -1) {
+                            SEAT_CONFIG.retail_seats.splice(index, 1);
+                            this.$message.success('删除成功');
+                        }
+                    }
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+
+        // 响应式调整
+        window.addEventListener('resize', () => {
+            if (window.positionComparisonChart) {
+                window.positionComparisonChart.resize();
+            }
+            if (window.positionTrendChart) {
+                window.positionTrendChart.resize();
+            }
+        });
+    </script>
+</body>
+</html>

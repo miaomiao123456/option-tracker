@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>研报详情 - OptionAlpha</title>
     <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
     <!-- Element Plus -->
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
-    <script src="https://unpkg.com/element-plus"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -488,35 +488,63 @@
                 const loadData = async () => {
                     if (!varietyCode.value) {
                         console.error('缺少品种代码参数');
+                        ElementPlus.ElMessage.warning('缺少品种代码参数,请从主页面进入');
                         return;
                     }
 
                     loading.value = true;
                     try {
+                        console.log('Loading research summary for:', varietyCode.value, selectedDate.value);
+
                         // Load research summary
                         const summaryRes = await fetch(
                             `${API_BASE}/zhihui/research-summary?comm_code=${varietyCode.value}&query_date=${selectedDate.value}`
                         );
+
+                        console.log('Summary API response status:', summaryRes.status);
+
                         if (summaryRes.ok) {
-                            varietyInfo.value = await summaryRes.json();
+                            const summaryData = await summaryRes.json();
+                            console.log('Summary data received:', summaryData);
+
+                            if (summaryData.success) {
+                                varietyInfo.value = summaryData;
+                                ElementPlus.ElMessage.success('研报汇总加载成功');
+                            } else {
+                                console.warn('Summary API returned success=false:', summaryData);
+                                ElementPlus.ElMessage.warning(summaryData.message || '暂无研报汇总数据');
+                            }
+                        } else {
+                            console.error('Summary API failed with status:', summaryRes.status);
+                            ElementPlus.ElMessage.error('研报汇总加载失败');
                         }
 
                         // Load all research reports
                         const reportsRes = await fetch(
                             `${API_BASE}/zhihui/research-reports?query_date=${selectedDate.value}`
                         );
+
+                        console.log('Reports API response status:', reportsRes.status);
+
                         if (reportsRes.ok) {
                             const reportsData = await reportsRes.json();
-                            if (reportsData.success) {
+                            console.log('Reports data received:', reportsData);
+
+                            if (reportsData.success && reportsData.data) {
                                 // Filter reports for this variety
                                 reportDetails.value = reportsData.data.filter(
                                     r => r.comm_code === varietyCode.value
                                 );
+                                console.log('Filtered report details:', reportDetails.value.length, 'reports');
+                            } else {
+                                console.warn('Reports API returned unexpected format:', reportsData);
                             }
+                        } else {
+                            console.error('Reports API failed with status:', reportsRes.status);
                         }
                     } catch (error) {
                         console.error('加载研报数据失败:', error);
-                        ElementPlus.ElMessage.error('加载研报数据失败');
+                        ElementPlus.ElMessage.error('加载研报数据失败: ' + error.message);
                     } finally {
                         loading.value = false;
                     }

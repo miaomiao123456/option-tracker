@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 API测试页面</h1>
+
+    <!-- 机会雷达测试 -->
+    <div class="section">
+        <h2>1. 机会雷达 API</h2>
+        <button onclick="testOpportunityRadar()">测试机会雷达</button>
+        <button onclick="window.open('opportunity_radar.html', '_blank')">打开机会雷达页面</button>
+        <div id="radar-status" class="status loading">等待测试...</div>
+        <pre id="radar-result"></pre>
+    </div>
+
+    <!-- 虚实比测试 -->
+    <div class="section">
+        <h2>2. 虚实比/价格压力 API</h2>
+        <button onclick="testVirtualRealRatio()">测试虚实比</button>
+        <button onclick="window.open('virtual_real_ratio.html', '_blank')">打开虚实比页面</button>
+        <div id="vrr-status" class="status loading">等待测试...</div>
+        <pre id="vrr-result"></pre>
+    </div>
+
+    <!-- 资金流向测试 -->
+    <div class="section">
+        <h2>3. 资金流向 API</h2>
+        <button onclick="testCapitalFlow()">测试资金流向</button>
+        <button onclick="window.open('frontend.html', '_blank')">打开主页面</button>
+        <div id="capital-status" class="status loading">等待测试...</div>
+        <pre id="capital-result"></pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8001/api/v1';
+
+        async function testOpportunityRadar() {
+            const statusEl = document.getElementById('radar-status');
+            const resultEl = document.getElementById('radar-result');
+
+            statusEl.className = 'status loading';
+            statusEl.textContent = '测试中...';
+
+            try {
+                // 测试统计API
+                const statsRes = await fetch(`${API_BASE}/comprehensive/stats`);
+                const statsData = await statsRes.json();
+
+                // 测试机会列表API
+                const oppsRes = await fetch(`${API_BASE}/comprehensive/opportunities?min_grade=B`);
+                const oppsData = await oppsRes.json();
+
+                if (statsData.success && oppsData.success) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = `✅ 测试成功! 扫描了 ${statsData.stats.total_varieties} 个品种,发现 ${oppsData.stats.total_opportunities} 个机会`;
+                    resultEl.textContent = JSON.stringify({
+                        stats: statsData.stats,
+                        opportunities_sample: oppsData.opportunities.slice(0, 3)
+                    }, null, 2);
+                } else {
+                    throw new Error('API返回失败');
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ 测试失败: ' + error.message;
+                resultEl.textContent = error.stack;
+            }
+        }
+
+        async function testVirtualRealRatio() {
+            const statusEl = document.getElementById('vrr-status');
+            const resultEl = document.getElementById('vrr-result');
+
+            statusEl.className = 'status loading';
+            statusEl.textContent = '测试中...';
+
+            try {
+                // 测试汇总API
+                const summaryRes = await fetch(`${API_BASE}/virtual-real-ratio/summary`);
+                const summaryData = await summaryRes.json();
+
+                // 测试列表API
+                const listRes = await fetch(`${API_BASE}/virtual-real-ratio/list`);
+                const listData = await listRes.json();
+
+                statusEl.className = 'status success';
+                statusEl.textContent = `✅ 测试成功! 总品种: ${summaryData.total_varieties}, 高风险: ${summaryData.high_risk_count}, 数据条数: ${listData.length}`;
+                resultEl.textContent = JSON.stringify({
+                    summary: summaryData,
+                    list_sample: listData.slice(0, 3)
+                }, null, 2);
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ 测试失败: ' + error.message;
+                resultEl.textContent = error.stack;
+            }
+        }
+
+        async function testCapitalFlow() {
+            const statusEl = document.getElementById('capital-status');
+            const resultEl = document.getElementById('capital-result');
+
+            statusEl.className = 'status loading';
+            statusEl.textContent = '测试中...';
+
+            try {
+                const res = await fetch(`${API_BASE}/capital/option-flow/all?hours=24`);
+                const data = await res.json();
+
+                statusEl.className = 'status success';
+                statusEl.textContent = `✅ 测试成功! 品种数: ${data.varieties.length}, 总记录数: ${data.total_count}`;
+                resultEl.textContent = JSON.stringify({
+                    varieties: data.varieties,
+                    total_count: data.total_count
+                }, null, 2);
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ 测试失败: ' + error.message;
+                resultEl.textContent = error.stack;
+            }
+        }
+
+        // 页面加载时自动测试所有API
+        window.onload = function() {
+            setTimeout(() => {
+                testOpportunityRadar();
+                testVirtualRealRatio();
+                testCapitalFlow();
+            }, 500);
+        }
+    </script>
+</body>
+</html>

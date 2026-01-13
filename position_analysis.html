@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>持仓分析 - OptionAlpha</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.14/dist/index.full.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); color: white; }
+        .rank-other { background: #e5e7eb; color: #6b7280; }
+
+        .change-up { color: #f56c6c; font-weight: bold; }
+        .change-down { color: #67c23a; font-weight: bold; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div style="max-width: 1600px; margin: 0 auto;">
+            <div class="glass-card">
+                <h1 style="margin: 0 0 20px 0; font-size: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    📊 持仓分析
+                </h1>
+
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; align-items: center;">
+                    <el-input v-model="varietyName" placeholder="品种名称(如: 螺纹钢)" style="width: 200px;"></el-input>
+                    <el-input v-model="contractCode" placeholder="合约代码(如: rb2603)" style="width: 200px;"></el-input>
+                    <el-button type="primary" @click="loadData" :loading="loading" size="large">
+                        🔍 查询
+                    </el-button>
+                </div>
+
+                <div v-if="positionData" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                    <div class="stat-card">
+                        <div class="stat-label">多头前5总计</div>
+                        <div class="stat-value">{{ positionData.long_top5_total?.toLocaleString() }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">空头前5总计</div>
+                        <div class="stat-value">{{ positionData.short_top5_total?.toLocaleString() }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">多空比</div>
+                        <div class="stat-value">{{ positionData.long_short_ratio }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 机构vs散户对比 -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; font-size: 20px;">
+                        🏢 机构 vs 散户持仓趋势
+                    </h2>
+                    <el-button type="primary" size="small" @click="showSeatConfig = true">
+                        ⚙️ 配置机构席位
+                    </el-button>
+                </div>
+                <div v-if="institutionTrendData" id="institutionChart" class="chart-container"></div>
+                <el-empty v-else description="请先查询持仓数据" :image-size="100"></el-empty>
+            </div>
+
+            <!-- 席位配置对话框 -->
+            <el-dialog v-model="showSeatConfig" title="机构席位配置" width="600px">
+                <div style="margin-bottom: 16px;">
+                    <p style="color: #666; margin-bottom: 12px;">请选择机构席位（可搜索）:</p>
+                    <el-select
+                        v-model="selectedInstitutionSeats"
+                        multiple
+                        filterable
+                        placeholder="搜索并选择机构席位"
+                        style="width: 100%;"
+                        :multiple-limit="20">
+                        <el-option
+                            v-for="broker in allBrokersList"
+                            :key="broker"
+                            :label="broker"
+                            :value="broker">
+                        </el-option>
+                    </el-select>
+                    <div style="margin-top: 12px; color: #909399; font-size: 13px;">
+                        已选择 {{ selectedInstitutionSeats.length }} 个机构席位
+                    </div>
+                </div>
+                <template #footer>
+                    <el-button @click="showSeatConfig = false">取消</el-button>
+                    <el-button type="primary" @click="saveSeatConfig">保存</el-button>
+                </template>
+            </el-dialog>
+
+            <!-- 持仓趋势图 -->
+            <div v-if="fullData" class="glass-card">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px;">
+                    📈 持仓趋势分析
+                </h2>
+                <div id="trendChart" class="chart-container"></div>
+            </div>
+
+            <!-- 多空对比图 -->
+            <div v-if="fullData" class="glass-card">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px;">
+                    ⚖️ 多空对比
+                </h2>
+                <div id="comparisonChart" class="chart-container"></div>
+            </div>
+
+            <!-- 净持仓趋势 -->
+            <div v-if="fullData" class="glass-card">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px;">
+                    📊 净持仓趋势
+                </h2>
+                <div id="netPositionChart" class="chart-container"></div>
+            </div>
+
+            <!-- 持仓季节性分析 -->
+            <div class="glass-card">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px;">
+                    📅 持仓季节性分析
+                </h2>
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; align-items: center;">
+                    <el-select v-model="seasonalVariety" placeholder="选择品种" style="width: 150px;">
+                        <el-option v-for="v in commonVarieties" :key="v.code" :label="v.name" :value="v.code"></el-option>
+                    </el-select>
+                    <el-select v-model="seasonalContract" placeholder="当前合约" style="width: 150px;">
+                        <el-option label="2501" value="2501"></el-option>
+                        <el-option label="2502" value="2502"></el-option>
+                        <el-option label="2503" value="2503"></el-option>
+                        <el-option label="2504" value="2504"></el-option>
+                        <el-option label="2505" value="2505"></el-option>
+                        <el-option label="2506" value="2506"></el-option>
+                        <el-option label="2509" value="2509"></el-option>
+                        <el-option label="2510" value="2510"></el-option>
+                        <el-option label="2511" value="2511"></el-option>
+                        <el-option label="2512" value="2512"></el-option>
+                    </el-select>
+                    <el-button type="primary" @click="loadSeasonalData" :loading="seasonalLoading">
+                        分析
+                    </el-button>
+                </div>
+                <div v-if="seasonalData" id="seasonalChart" class="chart-container"></div>
+                <el-empty v-else description="请选择品种和合约进行分析" :image-size="100"></el-empty>
+            </div>
+
+            <!-- 机构vs散户对比 -->
+            <div class="glass-card">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px;">
+                    🏢 机构 vs 散户持仓对比
+                </h2>
+                <div style="margin-bottom: 20px;">
+                    <el-button type="primary" @click="showSeatConfig = true">
+                        ⚙️ 配置机构席位
+                    </el-button>
+                </div>
+                <div v-if="institutionData" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="stat-label">机构净持仓</div>
+                        <div class="stat-value">{{ institutionData.institution.net_position.toLocaleString() }}</div>
+                        <div class="stat-label">方向: {{ institutionData.institution.direction === 'long' ? '多头' : '空头' }}</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="stat-label">散户净持仓</div>
+                        <div class="stat-value">{{ institutionData.retail.net_position.toLocaleString() }}</div>
+                        <div class="stat-label">方向: {{ institutionData.retail.direction === 'long' ? '多头' : '空头' }}</div>
+                    </div>
+                </div>
+                <div v-if="institutionData && institutionData.divergence" style="padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-bottom: 20px;">
+                    <strong>⚠️ 机构与散户持仓方向相反!</strong>
+                </div>
+                <el-empty v-if="!institutionData" description="请先查询持仓数据" :image-size="100"></el-empty>
+            </div>
+
+            <!-- 席位配置对话框 -->
+            <el-dialog v-model="showSeatConfig" title="机构席位配置" width="600px">
+                <div style="margin-bottom: 16px;">
+                    <p style="color: #666; margin-bottom: 12px;">请输入机构席位名称,一行一个:</p>
+                    <el-input
+                        v-model="institutionSeats"
+                        type="textarea"
+                        :rows="10"
+                        placeholder="例如:&#10;中信期货&#10;永安期货&#10;国泰君安&#10;...">
+                    </el-input>
+                </div>
+                <template #footer>
+                    <el-button @click="showSeatConfig = false">取消</el-button>
+                    <el-button type="primary" @click="saveSeatConfig">保存</el-button>
+                </template>
+            </el-dialog>
+
+            <div v-if="positionData" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- 多头席位 -->
+                <div class="glass-card">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #f56c6c;">
+                        🔴 多头席位 Top 20
+                    </h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>席位</th>
+                                <th>持仓量</th>
+                                <th>增减</th>
+                                <th>净持仓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="pos in positionData.long_positions" :key="pos.rank">
+                                <td>
+                                    <span :class="`rank-badge ${getRankClass(pos.rank)}`">
+                                        {{ pos.rank }}
+                                    </span>
+                                </td>
+                                <td style="font-weight: 500;">{{ pos.broker }}</td>
+                                <td>{{ pos.volume.toLocaleString() }}</td>
+                                <td :class="pos.change >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.change >= 0 ? '+' : '' }}{{ pos.change }}
+                                </td>
+                                <td :class="pos.net_position >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.net_position.toLocaleString() }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 空头席位 -->
+                <div class="glass-card">
+                    <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #67c23a;">
+                        🟢 空头席位 Top 20
+                    </h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>席位</th>
+                                <th>持仓量</th>
+                                <th>增减</th>
+                                <th>净持仓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="pos in positionData.short_positions" :key="pos.rank">
+                                <td>
+                                    <span :class="`rank-badge ${getRankClass(pos.rank)}`">
+                                        {{ pos.rank }}
+                                    </span>
+                                </td>
+                                <td style="font-weight: 500;">{{ pos.broker }}</td>
+                                <td>{{ pos.volume.toLocaleString() }}</td>
+                                <td :class="pos.change >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.change >= 0 ? '+' : '' }}{{ pos.change }}
+                                </td>
+                                <td :class="pos.net_position >= 0 ? 'change-up' : 'change-down'">
+                                    {{ pos.net_position.toLocaleString() }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div v-if="error" class="glass-card" style="background: #fee; color: #c00;">
+                <h3>❌ 错误</h3>
+                <p>{{ error }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, nextTick } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            setup() {
+                const varietyName = ref('螺纹钢');
+                const contractCode = ref('rb2603');
+                const loading = ref(false);
+                const positionData = ref(null);
+                const fullData = ref(null);
+                const error = ref(null);
+
+                // 季节性分析相关
+                const seasonalVariety = ref('');
+                const seasonalContract = ref('');
+                const seasonalData = ref(null);
+                const seasonalLoading = ref(false);
+                const commonVarieties = ref([
+                    { code: 'rb', name: '螺纹钢' },
+                    { code: 'hc', name: '热轧卷板' },
+                    { code: 'i', name: '铁矿石' },
+                    { code: 'j', name: '焦炭' },
+                    { code: 'jm', name: '焦煤' },
+                    { code: 'cu', name: '铜' },
+                    { code: 'al', name: '铝' },
+                    { code: 'zn', name: '锌' },
+                    { code: 'au', name: '黄金' },
+                    { code: 'ag', name: '白银' }
+                ]);
+
+                // 机构vs散户相关
+                const institutionData = ref(null);
+                const showSeatConfig = ref(false);
+                const institutionSeats = ref('');
+
+                const API_BASE = 'http://localhost:8001/api/v1';
+
+                let trendChart = null;
+                let comparisonChart = null;
+                let netPositionChart = null;
+                let seasonalChart = null;
+
+                const loadData = async () => {
+                    loading.value = true;
+                    error.value = null;
+
+                    try {
+                        // 加载基本持仓数据
+                        const posUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(varietyName.value)}/${contractCode.value}`;
+                        const posResponse = await fetch(posUrl);
+
+                        if (!posResponse.ok) {
+                            throw new Error(`HTTP ${posResponse.status}: ${posResponse.statusText}`);
+                        }
+
+                        const posResult = await posResponse.json();
+
+                        if (posResult.success) {
+                            positionData.value = posResult;
+                            ElMessage.success('持仓数据加载成功');
+                        } else {
+                            throw new Error(posResult.error || '获取持仓数据失败');
+                        }
+
+                        // 加载完整数据(包含趋势)
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(varietyName.value)}/${contractCode.value}/full`;
+                        const fullResponse = await fetch(fullUrl);
+
+                        if (!fullResponse.ok) {
+                            throw new Error(`HTTP ${fullResponse.status}: ${fullResponse.statusText}`);
+                        }
+
+                        const fullResult = await fullResponse.json();
+
+                        if (fullResult.success) {
+                            fullData.value = fullResult.data;
+                            ElMessage.success('趋势数据加载成功');
+
+                            // 渲染图表
+                            await nextTick();
+                            renderCharts();
+                        } else {
+                            throw new Error(fullResult.error || '获取趋势数据失败');
+                        }
+
+                        // 加载机构vs散户数据
+                        await loadInstitutionData();
+                    } catch (err) {
+                        console.error('加载失败:', err);
+                        error.value = err.message;
+                        ElMessage.error('加载失败: ' + err.message);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const renderCharts = () => {
+                    if (!fullData.value) return;
+
+                    const data = fullData.value;
+
+                    // 持仓趋势图
+                    if (!trendChart) {
+                        trendChart = echarts.init(document.getElementById('trendChart'));
+                    }
+
+                    trendChart.setOption({
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data: ['多头总持仓', '空头总持仓']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: data.dates,
+                            axisLabel: {
+                                rotate: 45
+                            }
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                name: '多头总持仓',
+                                type: 'line',
+                                data: data.total_buy,
+                                itemStyle: { color: '#f56c6c' },
+                                smooth: true
+                            },
+                            {
+                                name: '空头总持仓',
+                                type: 'line',
+                                data: data.total_ss,
+                                itemStyle: { color: '#67c23a' },
+                                smooth: true
+                            }
+                        ]
+                    });
+
+                    // 多空对比图
+                    if (!comparisonChart) {
+                        comparisonChart = echarts.init(document.getElementById('comparisonChart'));
+                    }
+
+                    comparisonChart.setOption({
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data: ['多头净增', '空头净增']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: data.dates,
+                            axisLabel: {
+                                rotate: 45
+                            }
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                name: '多头净增',
+                                type: 'bar',
+                                data: data.net_buy,
+                                itemStyle: { color: '#f56c6c' }
+                            },
+                            {
+                                name: '空头净增',
+                                type: 'bar',
+                                data: data.net_ss,
+                                itemStyle: { color: '#67c23a' }
+                            }
+                        ]
+                    });
+
+                    // 净持仓趋势
+                    if (!netPositionChart) {
+                        netPositionChart = echarts.init(document.getElementById('netPositionChart'));
+                    }
+
+                    // 计算净持仓 (多头 - 空头)
+                    const netPosition = data.total_buy.map((buy, idx) => buy - data.total_ss[idx]);
+
+                    netPositionChart.setOption({
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data: ['净持仓']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: data.dates,
+                            axisLabel: {
+                                rotate: 45
+                            }
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                name: '净持仓',
+                                type: 'line',
+                                data: netPosition,
+                                itemStyle: {
+                                    color: (params) => {
+                                        return params.data >= 0 ? '#f56c6c' : '#67c23a';
+                                    }
+                                },
+                                areaStyle: {
+                                    color: {
+                                        type: 'linear',
+                                        x: 0,
+                                        y: 0,
+                                        x2: 0,
+                                        y2: 1,
+                                        colorStops: [{
+                                            offset: 0,
+                                            color: 'rgba(245, 108, 108, 0.3)'
+                                        }, {
+                                            offset: 1,
+                                            color: 'rgba(245, 108, 108, 0.1)'
+                                        }]
+                                    }
+                                },
+                                smooth: true
+                            }
+                        ]
+                    });
+                };
+
+                const loadSeasonalData = async () => {
+                    if (!seasonalVariety.value || !seasonalContract.value) {
+                        ElMessage.warning('请选择品种和合约');
+                        return;
+                    }
+
+                    seasonalLoading.value = true;
+                    try {
+                        // 获取当前品种的对应中文名
+                        const variety = commonVarieties.value.find(v => v.code === seasonalVariety.value);
+                        if (!variety) {
+                            throw new Error('品种不存在');
+                        }
+
+                        const contractCode = `${seasonalVariety.value}${seasonalContract.value}`;
+
+                        // 获取完整的历史数据
+                        const fullUrl = `${API_BASE}/capital/jiaoyikecha/${encodeURIComponent(variety.name)}/${contractCode}/full`;
+                        const response = await fetch(fullUrl);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+
+                        const result = await response.json();
+
+                        if (result.success && result.data) {
+                            seasonalData.value = result.data;
+                            ElMessage.success('季节性数据加载成功');
+
+                            // 渲染季节性图表
+                            await nextTick();
+                            renderSeasonalChart();
+                        } else {
+                            throw new Error(result.error || '获取季节性数据失败');
+                        }
+                    } catch (err) {
+                        console.error('加载季节性数据失败:', err);
+                        ElMessage.error('加载失败: ' + err.message);
+                    } finally {
+                        seasonalLoading.value = false;
+                    }
+                };
+
+                const renderSeasonalChart = () => {
+                    if (!seasonalData.value) return;
+
+                    const data = seasonalData.value;
+
+                    if (!seasonalChart) {
+                        seasonalChart = echarts.init(document.getElementById('seasonalChart'));
+                    }
+
+                    // 计算净持仓
+                    const netPosition = data.total_buy.map((buy, idx) => buy - data.total_ss[idx]);
+
+                    seasonalChart.setOption({
+                        title: {
+                            text: `${seasonalVariety.value}${seasonalContract.value} 持仓季节性分析`,
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                let result = params[0].name + '<br/>';
+                                params.forEach(item => {
+                                    result += item.marker + item.seriesName + ': ' + item.value.toLocaleString() + '<br/>';
+                                });
+                                return result;
+                            }
+                        },
+                        legend: {
+                            data: ['多头持仓', '空头持仓', '净持仓'],
+                            top: 30
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            top: 80,
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: data.dates,
+                            axisLabel: {
+                                rotate: 45,
+                                fontSize: 10
+                            }
+                        },
+                        yAxis: [
+                            {
+                                type: 'value',
+                                name: '持仓量',
+                                position: 'left'
+                            },
+                            {
+                                type: 'value',
+                                name: '净持仓',
+                                position: 'right'
+                            }
+                        ],
+                        series: [
+                            {
+                                name: '多头持仓',
+                                type: 'line',
+                                data: data.total_buy,
+                                itemStyle: { color: '#f56c6c' },
+                                smooth: true,
+                                yAxisIndex: 0
+                            },
+                            {
+                                name: '空头持仓',
+                                type: 'line',
+                                data: data.total_ss,
+                                itemStyle: { color: '#67c23a' },
+                                smooth: true,
+                                yAxisIndex: 0
+                            },
+                            {
+                                name: '净持仓',
+                                type: 'bar',
+                                data: netPosition,
+                                itemStyle: {
+                                    color: function(params) {
+                                        return params.data >= 0 ? '#f56c6c' : '#67c23a';
+                                    }
+                                },
+                                yAxisIndex: 1
+                            }
+                        ]
+                    });
+                };
+
+                const loadInstitutionData = async () => {
+                    if (!positionData.value || !positionData.value.long_positions || !positionData.value.short_positions) {
+                        return;
+                    }
+
+                    try {
+                        // 从localStorage加载机构席位配置
+                        const savedSeats = localStorage.getItem('institutionSeats');
+                        if (savedSeats) {
+                            institutionSeats.value = savedSeats;
+                        }
+
+                        const institutionList = institutionSeats.value.split('\n').filter(s => s.trim()).map(s => s.trim());
+
+                        if (institutionList.length === 0) {
+                            // 如果没有配置,默认前10名为机构
+                            const allPositions = [...positionData.value.long_positions, ...positionData.value.short_positions];
+                            const topBrokers = [...new Set(allPositions.slice(0, 10).map(p => p.broker))];
+                            institutionList.push(...topBrokers);
+                        }
+
+                        // 计算机构和散户持仓
+                        let institutionLong = 0;
+                        let institutionShort = 0;
+                        let retailLong = 0;
+                        let retailShort = 0;
+
+                        positionData.value.long_positions.forEach(pos => {
+                            const isInstitution = institutionList.some(inst => pos.broker.includes(inst));
+                            if (isInstitution) {
+                                institutionLong += pos.volume;
+                            } else {
+                                retailLong += pos.volume;
+                            }
+                        });
+
+                        positionData.value.short_positions.forEach(pos => {
+                            const isInstitution = institutionList.some(inst => pos.broker.includes(inst));
+                            if (isInstitution) {
+                                institutionShort += pos.volume;
+                            } else {
+                                retailShort += pos.volume;
+                            }
+                        });
+
+                        const institutionNet = institutionLong - institutionShort;
+                        const retailNet = retailLong - retailShort;
+
+                        institutionData.value = {
+                            institution: {
+                                long_position: institutionLong,
+                                short_position: institutionShort,
+                                net_position: institutionNet,
+                                direction: institutionNet >= 0 ? 'long' : 'short'
+                            },
+                            retail: {
+                                long_position: retailLong,
+                                short_position: retailShort,
+                                net_position: retailNet,
+                                direction: retailNet >= 0 ? 'long' : 'short'
+                            },
+                            divergence: institutionNet * retailNet < 0
+                        };
+                    } catch (err) {
+                        console.error('加载机构数据失败:', err);
+                    }
+                };
+
+                const saveSeatConfig = () => {
+                    try {
+                        localStorage.setItem('institutionSeats', institutionSeats.value);
+                        ElMessage.success('机构席位配置已保存');
+                        showSeatConfig.value = false;
+
+                        // 重新加载机构数据
+                        loadInstitutionData();
+                    } catch (err) {
+                        console.error('保存配置失败:', err);
+                        ElMessage.error('保存失败');
+                    }
+                };
+
+                const getRankClass = (rank) => {
+                    if (rank === 1) return 'rank-1';
+                    if (rank === 2) return 'rank-2';
+                    if (rank === 3) return 'rank-3';
+                    return 'rank-other';
+                };
+
+                // 自动加载默认数据
+                loadData();
+
+                return {
+                    varietyName,
+                    contractCode,
+                    loading,
+                    positionData,
+                    fullData,
+                    error,
+                    loadData,
+                    getRankClass,
+                    // 季节性分析
+                    seasonalVariety,
+                    seasonalContract,
+                    seasonalData,
+                    seasonalLoading,
+                    commonVarieties,
+                    loadSeasonalData,
+                    // 机构vs散户
+                    institutionData,
+                    showSeatConfig,
+                    institutionSeats,
+                    saveSeatConfig
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>
